@@ -32,7 +32,7 @@
 #include <QScreen>
 //#include <QX11Info>
 
-using namespace KScreen;
+using namespace Disman;
 
 QString typetoString(const Output::Type& type)
 {
@@ -84,13 +84,13 @@ TestPnp::~TestPnp()
 
 void TestPnp::init()
 {
-    connect(new KScreen::GetConfigOperation(), &KScreen::GetConfigOperation::finished,
+    connect(new Disman::GetConfigOperation(), &Disman::GetConfigOperation::finished,
             this, &TestPnp::configReady);
 }
 
-void TestPnp::configReady(KScreen::ConfigOperation *op)
+void TestPnp::configReady(Disman::ConfigOperation *op)
 {
-    m_config = qobject_cast<KScreen::GetConfigOperation*>(op)->config();
+    m_config = qobject_cast<Disman::GetConfigOperation*>(op)->config();
     if (!m_config) {
         qDebug() << "Config is invalid, probably backend couldn't load";
         qApp->quit();

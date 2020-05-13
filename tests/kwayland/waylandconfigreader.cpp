@@ -28,7 +28,7 @@
 
 #include "edid.h"
 
-using namespace KScreen;
+using namespace Disman;
 
 static QList<int> s_outputIds;
 
@@ -151,7 +151,7 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
     return outputdevice;
 }
 
-QList<KWayland::Server::OutputInterface *> KScreen::WaylandConfigReader::createOutputs(KWayland::Server::Display* display, QList<KWayland::Server::OutputDeviceInterface *>& outputdevices)
+QList<KWayland::Server::OutputInterface *> Disman::WaylandConfigReader::createOutputs(KWayland::Server::Display* display, QList<KWayland::Server::OutputDeviceInterface *>& outputdevices)
 {
     const QMap <KWayland::Server::OutputDeviceInterface::Transform,
                       KWayland::Server::OutputInterface::Transform> transformMap = {

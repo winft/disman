@@ -26,7 +26,7 @@
 #include <KWayland/Client/outputconfiguration.h>
 #include <KWayland/Client/outputdevice.h>
 
-using namespace KScreen;
+using namespace Disman;
 namespace Wl = KWayland::Client;
 
 const QMap<Wl::OutputDevice::Transform, Output::Rotation>
@@ -41,7 +41,7 @@ s_rotationMap = {
     {Wl::OutputDevice::Transform::Flipped270, Output::Left}
 };
 
-Output::Rotation toKScreenRotation(const Wl::OutputDevice::Transform transform)
+Output::Rotation toDismanRotation(const Wl::OutputDevice::Transform transform)
 {
     auto it = s_rotationMap.constFind(transform);
     return it.value();
@@ -87,15 +87,15 @@ void WaylandOutput::createOutputDevice(Wl::Registry *registry, quint32 name, qui
     });
 }
 
-OutputPtr WaylandOutput::toKScreenOutput()
+OutputPtr WaylandOutput::toDismanOutput()
 {
     OutputPtr output(new Output());
     output->setId(m_id);
-    updateKScreenOutput(output);
+    updateDismanOutput(output);
     return output;
 }
 
-void WaylandOutput::updateKScreenOutput(OutputPtr &output)
+void WaylandOutput::updateDismanOutput(OutputPtr &output)
 {
     // Initialize primary output
     output->setId(m_id);
@@ -118,13 +118,13 @@ void WaylandOutput::updateKScreenOutput(OutputPtr &output)
 
         QString modeId = QString::number(wlMode.id);
         if (modeId.isEmpty()) {
-            qCDebug(KSCREEN_WAYLAND) << "Could not create mode id from"
+            qCDebug(DISMAN_WAYLAND) << "Could not create mode id from"
                                      << wlMode.id << ", using" << name << "instead.";
             modeId = name;
         }
 
         if (m_modeIdMap.contains(modeId)) {
-            qCWarning(KSCREEN_WAYLAND) << "Mode id already in use:" << modeId;
+            qCWarning(DISMAN_WAYLAND) << "Mode id already in use:" << modeId;
         }
         mode->setId(modeId);
 
@@ -140,14 +140,14 @@ void WaylandOutput::updateKScreenOutput(OutputPtr &output)
             preferredModeIds << modeId;
         }
 
-        // Update the kscreen => kwayland mode id translation map
+        // Update the disman => kwayland mode id translation map
         m_modeIdMap.insert(modeId, wlMode.id);
         // Add to the modelist which gets set on the output
         modeList[modeId] = mode;
     }
 
     if (currentModeId == QLatin1String("-1")) {
-        qCWarning(KSCREEN_WAYLAND) << "Could not find the current mode id" << modeList;
+        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
     }
 
     output->setCurrentModeId(currentModeId);
@@ -158,7 +158,7 @@ void WaylandOutput::updateKScreenOutput(OutputPtr &output)
 }
 
 bool WaylandOutput::setWlConfig(Wl::OutputConfiguration *wlConfig,
-                                const KScreen::OutputPtr &output)
+                                const Disman::OutputPtr &output)
 {
     bool changed = false;
 
@@ -184,7 +184,7 @@ bool WaylandOutput::setWlConfig(Wl::OutputConfiguration *wlConfig,
     }
 
     // rotation
-    if (toKScreenRotation(m_device->transform()) != output->rotation()) {
+    if (toDismanRotation(m_device->transform()) != output->rotation()) {
         changed = true;
         wlConfig->setTransform(m_device, toKWaylandTransform(output->rotation()));
     }
@@ -197,7 +197,7 @@ bool WaylandOutput::setWlConfig(Wl::OutputConfiguration *wlConfig,
             wlConfig->setMode(m_device, newModeId);
         }
     } else {
-        qCWarning(KSCREEN_WAYLAND) << "Invalid kscreen mode id:" << output->currentModeId()
+        qCWarning(DISMAN_WAYLAND) << "Invalid disman mode id:" << output->currentModeId()
                                    << "\n\n" << m_modeIdMap;
     }
     return changed;

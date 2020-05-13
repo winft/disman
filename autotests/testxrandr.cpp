@@ -26,7 +26,7 @@
 #include "../src/mode.h"
 #include "../src/getconfigoperation.h"
 
-using namespace KScreen;
+using namespace Disman;
 
 class testXRandR : public QObject
 {
@@ -46,7 +46,7 @@ void testXRandR::initTestCase()
 
 void testXRandR::singleOutput()
 {
-    qputenv("KSCREEN_BACKEND", "XRandR");
+    qputenv("DISMAN_BACKEND", "XRandR");
 
     GetConfigOperation *op = new GetConfigOperation();
     QVERIFY(op->exec());

@@ -23,7 +23,7 @@
 #include <QSize>
 
 class XRandRConfig;
-namespace KScreen
+namespace Disman
 {
 class Screen;
 class Config;
@@ -37,8 +37,8 @@ public:
     explicit XRandRScreen(XRandRConfig *config = nullptr);
     ~XRandRScreen() override;
 
-    KScreen::ScreenPtr toKScreenScreen() const;
-    void updateKScreenScreen(KScreen::ScreenPtr &screen) const;
+    Disman::ScreenPtr toDismanScreen() const;
+    void updateDismanScreen(Disman::ScreenPtr &screen) const;
 
     void update();
     void update(const QSize &size);

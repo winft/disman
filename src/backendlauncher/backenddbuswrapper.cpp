@@ -20,7 +20,7 @@
 #include "backenddbuswrapper.h"
 #include "backendloader.h"
 #include "backendadaptor.h"
-#include "kscreen_backendLauncher_debug.h"
+#include "disman_backend_launcher_debug.h"
 
 #include "src/configserializer_p.h"
 #include "src/config.h"
@@ -29,11 +29,11 @@
 #include <QDBusConnection>
 #include <QDBusError>
 
-BackendDBusWrapper::BackendDBusWrapper(KScreen::AbstractBackend* backend)
+BackendDBusWrapper::BackendDBusWrapper(Disman::AbstractBackend* backend)
     : QObject()
     , mBackend(backend)
 {
-    connect(mBackend, &KScreen::AbstractBackend::configChanged,
+    connect(mBackend, &Disman::AbstractBackend::configChanged,
             this, &BackendDBusWrapper::backendConfigChanged);
 
     mChangeCollector.setSingleShot(true);
@@ -52,8 +52,8 @@ bool BackendDBusWrapper::init()
     QDBusConnection dbus = QDBusConnection::sessionBus();
     new BackendAdaptor(this);
     if (!dbus.registerObject(QStringLiteral("/backend"), this, QDBusConnection::ExportAdaptors)) {
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << "Failed to export backend to DBus: another launcher already running?";
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << dbus.lastError().message();
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Failed to export backend to DBus: another launcher already running?";
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << dbus.lastError().message();
         return false;
     }
 
@@ -62,14 +62,14 @@ bool BackendDBusWrapper::init()
 
 QVariantMap BackendDBusWrapper::getConfig() const
 {
-    const KScreen::ConfigPtr config = mBackend->config();
+    const Disman::ConfigPtr config = mBackend->config();
     Q_ASSERT(!config.isNull());
     if (!config) {
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << "Backend provided an empty config!";
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Backend provided an empty config!";
         return QVariantMap();
     }
 
-    const QJsonObject obj = KScreen::ConfigSerializer::serializeConfig(mBackend->config());
+    const QJsonObject obj = Disman::ConfigSerializer::serializeConfig(mBackend->config());
     Q_ASSERT(!obj.isEmpty());
     return obj.toVariantMap();
 }
@@ -77,18 +77,18 @@ QVariantMap BackendDBusWrapper::getConfig() const
 QVariantMap BackendDBusWrapper::setConfig(const QVariantMap &configMap)
 {
     if (configMap.isEmpty()) {
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << "Received an empty config map";
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Received an empty config map";
         return QVariantMap();
     }
 
-    const KScreen::ConfigPtr config = KScreen::ConfigSerializer::deserializeConfig(configMap);
+    const Disman::ConfigPtr config = Disman::ConfigSerializer::deserializeConfig(configMap);
     mBackend->setConfig(config);
 
     mCurrentConfig = mBackend->config();
     QMetaObject::invokeMethod(this, "doEmitConfigChanged", Qt::QueuedConnection);
 
     // TODO: setConfig should return adjusted config that was actually applied
-    const QJsonObject obj = KScreen::ConfigSerializer::serializeConfig(mCurrentConfig);
+    const QJsonObject obj = Disman::ConfigSerializer::serializeConfig(mCurrentConfig);
     Q_ASSERT(!obj.isEmpty());
     return obj.toVariantMap();
 }
@@ -103,11 +103,11 @@ QByteArray BackendDBusWrapper::getEdid(int output) const
     return edidData;
 }
 
-void BackendDBusWrapper::backendConfigChanged(const KScreen::ConfigPtr &config)
+void BackendDBusWrapper::backendConfigChanged(const Disman::ConfigPtr &config)
 {
     Q_ASSERT(!config.isNull());
     if (!config) {
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << "Backend provided an empty config!";
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Backend provided an empty config!";
         return;
     }
 
@@ -122,7 +122,7 @@ void BackendDBusWrapper::doEmitConfigChanged()
         return;
     }
 
-    const QJsonObject obj = KScreen::ConfigSerializer::serializeConfig(mCurrentConfig);
+    const QJsonObject obj = Disman::ConfigSerializer::serializeConfig(mCurrentConfig);
     Q_EMIT configChanged(obj.toVariantMap());
 
     mCurrentConfig.clear();

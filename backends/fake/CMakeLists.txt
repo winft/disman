@@ -8,20 +8,20 @@ set(fake_SRCS
     parser.cpp
 )
 
-qt5_add_dbus_adaptor(fake_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kde.KScreen.FakeBackend.xml
+qt5_add_dbus_adaptor(fake_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml
                      fake.h Fake
 )
 
-add_library(KSC_Fake MODULE ${fake_SRCS})
+add_library(fake MODULE ${fake_SRCS})
 
-set_target_properties(KSC_Fake PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/kf5/kscreen")
-set_target_properties(KSC_Fake PROPERTIES PREFIX "")
-target_link_libraries(KSC_Fake
+set_target_properties(fake PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
+set_target_properties(fake PROPERTIES PREFIX "")
+target_link_libraries(fake
     Qt5::Core
     Qt5::DBus
-    KF5::Screen
+    Disman
 )
 
-install(TARGETS KSC_Fake DESTINATION ${KDE_INSTALL_PLUGINDIR}/kf5/kscreen/)
+install(TARGETS fake DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)
 
 

@@ -41,7 +41,7 @@ private Q_SLOTS:
     {
         const QPoint point(42, 24);
 
-        const QJsonObject obj = KScreen::ConfigSerializer::serializePoint(point);
+        const QJsonObject obj = Disman::ConfigSerializer::serializePoint(point);
         QVERIFY(!obj.isEmpty());
 
         QCOMPARE(obj[QLatin1String("x")].toInt(), point.x());
@@ -52,7 +52,7 @@ private Q_SLOTS:
     {
         const QSize size(800, 600);
 
-        const QJsonObject obj = KScreen::ConfigSerializer::serializeSize(size);
+        const QJsonObject obj = Disman::ConfigSerializer::serializeSize(size);
         QVERIFY(!obj.isEmpty());
 
         QCOMPARE(obj[QLatin1String("width")].toInt(), size.width());
@@ -67,7 +67,7 @@ private Q_SLOTS:
                    << QStringLiteral("Item 3")
                    << QStringLiteral("Item 4");
 
-        QJsonArray arr = KScreen::ConfigSerializer::serializeList<QString>(stringList);
+        QJsonArray arr = Disman::ConfigSerializer::serializeList<QString>(stringList);
         QCOMPARE(arr.size(), stringList.size());
 
         for (int i = 0; i < arr.size(); ++i) {
@@ -79,7 +79,7 @@ private Q_SLOTS:
         QList<int> intList;
         intList << 4 << 3 << 2 << 1;
 
-        arr = KScreen::ConfigSerializer::serializeList<int>(intList);
+        arr = Disman::ConfigSerializer::serializeList<int>(intList);
         QCOMPARE(arr.size(), intList.size());
 
         for (int i = 0; i < arr.size(); ++i) {
@@ -89,14 +89,14 @@ private Q_SLOTS:
 
     void testSerializeScreen()
     {
-        KScreen::ScreenPtr screen(new KScreen::Screen);
+        Disman::ScreenPtr screen(new Disman::Screen);
         screen->setId(12);
         screen->setMinSize(QSize(360, 360));
         screen->setMaxSize(QSize(8192, 8192));
         screen->setCurrentSize(QSize(3600, 1280));
         screen->setMaxActiveOutputsCount(3);
 
-        const QJsonObject obj = KScreen::ConfigSerializer::serializeScreen(screen);
+        const QJsonObject obj = Disman::ConfigSerializer::serializeScreen(screen);
         QVERIFY(!obj.isEmpty());
 
         QCOMPARE(obj[QLatin1String("id")].toInt(), screen->id());
@@ -114,13 +114,13 @@ private Q_SLOTS:
 
     void testSerializeMode()
     {
-        KScreen::ModePtr mode(new KScreen::Mode);
+        Disman::ModePtr mode(new Disman::Mode);
         mode->setId(QStringLiteral("755"));
         mode->setName(QStringLiteral("1280x1024"));
         mode->setRefreshRate(50.666);
         mode->setSize(QSize(1280, 1024));
 
-        const QJsonObject obj = KScreen::ConfigSerializer::serializeMode(mode);
+        const QJsonObject obj = Disman::ConfigSerializer::serializeMode(mode);
         QVERIFY(!obj.isEmpty());
 
         QCOMPARE(obj[QLatin1String("id")].toString(), mode->id());
@@ -133,23 +133,23 @@ private Q_SLOTS:
 
     void testSerializeOutput()
     {
-        KScreen::ModeList modes;
-        KScreen::ModePtr mode(new KScreen::Mode);
+        Disman::ModeList modes;
+        Disman::ModePtr mode(new Disman::Mode);
         mode->setId(QStringLiteral("1"));
         mode->setName(QStringLiteral("800x600"));
         mode->setSize(QSize(800, 600));
         mode->setRefreshRate(50.4);
         modes.insert(mode->id(), mode);
 
-        KScreen::OutputPtr output(new KScreen::Output);
+        Disman::OutputPtr output(new Disman::Output);
         output->setId(60);
         output->setName(QStringLiteral("LVDS-0"));
-        output->setType(KScreen::Output::Panel);
+        output->setType(Disman::Output::Panel);
         output->setIcon(QString());
         output->setModes(modes);
         output->setPos(QPoint(1280, 0));
         output->setSize(mode->size());
-        output->setRotation(KScreen::Output::None);
+        output->setRotation(Disman::Output::None);
         output->setCurrentModeId(QStringLiteral("1"));
         output->setPreferredModes(QStringList() << QStringLiteral("1"));
         output->setConnected(true);
@@ -158,12 +158,12 @@ private Q_SLOTS:
         output->setClones(QList<int>() << 50 << 60);
         output->setSizeMm(QSize(310, 250));
 
-        const QJsonObject obj = KScreen::ConfigSerializer::serializeOutput(output);
+        const QJsonObject obj = Disman::ConfigSerializer::serializeOutput(output);
         QVERIFY(!obj.isEmpty());
 
         QCOMPARE(obj[QLatin1String("id")].toInt(), output->id());
         QCOMPARE(obj[QLatin1String("name")].toString(), output->name());
-        QCOMPARE(static_cast<KScreen::Output::Type>(obj[QLatin1String("type")].toInt()), output->type());
+        QCOMPARE(static_cast<Disman::Output::Type>(obj[QLatin1String("type")].toInt()), output->type());
         QCOMPARE(obj[QLatin1String("icon")].toString(), output->icon());
         const QJsonArray arr = obj[QLatin1String("modes")].toArray();
         QCOMPARE(arr.size(), output->modes().count());
@@ -175,7 +175,7 @@ private Q_SLOTS:
         QCOMPARE(size[QLatin1String("width")].toInt(), output->size().width());
         QCOMPARE(size[QLatin1String("height")].toInt(), output->size().height());
 
-        QCOMPARE(static_cast<KScreen::Output::Rotation>(obj[QLatin1String("rotation")].toInt()), output->rotation());
+        QCOMPARE(static_cast<Disman::Output::Rotation>(obj[QLatin1String("rotation")].toInt()), output->rotation());
         QCOMPARE(obj[QLatin1String("currentModeId")].toString(), output->currentModeId());
         QCOMPARE(obj[QLatin1String("connected")].toBool(), output->isConnected());
         QCOMPARE(obj[QLatin1String("enabled")].toBool(), output->isEnabled());

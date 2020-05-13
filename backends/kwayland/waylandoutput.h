@@ -37,7 +37,7 @@ class OutputConfiguration;
 }
 }
 
-namespace KScreen
+namespace Disman
 {
 
 class WaylandOutput : public QObject
@@ -48,8 +48,8 @@ public:
     explicit WaylandOutput(quint32 id, WaylandConfig *parent = nullptr);
     ~WaylandOutput() override = default;
 
-    KScreen::OutputPtr toKScreenOutput();
-    void updateKScreenOutput(KScreen::OutputPtr &output);
+    Disman::OutputPtr toDismanOutput();
+    void updateDismanOutput(Disman::OutputPtr &output);
 
     quint32 id() const;
     QString name() const;
@@ -59,7 +59,7 @@ public:
     void createOutputDevice(KWayland::Client::Registry *registry, quint32 name, quint32 version);
 
     bool setWlConfig(KWayland::Client::OutputConfiguration *wlConfig,
-                   const KScreen::OutputPtr &output);
+                   const Disman::OutputPtr &output);
 
 Q_SIGNALS:
     void deviceRemoved();
@@ -76,10 +76,10 @@ private:
     KWayland::Client::OutputDevice *m_device;
     KWayland::Client::Registry *m_registry;
 
-    // left-hand-side: KScreen::Mode, right-hand-side: KWayland's mode.id
+    // left-hand-side: Disman::Mode, right-hand-side: KWayland's mode.id
     QMap<QString, int> m_modeIdMap;
 };
 
 }
 
-KSCREEN_EXPORT QDebug operator<<(QDebug dbg, const KScreen::WaylandOutput *output);
+DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::WaylandOutput *output);

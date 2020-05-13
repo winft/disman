@@ -29,12 +29,12 @@
 #include <KWayland/Client/registry.h>
 #include <KWayland/Client/output.h>
 
-//static const QString s_socketName = QStringLiteral("libkscreen-test-wayland-backend-0");
+//static const QString s_socketName = QStringLiteral("disman-test-wayland-backend-0");
 static const QString s_socketName = QStringLiteral("wayland-0");
 
-Q_LOGGING_CATEGORY(KSCREEN_DPMS, "kscreen.dpms")
+Q_LOGGING_CATEGORY(DISMAN_DPMS, "disman.dpms")
 
-using namespace KScreen;
+using namespace Disman;
 
 using namespace KWayland::Client;
 
@@ -63,7 +63,7 @@ void DpmsClient::connect()
     m_connection->setSocketName(s_socketName);
     QObject::connect(m_connection, &ConnectionThread::connected, this, &DpmsClient::connected);
     QObject::connect(m_connection, &ConnectionThread::failed, this, [=]() {
-        qCDebug(KSCREEN_DPMS) << "Connection failed";
+        qCDebug(DISMAN_DPMS) << "Connection failed";
     });
 
     m_thread = new QThread(this);
@@ -103,7 +103,7 @@ void DpmsClient::connected()
 
 }
 
-void KScreen::DpmsClient::changeMode(KWayland::Client::Dpms::Mode mode)
+void Disman::DpmsClient::changeMode(KWayland::Client::Dpms::Mode mode)
 {
     const auto outputs = m_registry.interfaces(Registry::Interface::Output);
     for (auto outputInterface : outputs) {
@@ -150,7 +150,7 @@ void DpmsClient::on()
     //emit finished();
 }
 
-void KScreen::DpmsClient::off()
+void Disman::DpmsClient::off()
 {
     changeMode(Dpms::Mode::Off);
     //emit finished();

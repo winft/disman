@@ -24,14 +24,14 @@
 #include "output.h"
 #include "screen.h"
 #include "edid.h"
-#include "kscreen_debug.h"
+#include "disman_debug.h"
 
 #include <QDBusArgument>
 #include <QJsonDocument>
 #include <QFile>
 #include <QRect>
 
-using namespace KScreen;
+using namespace Disman;
 
 QJsonObject ConfigSerializer::serializePoint(const QPoint &point)
 {
@@ -145,7 +145,7 @@ QPoint ConfigSerializer::deserializePoint(const QDBusArgument &arg)
         } else if (key == QLatin1Char('y')) {
             y = value.toInt();
         } else {
-            qCWarning(KSCREEN) << "Invalid key in Point map: " << key;
+            qCWarning(DISMAN) << "Invalid key in Point map: " << key;
             return QPoint();
         }
         arg.endMapEntry();
@@ -168,7 +168,7 @@ QSize ConfigSerializer::deserializeSize(const QDBusArgument &arg)
         } else if (key == QLatin1String("height")) {
             h = value.toInt();
         } else {
-            qCWarning(KSCREEN) << "Invalid key in size struct: " << key;
+            qCWarning(DISMAN) << "Invalid key in size struct: " << key;
             return QSize();
         }
         arg.endMapEntry();
@@ -200,7 +200,7 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap &map)
         while (!outputsArg.atEnd()) {
             QVariant value;
             outputsArg >> value;
-            const KScreen::OutputPtr output = deserializeOutput(value.value<QDBusArgument>());
+            const Disman::OutputPtr output = deserializeOutput(value.value<QDBusArgument>());
             if (!output) {
                 return ConfigPtr();
             }
@@ -212,7 +212,7 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap &map)
 
     if (map.contains(QLatin1String("screen"))) {
         const QDBusArgument &screenArg = map[QStringLiteral("screen")].value<QDBusArgument>();
-        const KScreen::ScreenPtr screen = deserializeScreen(screenArg);
+        const Disman::ScreenPtr screen = deserializeScreen(screenArg);
         if (!screen) {
             return ConfigPtr();
         }
@@ -273,7 +273,7 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument &arg)
             while (!arg.atEnd()) {
                 QVariant value;
                 arg >> value;
-                const KScreen::ModePtr mode = deserializeMode(value.value<QDBusArgument>());
+                const Disman::ModePtr mode = deserializeMode(value.value<QDBusArgument>());
                 if (!mode) {
                     return OutputPtr();
                 }
@@ -282,7 +282,7 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument &arg)
             arg.endArray();
             output->setModes(modes);
         } else {
-            qCWarning(KSCREEN) << "Invalid key in Output map: " << key;
+            qCWarning(DISMAN) << "Invalid key in Output map: " << key;
             return OutputPtr();
         }
         arg.endMapEntry();
@@ -311,7 +311,7 @@ ModePtr ConfigSerializer::deserializeMode(const QDBusArgument &arg)
         } else if (key == QLatin1String("refreshRate")) {
             mode->setRefreshRate(value.toFloat());
         } else {
-            qCWarning(KSCREEN) << "Invalid key in Mode map: " << key;
+            qCWarning(DISMAN) << "Invalid key in Mode map: " << key;
             return ModePtr();
         }
         arg.endMapEntry();
@@ -341,7 +341,7 @@ ScreenPtr ConfigSerializer::deserializeScreen(const QDBusArgument &arg)
         } else if (key == QLatin1String("minSize")) {
             screen->setMinSize(deserializeSize(value.value<QDBusArgument>()));
         } else {
-            qCWarning(KSCREEN) << "Invalid key in Screen map:" << key;
+            qCWarning(DISMAN) << "Invalid key in Screen map:" << key;
             return ScreenPtr();
         }
         arg.endMapEntry();

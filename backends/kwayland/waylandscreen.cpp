@@ -22,7 +22,7 @@
 
 #include <mode.h>
 
-using namespace KScreen;
+using namespace Disman;
 
 WaylandScreen::WaylandScreen(WaylandConfig *config)
     : QObject(config)
@@ -30,13 +30,13 @@ WaylandScreen::WaylandScreen(WaylandConfig *config)
 {
 }
 
-ScreenPtr WaylandScreen::toKScreenScreen(KScreen::ConfigPtr &parent) const
+ScreenPtr WaylandScreen::toDismanScreen(Disman::ConfigPtr &parent) const
 {
     Q_UNUSED(parent);
 
-    KScreen::ScreenPtr kscreenScreen(new KScreen::Screen);
-    updateKScreenScreen(kscreenScreen);
-    return kscreenScreen;
+    Disman::ScreenPtr dismanScreen(new Disman::Screen);
+    updateDismanScreen(dismanScreen);
+    return dismanScreen;
 }
 
 void WaylandScreen::setOutputs(const QList<WaylandOutput*> &outputs)
@@ -53,7 +53,7 @@ void WaylandScreen::setOutputs(const QList<WaylandOutput*> &outputs)
     m_size = r.size();
 }
 
-void WaylandScreen::updateKScreenScreen(KScreen::ScreenPtr &screen) const
+void WaylandScreen::updateDismanScreen(Disman::ScreenPtr &screen) const
 {
     screen->setMinSize(QSize(0, 0));
 

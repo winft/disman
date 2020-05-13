@@ -29,13 +29,13 @@
 #include <QString>
 #include <QDebug>
 
-Q_LOGGING_CATEGORY(KSCREEN_XRANDR11, "kscreen.xrandr11")
+Q_LOGGING_CATEGORY(DISMAN_XRANDR11, "disman.xrandr11")
 
 XRandR11::XRandR11()
- : KScreen::AbstractBackend()
+ : Disman::AbstractBackend()
  , m_valid(false)
  , m_x11Helper(nullptr)
- , m_currentConfig(new KScreen::Config)
+ , m_currentConfig(new Disman::Config)
  , m_currentTimestamp(0)
 {
     xcb_generic_error_t *error = nullptr;
@@ -46,12 +46,12 @@ XRandR11::XRandR11()
     if (!version || error) {
         free(error);
         XCB::closeConnection();
-        qCDebug(KSCREEN_XRANDR11) << "Can't get XRandR version";
+        qCDebug(DISMAN_XRANDR11) << "Can't get XRandR version";
         return;
     }
     if (version->major_version != 1 || version->minor_version != 1) {
         XCB::closeConnection();
-        qCDebug(KSCREEN_XRANDR11) << "This backend is only for XRandR 1.1, your version is: " << version->major_version << "." << version->minor_version;
+        qCDebug(DISMAN_XRANDR11) << "This backend is only for XRandR 1.1, your version is: " << version->major_version << "." << version->minor_version;
         return;
     }
 
@@ -76,7 +76,7 @@ QString XRandR11::name() const
 
 QString XRandR11::serviceName() const
 {
-    return QStringLiteral("org.kde.KScreen.Backend.XRandR11");
+    return QStringLiteral("org.kde.Disman.Backend.XRandR11");
 }
 
 
@@ -85,10 +85,10 @@ bool XRandR11::isValid() const
     return m_valid;
 }
 
-KScreen::ConfigPtr XRandR11::config() const
+Disman::ConfigPtr XRandR11::config() const
 {
-    KScreen::ConfigPtr config(new KScreen::Config);
-    auto features = KScreen::Config::Feature::Writable | KScreen::Config::Feature::PrimaryDisplay;
+    Disman::ConfigPtr config(new Disman::Config);
+    auto features = Disman::Config::Feature::Writable | Disman::Config::Feature::PrimaryDisplay;
     config->setSupportedFeatures(features);
 
     const int screenId = QX11Info::appScreen();
@@ -100,7 +100,7 @@ KScreen::ConfigPtr XRandR11::config() const
         return m_currentConfig;
     }
 
-    KScreen::ScreenPtr screen(new KScreen::Screen);
+    Disman::ScreenPtr screen(new Disman::Screen);
     screen->setId(screenId);
     screen->setCurrentSize(QSize(xcbScreen->width_in_pixels, xcbScreen->height_in_pixels));
     if (size) { // RRGetScreenSize may file on VNC/RDP connections
@@ -114,8 +114,8 @@ KScreen::ConfigPtr XRandR11::config() const
 
     config->setScreen(screen);
 
-    KScreen::OutputList outputs;
-    KScreen::OutputPtr output(new KScreen::Output);
+    Disman::OutputList outputs;
+    Disman::OutputPtr output(new Disman::Output);
     output->setId(1);
 
     output->setConnected(true);
@@ -123,14 +123,14 @@ KScreen::ConfigPtr XRandR11::config() const
     output->setName(QStringLiteral("Default"));
     output->setPos(QPoint(0,0));
     output->setPrimary(true);
-    output->setRotation((KScreen::Output::Rotation) info->rotation);
+    output->setRotation((Disman::Output::Rotation) info->rotation);
     output->setSizeMm(QSize(xcbScreen->width_in_millimeters, xcbScreen->height_in_millimeters));
 
     outputs.insert(1, output);
     config->setOutputs(outputs);
 
-    KScreen::ModePtr mode;
-    KScreen::ModeList modes;
+    Disman::ModePtr mode;
+    Disman::ModeList modes;
 
     auto iter = xcb_randr_get_screen_info_rates_iterator(info);
     xcb_randr_screen_size_t* sizes = xcb_randr_get_screen_info_sizes(info);
@@ -141,7 +141,7 @@ KScreen::ConfigPtr XRandR11::config() const
 
         for (int j = 0; j < nrates; j++) {
             float rate = rates[j];
-            mode = KScreen::ModePtr(new KScreen::Mode);
+            mode = Disman::ModePtr(new Disman::Mode);
             mode->setId(QStringLiteral("%1-%2").arg(x).arg(j));
             mode->setSize(QSize(size.width, size.height));
             mode->setRefreshRate(rate);
@@ -161,10 +161,10 @@ KScreen::ConfigPtr XRandR11::config() const
     return config;
 }
 
-void XRandR11::setConfig(const KScreen::ConfigPtr &config)
+void XRandR11::setConfig(const Disman::ConfigPtr &config)
 {
-    const KScreen::OutputPtr output = config->outputs().take(1);
-    const KScreen::ModePtr mode = output->currentMode();
+    const Disman::OutputPtr output = config->outputs().take(1);
+    const Disman::ModePtr mode = output->currentMode();
 
     const int screenId = QX11Info::appScreen();
     xcb_screen_t* xcbScreen = XCB::screenOfDisplay(XCB::connection(), screenId);

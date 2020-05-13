@@ -21,13 +21,13 @@
 #include <QDBusConnection>
 #include <QSessionManager>
 
-#include "kscreen_backendLauncher_debug.h"
+#include "disman_backend_launcher_debug.h"
 #include "backendloader.h"
 #include "log.h"
 
 int main(int argc, char **argv)
 {
-    KScreen::Log::instance();
+    Disman::Log::instance();
     QGuiApplication::setDesktopSettingsAware(false);
     QGuiApplication app(argc, argv);
 
@@ -37,8 +37,8 @@ int main(int argc, char **argv)
     QObject::connect(&app, &QGuiApplication::commitDataRequest, disableSessionManagement);
     QObject::connect(&app, &QGuiApplication::saveStateRequest, disableSessionManagement);
 
-    if (!QDBusConnection::sessionBus().registerService(QStringLiteral("org.kde.KScreen"))) {
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << "Cannot register org.kde.KScreen service. Another launcher already running?";
+    if (!QDBusConnection::sessionBus().registerService(QStringLiteral("org.kwinft.disman"))) {
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Cannot register Disman service. Another launcher already running?";
         return -1;
     }
 

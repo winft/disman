@@ -28,7 +28,7 @@
 
 class XRandRConfig;
 class XRandRCrtc;
-namespace KScreen
+namespace Disman
 {
 class Config;
 class Output;
@@ -67,21 +67,21 @@ public:
     XRandRMode::Map modes() const;
     XRandRMode* currentMode() const;
 
-    KScreen::Output::Rotation rotation() const;
+    Disman::Output::Rotation rotation() const;
     bool isHorizontal() const;
 
     QByteArray edid() const;
     XRandRCrtc* crtc() const;
 
-    KScreen::OutputPtr toKScreenOutput() const;
+    Disman::OutputPtr toDismanOutput() const;
 
-    void updateLogicalSize(const KScreen::OutputPtr &output, XRandRCrtc *crtc = nullptr);
+    void updateLogicalSize(const Disman::OutputPtr &output, XRandRCrtc *crtc = nullptr);
 
 private:
     void init();
     void updateModes(const XCB::OutputInfo &outputInfo);
 
-    static KScreen::Output::Type fetchOutputType(xcb_randr_output_t outputId, const QString &name);
+    static Disman::Output::Type fetchOutputType(xcb_randr_output_t outputId, const QString &name);
     static QByteArray typeFromProperty(xcb_randr_output_t outputId);
 
     xcb_render_transform_t currentTransform() const;
@@ -94,7 +94,7 @@ private:
 
     xcb_randr_connection_t m_connected;
     bool m_primary;
-    KScreen::Output::Type m_type;
+    Disman::Output::Type m_type;
 
     XRandRMode::Map m_modes;
     QStringList m_preferredModes;

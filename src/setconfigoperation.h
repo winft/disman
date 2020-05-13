@@ -17,25 +17,25 @@
  *
  */
 
-#ifndef KSCREEN_SETCONFIGOPERATION_H
-#define KSCREEN_SETCONFIGOPERATION_H
+#ifndef DISMAN_SETCONFIGOPERATION_H
+#define DISMAN_SETCONFIGOPERATION_H
 
 #include "configoperation.h"
 #include "types.h"
-#include "kscreen_export.h"
+#include "disman_export.h"
 
-namespace KScreen {
+namespace Disman {
 
 class SetConfigOperationPrivate;
 
-class KSCREEN_EXPORT SetConfigOperation : public KScreen::ConfigOperation
+class DISMAN_EXPORT SetConfigOperation : public Disman::ConfigOperation
 {
     Q_OBJECT
 public:
-    explicit SetConfigOperation(const KScreen::ConfigPtr &config, QObject* parent = nullptr);
+    explicit SetConfigOperation(const Disman::ConfigPtr &config, QObject* parent = nullptr);
     ~SetConfigOperation() override;
 
-    KScreen::ConfigPtr config() const override;
+    Disman::ConfigPtr config() const override;
 
 protected:
     void start() override;
@@ -46,4 +46,4 @@ private:
 
 }
 
-#endif // KSCREEN_SETCONFIGOPERATION_H
+#endif // DISMAN_SETCONFIGOPERATION_H

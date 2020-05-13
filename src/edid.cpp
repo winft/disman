@@ -18,7 +18,7 @@
  *************************************************************************************/
 
 #include "edid.h"
-#include "kscreen_debug_edid.h"
+#include "disman_debug_edid.h"
 
 #include <math.h>
 
@@ -43,7 +43,7 @@
 
 #define PNP_IDS "/usr/share/hwdata/pnp.ids"
 
-using namespace KScreen;
+using namespace Disman;
 
 class Q_DECL_HIDDEN Edid::Private
 {
@@ -248,13 +248,13 @@ bool Edid::Private::parse(const QByteArray &rawData)
     /* check header */
     if (length < 128) {
         if (length > 0) {
-            qCWarning(KSCREEN_EDID) << "Invalid EDID length (" << length << " bytes)";
+            qCWarning(DISMAN_EDID) << "Invalid EDID length (" << length << " bytes)";
         }
         valid = false;
         return valid;
     }
     if (data[0] != 0x00 || data[1] != 0xff) {
-        qCWarning(KSCREEN_EDID) << "Failed to parse EDID header";
+        qCWarning(DISMAN_EDID) << "Failed to parse EDID header";
         valid = false;
         return valid;
     }
@@ -351,7 +351,7 @@ bool Edid::Private::parse(const QByteArray &rawData)
                 serialNumber = tmp;
             }
         } else if (data[i+3] == GCM_DESCRIPTOR_COLOR_MANAGEMENT_DATA) {
-            qCWarning(KSCREEN_EDID) << "failing to parse color management data";
+            qCWarning(DISMAN_EDID) << "failing to parse color management data";
         } else if (data[i+3] == GCM_DESCRIPTOR_ALPHANUMERIC_DATA_STRING) {
             QString tmp = edidParseString(&data[i+5]);
             if (!tmp.isEmpty()) {

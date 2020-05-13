@@ -39,7 +39,7 @@ XRandROutput::XRandROutput(xcb_randr_output_t id, XRandRConfig *config)
     , m_config(config)
     , m_id(id)
     , m_primary(false)
-    , m_type(KScreen::Output::Unknown)
+    , m_type(Disman::Output::Unknown)
     , m_crtc(nullptr)
 {
     init();
@@ -103,16 +103,16 @@ XRandRMode* XRandROutput::currentMode() const
     return m_modes[modeId];
 }
 
-KScreen::Output::Rotation XRandROutput::rotation() const
+Disman::Output::Rotation XRandROutput::rotation() const
 {
-    return static_cast<KScreen::Output::Rotation>(m_crtc ? m_crtc->rotation() :
+    return static_cast<Disman::Output::Rotation>(m_crtc ? m_crtc->rotation() :
                                                            XCB_RANDR_ROTATION_ROTATE_0);
 }
 
 bool XRandROutput::isHorizontal() const
 {
     const auto rot = rotation();
-    return rot == KScreen::Output::Rotation::None || rot == KScreen::Output::Rotation::Inverted;
+    return rot == Disman::Output::Rotation::None || rot == Disman::Output::Rotation::Inverted;
 }
 
 QByteArray XRandROutput::edid() const
@@ -136,7 +136,7 @@ void XRandROutput::update()
 void XRandROutput::update(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_randr_connection_t conn,
                           bool primary)
 {
-    qCDebug(KSCREEN_XRANDR) << "XRandROutput" << m_id << "update" << "\n"
+    qCDebug(DISMAN_XRANDR) << "XRandROutput" << m_id << "update" << "\n"
                             << "\tm_connected:" << m_connected << "\n"
                             << "\tm_crtc" << m_crtc << "\n"
                             << "\tCRTC:" << crtc << "\n"
@@ -155,7 +155,7 @@ void XRandROutput::update(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_rand
             m_clones.clear();
             m_heightMm = 0;
             m_widthMm = 0;
-            m_type = KScreen::Output::Unknown;
+            m_type = Disman::Output::Unknown;
             qDeleteAll(m_modes);
             m_modes.clear();
             m_preferredModes.clear();
@@ -267,7 +267,7 @@ void XRandROutput::updateModes(const XCB::OutputInfo &outputInfo)
     }
 }
 
-KScreen::Output::Type XRandROutput::fetchOutputType(xcb_randr_output_t outputId,
+Disman::Output::Type XRandROutput::fetchOutputType(xcb_randr_output_t outputId,
                                                     const QString &name)
 {
     QString type = QString::fromUtf8(typeFromProperty(outputId));
@@ -363,7 +363,7 @@ QSizeF XRandROutput::logicalSize() const
     return QSizeF(width, height);
 }
 
-void XRandROutput::updateLogicalSize(const KScreen::OutputPtr &output, XRandRCrtc *crtc)
+void XRandROutput::updateLogicalSize(const Disman::OutputPtr &output, XRandRCrtc *crtc)
 {
     if (!crtc) {
         // TODO: This is a workaround for now when updateLogicalSize is called on enabling the
@@ -374,7 +374,7 @@ void XRandROutput::updateLogicalSize(const KScreen::OutputPtr &output, XRandRCrt
     const QSizeF logicalSize = output->explicitLogicalSize();
     xcb_render_transform_t transform = unityTransform();
 
-    KScreen::ModePtr mode = output->currentMode() ? output->currentMode() : output->preferredMode();
+    Disman::ModePtr mode = output->currentMode() ? output->currentMode() : output->preferredMode();
     if(mode && logicalSize.isValid()) {
         QSize modeSize = mode->size();
         if (!output->isHorizontal()) {
@@ -396,38 +396,38 @@ void XRandROutput::updateLogicalSize(const KScreen::OutputPtr &output, XRandRCrt
                                                        0, nullptr);
     xcb_generic_error_t *error = xcb_request_check(XCB::connection(), cookie);
     if (error) {
-        qCDebug(KSCREEN_XRANDR) << "Error on logical size transformation!";
+        qCDebug(DISMAN_XRANDR) << "Error on logical size transformation!";
         free(error);
     }
 }
 
-KScreen::OutputPtr XRandROutput::toKScreenOutput() const
+Disman::OutputPtr XRandROutput::toDismanOutput() const
 {
-    KScreen::OutputPtr kscreenOutput(new KScreen::Output);
+    Disman::OutputPtr dismanOutput(new Disman::Output);
 
-    const bool signalsBlocked = kscreenOutput->signalsBlocked();
-    kscreenOutput->blockSignals(true);
-    kscreenOutput->setId(m_id);
-    kscreenOutput->setType(m_type);
-    kscreenOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
-    kscreenOutput->setName(m_name);
-    kscreenOutput->setIcon(m_icon);
+    const bool signalsBlocked = dismanOutput->signalsBlocked();
+    dismanOutput->blockSignals(true);
+    dismanOutput->setId(m_id);
+    dismanOutput->setType(m_type);
+    dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
+    dismanOutput->setName(m_name);
+    dismanOutput->setIcon(m_icon);
 
     //See https://bugzilla.redhat.com/show_bug.cgi?id=1290586
     //QXL will be creating a new mode we need to jump to every time the display is resized
-    kscreenOutput->setFollowPreferredMode(m_hotplugModeUpdate);
+    dismanOutput->setFollowPreferredMode(m_hotplugModeUpdate);
 
-    kscreenOutput->setConnected(isConnected());
+    dismanOutput->setConnected(isConnected());
     if (isConnected()) {
-        KScreen::ModeList kscreenModes;
+        Disman::ModeList dismanModes;
         for (auto iter = m_modes.constBegin(), end = m_modes.constEnd(); iter != end; ++iter) {
             XRandRMode *mode = iter.value();
-            kscreenModes.insert(QString::number(iter.key()), mode->toKScreenMode());
+            dismanModes.insert(QString::number(iter.key()), mode->toDismanMode());
         }
-        kscreenOutput->setModes(kscreenModes);
-        kscreenOutput->setPreferredModes(m_preferredModes);
-        kscreenOutput->setPrimary(m_primary);
-        kscreenOutput->setClones([](const QList<xcb_randr_output_t> &clones) {
+        dismanOutput->setModes(dismanModes);
+        dismanOutput->setPreferredModes(m_preferredModes);
+        dismanOutput->setPrimary(m_primary);
+        dismanOutput->setClones([](const QList<xcb_randr_output_t> &clones) {
             QList<int> kclones;
             kclones.reserve(clones.size());
             for (xcb_randr_output_t o : clones) {
@@ -435,16 +435,16 @@ KScreen::OutputPtr XRandROutput::toKScreenOutput() const
             }
             return kclones;
         }(m_clones));
-        kscreenOutput->setEnabled(isEnabled());
+        dismanOutput->setEnabled(isEnabled());
         if (isEnabled()) {
-            kscreenOutput->setSize(size());
-            kscreenOutput->setPos(position());
-            kscreenOutput->setRotation(rotation());
-            kscreenOutput->setCurrentModeId(currentModeId());
+            dismanOutput->setSize(size());
+            dismanOutput->setPos(position());
+            dismanOutput->setRotation(rotation());
+            dismanOutput->setCurrentModeId(currentModeId());
         }
         // TODO: set logical size?
     }
 
-    kscreenOutput->blockSignals(signalsBlocked);
-    return kscreenOutput;
+    dismanOutput->blockSignals(signalsBlocked);
+    return dismanOutput;
 }

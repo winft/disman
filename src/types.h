@@ -16,26 +16,26 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_TYPES_H
-#define KSCREEN_TYPES_H
+#ifndef DISMAN_TYPES_H
+#define DISMAN_TYPES_H
 
 #include <QSharedPointer>
 #include <QMap>
 
-namespace KScreen
+namespace Disman
 {
 
 class Config;
-typedef QSharedPointer<KScreen::Config> ConfigPtr;
+typedef QSharedPointer<Disman::Config> ConfigPtr;
 class Screen;
-typedef QSharedPointer<KScreen::Screen> ScreenPtr;
+typedef QSharedPointer<Disman::Screen> ScreenPtr;
 class Output;
-typedef QSharedPointer<KScreen::Output> OutputPtr;
-typedef QMap<int, KScreen::OutputPtr> OutputList;
+typedef QSharedPointer<Disman::Output> OutputPtr;
+typedef QMap<int, Disman::OutputPtr> OutputList;
 
 class Mode;
-typedef QSharedPointer<KScreen::Mode> ModePtr;
-typedef QMap<QString, KScreen::ModePtr> ModeList;
+typedef QSharedPointer<Disman::Mode> ModePtr;
+typedef QMap<QString, Disman::ModePtr> ModeList;
 
 }
 

@@ -16,14 +16,14 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_BACKEND_UTILS_H_
-#define KSCREEN_BACKEND_UTILS_H_
+#ifndef DISMAN_BACKEND_UTILS_H_
+#define DISMAN_BACKEND_UTILS_H_
 
-#include <kscreen/output.h>
+#include <disman/output.h>
 
 namespace Utils {
 
-KScreen::Output::Type guessOutputType(const QString &type, const QString &name);
+Disman::Output::Type guessOutputType(const QString &type, const QString &name);
 
 }
 

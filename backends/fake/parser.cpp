@@ -30,7 +30,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-using namespace KScreen;
+using namespace Disman;
 
 ConfigPtr Parser::fromJson(const QByteArray& data)
 {
@@ -175,7 +175,7 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
     } else if (type.contains("Unknown")) {
         output->setType(Output::Unknown);
     } else {
-        qCWarning(KSCREEN_FAKE) << "Output Type not translated:" << type;
+        qCWarning(DISMAN_FAKE) << "Output Type not translated:" << type;
     }
     map.remove(QStringLiteral("type"));
 

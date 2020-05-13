@@ -22,13 +22,13 @@
 
 #include "../src/log.h"
 
-Q_DECLARE_LOGGING_CATEGORY(KSCREEN_TESTLOG)
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_TESTLOG)
 
-Q_LOGGING_CATEGORY(KSCREEN_TESTLOG, "kscreen.testlog")
+Q_LOGGING_CATEGORY(DISMAN_TESTLOG, "disman.testlog")
 
-using namespace KScreen;
+using namespace Disman;
 
-auto KSCREEN_LOGGING = "KSCREEN_LOGGING";
+auto DISMAN_LOGGING = "DISMAN_LOGGING";
 
 class TestLog : public QObject
 {
@@ -49,18 +49,18 @@ private:
 void TestLog::init()
 {
     QStandardPaths::setTestModeEnabled(true);
-    m_defaultLogFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/kscreen/kscreen.log");
+    m_defaultLogFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/disman/disman.log");
 }
 
 void TestLog::initTestCase()
 {
 
-    qputenv(KSCREEN_LOGGING, QByteArray("true"));
+    qputenv(DISMAN_LOGGING, QByteArray("true"));
 }
 
 void TestLog::cleanupTestCase()
 {
-    qunsetenv(KSCREEN_LOGGING);
+    qunsetenv(DISMAN_LOGGING);
 }
 
 void TestLog::testContext()
@@ -76,21 +76,21 @@ void TestLog::testContext()
 
 void TestLog::testEnabled()
 {
-    qputenv(KSCREEN_LOGGING, QByteArray("faLSe"));
+    qputenv(DISMAN_LOGGING, QByteArray("faLSe"));
 
     auto log = Log::instance();
     QCOMPARE(log->enabled(), false);
     QCOMPARE(log->logFile(), QString());
 
     delete log;
-    qunsetenv(KSCREEN_LOGGING);
+    qunsetenv(DISMAN_LOGGING);
 
     log = Log::instance();
     QCOMPARE(log->enabled(), false);
     QCOMPARE(log->logFile(), QString());
 
     delete log;
-    qputenv(KSCREEN_LOGGING, QByteArray("truE"));
+    qputenv(DISMAN_LOGGING, QByteArray("truE"));
 
     log = Log::instance();
     QCOMPARE(log->enabled(), true);
@@ -114,16 +114,16 @@ void TestLog::testLog()
     QVERIFY(lf.exists());
     QVERIFY(lf.remove());
 
-    qCDebug(KSCREEN_TESTLOG) << "qCDebug message from testlog";
+    qCDebug(DISMAN_TESTLOG) << "qCDebug message from testlog";
     QVERIFY(lf.exists());
     QVERIFY(lf.remove());
 
     delete Log::instance();
 
     // Make sure on log file gets written when disabled
-    qputenv(KSCREEN_LOGGING, "false");
+    qputenv(DISMAN_LOGGING, "false");
 
-    qCDebug(KSCREEN_TESTLOG) << logmsg;
+    qCDebug(DISMAN_TESTLOG) << logmsg;
     QCOMPARE(Log::instance()->enabled(), false);
     QVERIFY(!lf.exists());
 

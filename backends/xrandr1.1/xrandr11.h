@@ -27,10 +27,10 @@
 
 class XCBEventListener;
 
-class XRandR11 : public KScreen::AbstractBackend
+class XRandR11 : public Disman::AbstractBackend
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf5.kscreen.backends.xrandr11")
+    Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.randr11")
 
 public:
     explicit XRandR11();
@@ -38,8 +38,8 @@ public:
 
     QString name() const override;
     QString serviceName() const override;
-    KScreen::ConfigPtr config() const override;
-    void setConfig(const KScreen::ConfigPtr &config) override;
+    Disman::ConfigPtr config() const override;
+    void setConfig(const Disman::ConfigPtr &config) override;
     bool isValid() const override;
 
 private Q_SLOTS:
@@ -48,10 +48,10 @@ private Q_SLOTS:
 private:
     bool m_valid;
     XCBEventListener* m_x11Helper;
-    KScreen::ConfigPtr m_currentConfig;
+    Disman::ConfigPtr m_currentConfig;
     xcb_timestamp_t m_currentTimestamp;
 };
 
-Q_DECLARE_LOGGING_CATEGORY(KSCREEN_XRANDR11)
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_XRANDR11)
 
-#endif //FAKE_BACKEND_H
+#endif

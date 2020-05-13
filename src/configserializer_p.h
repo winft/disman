@@ -26,18 +26,18 @@
 #include <QDBusArgument>
 
 #include "types.h"
-#include "kscreen_export.h"
+#include "disman_export.h"
 
-namespace KScreen
+namespace Disman
 {
 
 namespace ConfigSerializer
 {
 
-KSCREEN_EXPORT QJsonObject serializePoint(const QPoint &point);
-KSCREEN_EXPORT QJsonObject serializeSize(const QSize &size);
+DISMAN_EXPORT QJsonObject serializePoint(const QPoint &point);
+DISMAN_EXPORT QJsonObject serializeSize(const QSize &size);
 template<typename T>
-KSCREEN_EXPORT  QJsonArray serializeList(const QList<T> &list)
+DISMAN_EXPORT  QJsonArray serializeList(const QList<T> &list)
 {
     QJsonArray arr;
     Q_FOREACH (const T &t, list) {
@@ -46,15 +46,15 @@ KSCREEN_EXPORT  QJsonArray serializeList(const QList<T> &list)
     return arr;
 }
 
-KSCREEN_EXPORT QJsonObject serializeConfig(const KScreen::ConfigPtr &config);
-KSCREEN_EXPORT QJsonObject serializeOutput(const KScreen::OutputPtr &output);
-KSCREEN_EXPORT QJsonObject serializeMode(const KScreen::ModePtr &mode);
-KSCREEN_EXPORT QJsonObject serializeScreen(const KScreen::ScreenPtr &screen);
+DISMAN_EXPORT QJsonObject serializeConfig(const Disman::ConfigPtr &config);
+DISMAN_EXPORT QJsonObject serializeOutput(const Disman::OutputPtr &output);
+DISMAN_EXPORT QJsonObject serializeMode(const Disman::ModePtr &mode);
+DISMAN_EXPORT QJsonObject serializeScreen(const Disman::ScreenPtr &screen);
 
-KSCREEN_EXPORT QPoint deserializePoint(const QDBusArgument &map);
-KSCREEN_EXPORT QSize deserializeSize(const QDBusArgument &map);
+DISMAN_EXPORT QPoint deserializePoint(const QDBusArgument &map);
+DISMAN_EXPORT QSize deserializeSize(const QDBusArgument &map);
 template<typename T>
-KSCREEN_EXPORT QList<T> deserializeList(const QDBusArgument &arg)
+DISMAN_EXPORT QList<T> deserializeList(const QDBusArgument &arg)
 {
     QList<T> list;
     arg.beginArray();
@@ -66,10 +66,10 @@ KSCREEN_EXPORT QList<T> deserializeList(const QDBusArgument &arg)
     arg.endArray();
     return list;
 }
-KSCREEN_EXPORT KScreen::ConfigPtr deserializeConfig(const QVariantMap &map);
-KSCREEN_EXPORT KScreen::OutputPtr deserializeOutput(const QDBusArgument &output);
-KSCREEN_EXPORT KScreen::ModePtr deserializeMode(const QDBusArgument &mode);
-KSCREEN_EXPORT KScreen::ScreenPtr deserializeScreen(const QDBusArgument &screen);
+DISMAN_EXPORT Disman::ConfigPtr deserializeConfig(const QVariantMap &map);
+DISMAN_EXPORT Disman::OutputPtr deserializeOutput(const QDBusArgument &output);
+DISMAN_EXPORT Disman::ModePtr deserializeMode(const QDBusArgument &mode);
+DISMAN_EXPORT Disman::ScreenPtr deserializeScreen(const QDBusArgument &screen);
 
 }
 

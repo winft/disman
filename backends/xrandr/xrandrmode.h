@@ -26,7 +26,7 @@
 #include "../xcbwrapper.h"
 
 class XRandROutput;
-namespace KScreen
+namespace Disman
 {
 class Output;
 class Mode;
@@ -42,7 +42,7 @@ public:
     explicit XRandRMode(const xcb_randr_mode_info_t &modeInfo, XRandROutput *output);
     ~XRandRMode() override;
 
-    KScreen::ModePtr toKScreenMode();
+    Disman::ModePtr toDismanMode();
 
     xcb_randr_mode_t id() const;
     QSize size() const;

@@ -2,7 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINA
 
 add_subdirectory(backendlauncher)
 add_subdirectory(doctor)
-set(libkscreen_SRCS
+set(disman_SRCS
     abstractbackend.cpp
     backendmanager.cpp
     config.cpp
@@ -18,25 +18,25 @@ set(libkscreen_SRCS
     log.cpp
 )
 
-qt5_add_dbus_interface(libkscreen_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kde.KScreen.Backend.xml backendinterface)
+qt5_add_dbus_interface(disman_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.backend.xml backendinterface)
 
-ecm_qt_declare_logging_category(libkscreen_SRCS
-                                HEADER kscreen_debug.h
-                                IDENTIFIER KSCREEN 
-                                CATEGORY_NAME org.kde.kscreen
+ecm_qt_declare_logging_category(disman_SRCS
+                                HEADER disman_debug.h
+                                IDENTIFIER DISMAN
+                                CATEGORY_NAME disman
 )
 
-ecm_qt_declare_logging_category(libkscreen_SRCS
-                                HEADER kscreen_debug_edid.h
-                                IDENTIFIER KSCREEN_EDID
-                                CATEGORY_NAME org.kde.kscreen.edid
+ecm_qt_declare_logging_category(disman_SRCS
+                                HEADER disman_debug_edid.h
+                                IDENTIFIER DISMAN_EDID
+                                CATEGORY_NAME disman.edid
 )
 
 
-add_library(KF5Screen SHARED ${libkscreen_SRCS})
-generate_export_header(KF5Screen BASE_NAME KScreen)
+add_library(Disman SHARED ${disman_SRCS})
+generate_export_header(Disman)
 
-target_link_libraries(KF5Screen
+target_link_libraries(Disman
     PUBLIC
     Qt5::Core
     Qt5::Gui
@@ -45,18 +45,17 @@ target_link_libraries(KF5Screen
     Qt5::X11Extras
 )
 
-set_target_properties(KF5Screen PROPERTIES
-    VERSION "${KSCREEN_VERSION_STRING}"
-    SOVERSION "${KSCREEN_SOVERSION}"
-    EXPORT_NAME Screen
+set_target_properties(Disman PROPERTIES
+    VERSION "${PROJECT_VERSION}"
+    SOVERSION "${Disman_SOVERSION}"
+    EXPORT_NAME Disman
 )
 
-target_include_directories(KF5Screen PUBLIC "$<INSTALL_INTERFACE:${KF5_INCLUDE_INSTALL_DIR}/KScreen>")
+target_include_directories(Disman PUBLIC "$<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}/Disman>")
 
-install(TARGETS KF5Screen EXPORT KF5ScreenTargets ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-add_library(KF5::Screen ALIAS KF5Screen)
+install(TARGETS Disman EXPORT DismanTargets ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 
-ecm_generate_headers(KScreen_HEADERS
+ecm_generate_headers(Disman_HEADERS
     HEADER_NAMES
         Log
         Mode
@@ -69,44 +68,43 @@ ecm_generate_headers(KScreen_HEADERS
         GetConfigOperation
         SetConfigOperation
         Types
-    PREFIX KScreen
-    REQUIRED_HEADERS KScreen_REQ_HEADERS
+    PREFIX Disman
+    REQUIRED_HEADERS Disman_REQ_HEADERS
 )
 
-install(FILES ${KScreen_HEADERS}
-        DESTINATION ${KF5_INCLUDE_INSTALL_DIR}/KScreen/KScreen
+install(FILES ${Disman_HEADERS}
+        DESTINATION ${INCLUDE_INSTALL_DIR}/Disman/Disman
         COMPONENT Devel)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kscreen_export.h
-              backendmanager_p.h # needed for unit-tests in KScreen
-              ${KScreen_REQ_HEADERS}
-        DESTINATION ${KF5_INCLUDE_INSTALL_DIR}/KScreen/kscreen)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/disman_export.h
+              backendmanager_p.h # needed for unit-tests in Disman
+              ${Disman_REQ_HEADERS}
+        DESTINATION ${INCLUDE_INSTALL_DIR}/Disman/disman)
 
 if(NOT WIN32)
-   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/kscreen2.pc.in ${CMAKE_CURRENT_BINARY_DIR}/kscreen2.pc @ONLY)
-   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kscreen2.pc DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig)
+   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/disman.pc.in ${CMAKE_CURRENT_BINARY_DIR}/disman.pc @ONLY)
+   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/disman.pc DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig)
 endif(NOT WIN32)
 
 include(ECMGeneratePriFile)
-ecm_generate_pri_file(BASE_NAME KScreen LIB_NAME KF5Screen DEPS "core" FILENAME_VAR PRI_FILENAME)
+ecm_generate_pri_file(BASE_NAME Disman LIB_NAME Disman DEPS "core" FILENAME_VAR PRI_FILENAME)
 install(FILES ${PRI_FILENAME} DESTINATION ${ECM_MKSPECS_INSTALL_DIR})
 
 if(BUILD_QCH)
     ecm_add_qch(
-        KF5Screen_QCH
-        NAME KScreen
-        BASE_NAME KF5Screen
-        VERSION ${KF5_MIN_VERSION}
-        ORG_DOMAIN org.kde
+        Disman_QCH
+        NAME Disman
+        VERSION ${PROJECT_VERSION}
+        ORG_DOMAIN org.kwinft
         SOURCES # using only public headers, to cover only public API
-            ${KScreen_REQ_HEADERS}
+            ${Disman_REQ_HEADERS}
         # MD_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md"
         LINK_QCHS
             Qt5Core_QCH
             Qt5Gui_QCH
         BLANK_MACROS
-            KSCREEN_EXPORT
-            KSCREEN_DEPRECATED
-            KSCREEN_DEPRECATED_EXPORT
+            DISMAN_EXPORT
+            DISMAN_DEPRECATED
+            DISMAN_DEPRECATED_EXPORT
         TAGFILE_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
         QCH_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
         COMPONENT Devel

@@ -24,15 +24,15 @@
 #include "configoperation_p.h"
 #include "config.h"
 #include "configserializer_p.h"
-#include "kscreen_debug.h"
+#include "disman_debug.h"
 #include "output.h"
 
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingCall>
 
-using namespace KScreen;
+using namespace Disman;
 
-namespace KScreen
+namespace Disman
 {
 
 class SetConfigOperationPrivate : public ConfigOperationPrivate
@@ -40,13 +40,13 @@ class SetConfigOperationPrivate : public ConfigOperationPrivate
     Q_OBJECT
 
 public:
-    explicit SetConfigOperationPrivate(const KScreen::ConfigPtr &config, ConfigOperation* qq);
+    explicit SetConfigOperationPrivate(const Disman::ConfigPtr &config, ConfigOperation* qq);
 
-    void backendReady(org::kde::kscreen::Backend* backend) override;
+    void backendReady(org::kwinft::disman::backend* backend) override;
     void onConfigSet(QDBusPendingCallWatcher *watcher);
     void normalizeOutputPositions();
 
-    KScreen::ConfigPtr config;
+    Disman::ConfigPtr config;
 
 private:
     Q_DECLARE_PUBLIC(SetConfigOperation)
@@ -60,7 +60,7 @@ SetConfigOperationPrivate::SetConfigOperationPrivate(const ConfigPtr &config, Co
 {
 }
 
-void SetConfigOperationPrivate::backendReady(org::kde::kscreen::Backend* backend)
+void SetConfigOperationPrivate::backendReady(org::kwinft::disman::backend* backend)
 {
     ConfigOperationPrivate::backendReady(backend);
 
@@ -140,7 +140,7 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     }
     int offsetX = INT_MAX;
     int offsetY = INT_MAX;
-    Q_FOREACH (const KScreen::OutputPtr &output, config->outputs()) {
+    Q_FOREACH (const Disman::OutputPtr &output, config->outputs()) {
         if (!output->isPositionable()) {
             continue;
         }
@@ -151,13 +151,13 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     if (!offsetX && !offsetY) {
         return;
     }
-    qCDebug(KSCREEN) << "Correcting output positions by:" << QPoint(offsetX, offsetY);
-    Q_FOREACH (const KScreen::OutputPtr &output, config->outputs()) {
+    qCDebug(DISMAN) << "Correcting output positions by:" << QPoint(offsetX, offsetY);
+    Q_FOREACH (const Disman::OutputPtr &output, config->outputs()) {
         if (!output->isConnected() || !output->isEnabled()) {
             continue;
         }
         QPoint newPos = QPoint(output->pos().x() - offsetX, output->pos().y() - offsetY);
-        qCDebug(KSCREEN) << "Moved output from" << output->pos() << "to" << newPos;
+        qCDebug(DISMAN) << "Moved output from" << output->pos() << "to" << newPos;
         output->setPos(newPos);
     }
 }

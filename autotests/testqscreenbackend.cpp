@@ -28,9 +28,9 @@
 #include "../src/getconfigoperation.h"
 #include "../src/backendmanager_p.h"
 
-Q_LOGGING_CATEGORY(KSCREEN_QSCREEN, "kscreen.qscreen")
+Q_LOGGING_CATEGORY(DISMAN_QSCREEN, "disman.qscreen")
 
-using namespace KScreen;
+using namespace Disman;
 
 class testQScreenBackend : public QObject
 {
@@ -54,12 +54,12 @@ private:
 
 void testQScreenBackend::initTestCase()
 {
-    qputenv("KSCREEN_LOGGING", "false");
-    qputenv("KSCREEN_BACKEND", "qscreen");
-    qputenv("KSCREEN_BACKEND_INPROCESS", "1");
-    KScreen::BackendManager::instance()->shutdownBackend();
+    qputenv("DISMAN_LOGGING", "false");
+    qputenv("DISMAN_BACKEND", "qscreen");
+    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    Disman::BackendManager::instance()->shutdownBackend();
 
-    m_backend = QString::fromLocal8Bit(qgetenv("KSCREEN_BACKEND"));
+    m_backend = QString::fromLocal8Bit(qgetenv("DISMAN_BACKEND"));
 
     QElapsedTimer t;
     t.start();
@@ -97,7 +97,7 @@ void testQScreenBackend::verifyScreen()
 void testQScreenBackend::verifyOutputs()
 {
     bool primaryFound = false;
-    foreach (const KScreen::OutputPtr &op, m_config->outputs()) {
+    foreach (const Disman::OutputPtr &op, m_config->outputs()) {
         if (op->isPrimary()) {
             primaryFound = true;
         }
@@ -108,7 +108,7 @@ void testQScreenBackend::verifyOutputs()
         QCOMPARE(m_config->outputs().count(), QGuiApplication::screens().count());
     }
 
-    const KScreen::OutputPtr primary = m_config->primaryOutput();
+    const Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary->isEnabled());
     QVERIFY(primary->isConnected());
     //qDebug() << "Primary geometry? " << primary->geometry();
@@ -116,7 +116,7 @@ void testQScreenBackend::verifyOutputs()
 
 
     QList<int> ids;
-    foreach (const KScreen::OutputPtr &output, m_config->outputs()) {
+    foreach (const Disman::OutputPtr &output, m_config->outputs()) {
         qDebug() << " _____________________ Output: " << output;
         qDebug() << "   output name: " << output->name();
         qDebug() << "   output modes: " << output->modes().count() << output->modes();
@@ -144,12 +144,12 @@ void testQScreenBackend::verifyOutputs()
 
 void testQScreenBackend::verifyModes()
 {
-    const KScreen::OutputPtr primary = m_config->primaryOutput();
+    const Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary);
     QVERIFY(primary->modes().count() > 0);
 
-    foreach (const KScreen::OutputPtr &output, m_config->outputs()) {
-        foreach (const KScreen::ModePtr &mode, output->modes()) {
+    foreach (const Disman::OutputPtr &output, m_config->outputs()) {
+        foreach (const Disman::ModePtr &mode, output->modes()) {
             qDebug() << "   Mode   : " << mode->name();
             QVERIFY(!mode->name().isEmpty());
             QVERIFY(mode->refreshRate() > 0);
@@ -163,10 +163,10 @@ void testQScreenBackend::commonUsagePattern()
     auto *op = new GetConfigOperation();
     op->exec();
 
-    const KScreen::OutputList outputs = op->config()->outputs();
+    const Disman::OutputList outputs = op->config()->outputs();
 
     QVariantList outputList;
-    Q_FOREACH(const KScreen::OutputPtr &output, outputs) {
+    Q_FOREACH(const Disman::OutputPtr &output, outputs) {
         if (!output->isConnected()) {
             continue;
         }
@@ -183,7 +183,7 @@ void testQScreenBackend::commonUsagePattern()
         info[QStringLiteral("pos")] = pos;
 
         if (output->isEnabled()) {
-            const KScreen::ModePtr mode = output->currentMode();
+            const Disman::ModePtr mode = output->currentMode();
             if (!mode) {
                 //qWarning() << "CurrentMode is null" << output->name();
                 return;
@@ -206,7 +206,7 @@ void testQScreenBackend::commonUsagePattern()
 
 void testQScreenBackend::cleanupTestCase()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     qApp->exit(0);
 }
 

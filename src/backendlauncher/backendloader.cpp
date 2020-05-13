@@ -20,7 +20,7 @@
 #include "backendloader.h"
 #include "backendloaderadaptor.h"
 #include "backenddbuswrapper.h"
-#include "kscreen_backendLauncher_debug.h"
+#include "disman_backend_launcher_debug.h"
 #include "src/abstractbackend.h"
 #include "src/backendmanager_p.h"
 
@@ -38,7 +38,7 @@
 void pluginDeleter(QPluginLoader *p)
 {
     if (p) {
-        qCDebug(KSCREEN_BACKEND_LAUNCHER) << "Unloading" << p->fileName();
+        qCDebug(DISMAN_BACKEND_LAUNCHER) << "Unloading" << p->fileName();
         p->unload();
         delete p;
     }
@@ -56,7 +56,7 @@ BackendLoader::~BackendLoader()
 {
     delete mBackend;
     pluginDeleter(mLoader);
-    qCDebug(KSCREEN_BACKEND_LAUNCHER) << "Backend loader destroyed";
+    qCDebug(DISMAN_BACKEND_LAUNCHER) << "Backend loader destroyed";
 }
 
 bool BackendLoader::init()
@@ -64,8 +64,8 @@ bool BackendLoader::init()
     QDBusConnection dbus = QDBusConnection::sessionBus();
     new BackendLoaderAdaptor(this);
     if (!dbus.registerObject(QStringLiteral("/"), this, QDBusConnection::ExportAdaptors)) {
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << "Failed to export backend to DBus: another launcher already running?";
-        qCWarning(KSCREEN_BACKEND_LAUNCHER) << dbus.lastError().message();
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Failed to export backend to DBus: another launcher already running?";
+        qCWarning(DISMAN_BACKEND_LAUNCHER) << dbus.lastError().message();
         return false;
     }
 
@@ -96,7 +96,7 @@ bool BackendLoader::requestBackend(const QString &backendName, const QVariantMap
         }
     }
 
-    KScreen::AbstractBackend *backend = loadBackend(backendName, arguments);
+    Disman::AbstractBackend *backend = loadBackend(backendName, arguments);
     if (!backend) {
         return false;
     }
@@ -112,14 +112,14 @@ bool BackendLoader::requestBackend(const QString &backendName, const QVariantMap
     return true;
 }
 
-KScreen::AbstractBackend *BackendLoader::loadBackend(const QString &name,
+Disman::AbstractBackend *BackendLoader::loadBackend(const QString &name,
                                                      const QVariantMap &arguments)
 {
     if (mLoader == nullptr) {
         std::unique_ptr<QPluginLoader, void(*)(QPluginLoader *)> loader(new QPluginLoader(), pluginDeleter);
         mLoader = loader.release();
     }
-    return KScreen::BackendManager::loadBackendPlugin(mLoader, name, arguments);
+    return Disman::BackendManager::loadBackendPlugin(mLoader, name, arguments);
 }
 
 void BackendLoader::quit()

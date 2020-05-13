@@ -27,7 +27,7 @@
 
 #include <QScreen>
 
-namespace KScreen
+namespace Disman
 {
 
 class QScreenOutput : public QObject
@@ -38,8 +38,8 @@ public:
     explicit QScreenOutput(const QScreen *qscreen, QObject *parent = nullptr);
     ~QScreenOutput() override;
 
-    KScreen::OutputPtr toKScreenOutput() const;
-    void updateKScreenOutput(KScreen::OutputPtr &output) const;
+    Disman::OutputPtr toDismanOutput() const;
+    void updateDismanOutput(Disman::OutputPtr &output) const;
 
     int id() const;
     void setId(const int newId);

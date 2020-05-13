@@ -20,19 +20,19 @@
 #ifndef ABSTRACT_BACKEND_H
 #define ABSTRACT_BACKEND_H
 
-#include "kscreen_export.h"
+#include "disman_export.h"
 #include "types.h"
 
 #include <QString>
 #include <QObject>
 
-namespace KScreen {
+namespace Disman {
     class Config;
 
 /**
  * Abstract class for backends.
  */
-class KSCREEN_EXPORT AbstractBackend : public QObject
+class DISMAN_EXPORT AbstractBackend : public QObject
 {
     Q_OBJECT
 
@@ -58,7 +58,7 @@ public:
      * Returns the name of the DBus service that should be used for this backend.
      *
      * Each backend must have an unique service name (usually something like
-     * org.kde.KScreen.Backend.%backendName%) to allow multiple different backends
+     * org.kde.Disman.Backend.%backendName%) to allow multiple different backends
      * running concurrently.
      */
     virtual QString serviceName() const = 0;
@@ -68,14 +68,14 @@ public:
      *
      * @return Config object for the system.
      */
-    virtual KScreen::ConfigPtr config() const = 0;
+    virtual Disman::ConfigPtr config() const = 0;
 
     /**
      * Apply a config object to the system.
      *
      * @param config Configuration to apply
      */
-    virtual void setConfig(const KScreen::ConfigPtr &config) = 0;
+    virtual void setConfig(const Disman::ConfigPtr &config) = 0;
 
     /**
      * Returns whether the backend is in valid state.
@@ -105,10 +105,10 @@ Q_SIGNALS:
      *
      * @param config New configuration
      */
-    void configChanged(const KScreen::ConfigPtr &config);
+    void configChanged(const Disman::ConfigPtr &config);
 
 };
 
-} // namespace KScreen
+} // namespace Disman
 
 #endif //ABSTRACT_BACKEND_H

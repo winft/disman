@@ -35,15 +35,15 @@
 
 #include <QTimer>
 
-using namespace KScreen;
+using namespace Disman;
 
 WaylandConfig::WaylandConfig(QObject *parent)
     : QObject(parent)
     , m_outputManagement(nullptr)
     , m_registryInitialized(false)
     , m_blockSignals(true)
-    , m_kscreenConfig(new Config)
-    , m_kscreenPendingConfig(nullptr)
+    , m_dismanConfig(new Config)
+    , m_dismanPendingConfig(nullptr)
     , m_screen(new WaylandScreen(this))
     , m_tabletModeAvailable(false)
     , m_tabletModeEngaged(false)
@@ -53,7 +53,7 @@ WaylandConfig::WaylandConfig(QObject *parent)
     connect(this, &WaylandConfig::initialized, &m_syncLoop, &QEventLoop::quit);
     QTimer::singleShot(3000, this, [this] {
         if (m_syncLoop.isRunning()) {
-            qCWarning(KSCREEN_WAYLAND) << "Connection to Wayland server at socket:"
+            qCWarning(DISMAN_WAYLAND) << "Connection to Wayland server at socket:"
                                        << m_connection->socketName() << "timed out.";
             m_syncLoop.quit();
             m_thread->quit();
@@ -121,7 +121,7 @@ void WaylandConfig::initConnection()
             this, &WaylandConfig::disconnected, Qt::QueuedConnection);
 
     connect(m_connection, &KWayland::Client::ConnectionThread::failed, this, [this] {
-        qCWarning(KSCREEN_WAYLAND) << "Failed to connect to Wayland server at socket:"
+        qCWarning(DISMAN_WAYLAND) << "Failed to connect to Wayland server at socket:"
                                    << m_connection->socketName();
         m_syncLoop.quit();
         m_thread->quit();
@@ -148,7 +148,7 @@ void WaylandConfig::unblockSignals()
 
 void WaylandConfig::disconnected()
 {
-    qCWarning(KSCREEN_WAYLAND) << "Wayland disconnected, cleaning up.";
+    qCWarning(DISMAN_WAYLAND) << "Wayland disconnected, cleaning up.";
     qDeleteAll(m_outputMap);
     m_outputMap.clear();
 
@@ -272,48 +272,48 @@ void WaylandConfig::checkInitialized()
     }
 }
 
-KScreen::ConfigPtr WaylandConfig::currentConfig()
+Disman::ConfigPtr WaylandConfig::currentConfig()
 {
     // TODO: do this setScreen call less clunky
-    m_kscreenConfig->setScreen(m_screen->toKScreenScreen(m_kscreenConfig));
+    m_dismanConfig->setScreen(m_screen->toDismanScreen(m_dismanConfig));
 
     const auto features = Config::Feature::Writable | Config::Feature::PerOutputScaling
                         | Config::Feature::AutoRotation | Config::Feature::TabletMode;
-    m_kscreenConfig->setSupportedFeatures(features);
-    m_kscreenConfig->setValid(m_connection->display());
+    m_dismanConfig->setSupportedFeatures(features);
+    m_dismanConfig->setValid(m_connection->display());
 
-    KScreen::ScreenPtr screen = m_kscreenConfig->screen();
-    m_screen->updateKScreenScreen(screen);
+    Disman::ScreenPtr screen = m_dismanConfig->screen();
+    m_screen->updateDismanScreen(screen);
 
     //Removing removed outputs
-    const KScreen::OutputList outputs = m_kscreenConfig->outputs();
+    const Disman::OutputList outputs = m_dismanConfig->outputs();
     for (const auto &output : outputs) {
         if (!m_outputMap.contains(output->id())) {
-            m_kscreenConfig->removeOutput(output->id());
+            m_dismanConfig->removeOutput(output->id());
         }
     }
 
-    // Add KScreen::Outputs that aren't in the list yet, handle primaryOutput
-    KScreen::OutputList kscreenOutputs = m_kscreenConfig->outputs();
+    // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
+    Disman::OutputList dismanOutputs = m_dismanConfig->outputs();
     for (const auto &output : m_outputMap) {
-        KScreen::OutputPtr kscreenOutput = kscreenOutputs[output->id()];
-        if (!kscreenOutput) {
-            kscreenOutput = output->toKScreenOutput();
-            kscreenOutputs.insert(kscreenOutput->id(), kscreenOutput);
+        Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
+        if (!dismanOutput) {
+            dismanOutput = output->toDismanOutput();
+            dismanOutputs.insert(dismanOutput->id(), dismanOutput);
         }
-        if (kscreenOutput && m_outputMap.count() == 1) {
-            kscreenOutput->setPrimary(true);
+        if (dismanOutput && m_outputMap.count() == 1) {
+            dismanOutput->setPrimary(true);
         } else if (m_outputMap.count() > 1) {
             // primaryScreen concept doesn't exist in kwayland, so we don't set one
         }
-        output->updateKScreenOutput(kscreenOutput);
+        output->updateDismanOutput(dismanOutput);
     }
-    m_kscreenConfig->setOutputs(kscreenOutputs);
+    m_dismanConfig->setOutputs(dismanOutputs);
 
-    m_kscreenConfig->setTabletModeAvailable(m_tabletModeAvailable);
-    m_kscreenConfig->setTabletModeEngaged(m_tabletModeEngaged);
+    m_dismanConfig->setTabletModeAvailable(m_tabletModeAvailable);
+    m_dismanConfig->setTabletModeEngaged(m_tabletModeEngaged);
 
-    return m_kscreenConfig;
+    return m_dismanConfig;
 }
 
 QMap<int, WaylandOutput*> WaylandConfig::outputMap() const
@@ -323,14 +323,14 @@ QMap<int, WaylandOutput*> WaylandConfig::outputMap() const
 
 void WaylandConfig::tryPendingConfig()
 {
-    if (!m_kscreenPendingConfig) {
+    if (!m_dismanPendingConfig) {
         return;
     }
-    applyConfig(m_kscreenPendingConfig);
-    m_kscreenPendingConfig = nullptr;
+    applyConfig(m_dismanPendingConfig);
+    m_dismanPendingConfig = nullptr;
 }
 
-void WaylandConfig::applyConfig(const KScreen::ConfigPtr &newConfig)
+void WaylandConfig::applyConfig(const Disman::ConfigPtr &newConfig)
 {
     using namespace KWayland::Client;
     // Create a new configuration object
@@ -339,7 +339,7 @@ void WaylandConfig::applyConfig(const KScreen::ConfigPtr &newConfig)
 
     if (m_blockSignals) {
         /* Last apply still pending, remember new changes and apply afterwards */
-        m_kscreenPendingConfig = newConfig;
+        m_dismanPendingConfig = newConfig;
         return;
     }
 

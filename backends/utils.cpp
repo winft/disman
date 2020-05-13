@@ -20,7 +20,7 @@
 
 #include <QVector>
 
-KScreen::Output::Type Utils::guessOutputType(const QString &type, const QString &name)
+Disman::Output::Type Utils::guessOutputType(const QString &type, const QString &name)
 {
     static const auto embedded = { QLatin1String("LVDS"),
                                    QLatin1String("IDP"),
@@ -30,42 +30,42 @@ KScreen::Output::Type Utils::guessOutputType(const QString &type, const QString 
 
     for (const QLatin1String &pre : embedded) {
         if (name.startsWith(pre, Qt::CaseInsensitive)) {
-            return KScreen::Output::Panel;
+            return Disman::Output::Panel;
         }
     }
 
     if (type.contains(QLatin1String("VGA"))) {
-        return KScreen::Output::VGA;
+        return Disman::Output::VGA;
     } else if (type.contains(QLatin1String("DVI"))) {
-        return KScreen::Output::DVI;
+        return Disman::Output::DVI;
     } else if (type.contains(QLatin1String("DVI-I"))) {
-        return KScreen::Output::DVII;
+        return Disman::Output::DVII;
     } else if (type.contains(QLatin1String("DVI-A"))) {
-        return KScreen::Output::DVIA;
+        return Disman::Output::DVIA;
     } else if (type.contains(QLatin1String("DVI-D"))) {
-        return KScreen::Output::DVID;
+        return Disman::Output::DVID;
     } else if (type.contains(QLatin1String("HDMI"))) {
-        return KScreen::Output::HDMI;
+        return Disman::Output::HDMI;
     } else if (type.contains(QLatin1String("Panel"))) {
-        return KScreen::Output::Panel;
+        return Disman::Output::Panel;
     } else if (type.contains(QLatin1String("TV-Composite"))) {
-        return KScreen::Output::TVComposite;
+        return Disman::Output::TVComposite;
     } else if (type.contains(QLatin1String("TV-SVideo"))) {
-        return KScreen::Output::TVSVideo;
+        return Disman::Output::TVSVideo;
     } else if (type.contains(QLatin1String("TV-Component"))) {
-        return KScreen::Output::TVComponent;
+        return Disman::Output::TVComponent;
     } else if (type.contains(QLatin1String("TV-SCART"))) {
-        return KScreen::Output::TVSCART;
+        return Disman::Output::TVSCART;
     } else if (type.contains(QLatin1String("TV-C4"))) {
-        return KScreen::Output::TVC4;
+        return Disman::Output::TVC4;
     } else if (type.contains(QLatin1String("TV"))) {
-        return KScreen::Output::TV;
+        return Disman::Output::TV;
     } else if (type.contains(QLatin1String("DisplayPort")) || type.startsWith(QLatin1String("DP"))) {
-        return KScreen::Output::DisplayPort;
+        return Disman::Output::DisplayPort;
     } else if (type.contains(QLatin1String("unknown"))) {
-        return KScreen::Output::Unknown;
+        return Disman::Output::Unknown;
     } else {
-        return KScreen::Output::Unknown;
+        return Disman::Output::Unknown;
     }
 }
 

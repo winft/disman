@@ -16,8 +16,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_DPMSCLIENT_H
-#define KSCREEN_DPMSCLIENT_H
+#ifndef DISMAN_DPMSCLIENT_H
+#define DISMAN_DPMSCLIENT_H
 
 #include <QCommandLineParser>
 #include <QObject>
@@ -35,7 +35,7 @@ namespace KWayland
     }
 }
 
-namespace KScreen
+namespace Disman
 {
 
 class DpmsClient : public QObject
@@ -73,4 +73,4 @@ private:
 
 } // namespace
 
-#endif // KSCREEN_DPSMCLIENT_H
+#endif // DISMAN_DPSMCLIENT_H

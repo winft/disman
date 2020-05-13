@@ -73,5 +73,5 @@ class XCBEventListener : public QObject,
         uint32_t m_window;
 };
 
-Q_DECLARE_LOGGING_CATEGORY(KSCREEN_XCB_HELPER)
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_XCB_HELPER)
 #endif // XRANDRX11HELPER_H

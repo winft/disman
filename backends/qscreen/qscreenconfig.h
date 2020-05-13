@@ -23,7 +23,7 @@
 
 #include <QScreen>
 
-namespace KScreen
+namespace Disman
 {
 class Output;
 class QScreenOutput;
@@ -37,8 +37,8 @@ public:
     explicit QScreenConfig(QObject *parent = nullptr);
     ~QScreenConfig() override;
 
-    KScreen::ConfigPtr toKScreenConfig() const;
-    void updateKScreenConfig(KScreen::ConfigPtr &config) const;
+    Disman::ConfigPtr toDismanConfig() const;
+    void updateDismanConfig(Disman::ConfigPtr &config) const;
 
     QMap<int, QScreenOutput *> outputMap() const;
     int outputId(const QScreen *qscreen);
@@ -48,7 +48,7 @@ private Q_SLOTS:
     void screenRemoved(QScreen *qscreen);
 
 Q_SIGNALS:
-    void configChanged(const KScreen::ConfigPtr &config);
+    void configChanged(const Disman::ConfigPtr &config);
 
 private:
     QMap<int, QScreenOutput *> m_outputMap;

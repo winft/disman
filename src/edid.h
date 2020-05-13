@@ -18,19 +18,19 @@
  *************************************************************************************/
 
 
-#ifndef KSCREEN_EDID_H
-#define KSCREEN_EDID_H
+#ifndef DISMAN_EDID_H
+#define DISMAN_EDID_H
 
-#include "kscreen_export.h"
+#include "disman_export.h"
 
 #include <QObject>
 #include <QtGlobal>
 #include <QQuaternion>
 
-namespace KScreen
+namespace Disman
 {
 
-class KSCREEN_EXPORT Edid: public QObject
+class DISMAN_EXPORT Edid: public QObject
 {
     Q_OBJECT
 
@@ -83,6 +83,6 @@ class KSCREEN_EXPORT Edid: public QObject
 
 }
 
-Q_DECLARE_METATYPE(KScreen::Edid*)
+Q_DECLARE_METATYPE(Disman::Edid*)
 
 #endif // EDID_H

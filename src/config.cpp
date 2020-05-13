@@ -21,14 +21,14 @@
 #include "output.h"
 #include "backendmanager_p.h"
 #include "abstractbackend.h"
-#include "kscreen_debug.h"
+#include "disman_debug.h"
 
 #include <QDebug>
 #include <QRect>
 #include <QStringList>
 #include <QCryptographicHash>
 
-using namespace KScreen;
+using namespace Disman;
 
 class Q_DECL_HIDDEN Config::Private : public QObject
 {
@@ -43,18 +43,18 @@ public:
         , q(parent)
     { }
 
-    KScreen::OutputPtr findPrimaryOutput() const
+    Disman::OutputPtr findPrimaryOutput() const
     {
         auto iter = std::find_if(outputs.constBegin(), outputs.constEnd(),
-                                 [](const KScreen::OutputPtr &output) -> bool {
+                                 [](const Disman::OutputPtr &output) -> bool {
                                     return output->isPrimary();
                                  });
-        return iter == outputs.constEnd() ? KScreen::OutputPtr() : iter.value();
+        return iter == outputs.constEnd() ? Disman::OutputPtr() : iter.value();
     }
 
     void onPrimaryOutputChanged()
     {
-        const KScreen::OutputPtr output(qobject_cast<KScreen::Output*>(sender()), [](void *) {});
+        const Disman::OutputPtr output(qobject_cast<Disman::Output*>(sender()), [](void *) {});
         Q_ASSERT(output);
         if (output->isPrimary()) {
             q->setPrimaryOutput(output);
@@ -107,12 +107,12 @@ bool Config::canBeApplied(const ConfigPtr &config)
 bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
 {
     if (!config) {
-        qCDebug(KSCREEN) << "canBeApplied: Config not available, returning false";
+        qCDebug(DISMAN) << "canBeApplied: Config not available, returning false";
         return false;
     }
     ConfigPtr currentConfig = BackendManager::instance()->config();
     if (!currentConfig) {
-        qCDebug(KSCREEN) << "canBeApplied: Current config not available, returning false";
+        qCDebug(DISMAN) << "canBeApplied: Current config not available, returning false";
         return false;
     }
 
@@ -130,22 +130,22 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
         currentOutput = currentConfig->output(output->id());
         //If there is no such output
         if (!currentOutput) {
-            qCDebug(KSCREEN) << "canBeApplied: The output:" << output->id() << "does not exists";
+            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "does not exists";
             return false;
         }
         //If the output is not connected
         if (!currentOutput->isConnected()) {
-            qCDebug(KSCREEN) << "canBeApplied: The output:" << output->id() << "is not connected";
+            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "is not connected";
             return false;
         }
         //if there is no currentMode
         if (output->currentModeId().isEmpty()) {
-            qCDebug(KSCREEN) << "canBeApplied: The output:" << output->id() << "has no currentModeId";
+            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "has no currentModeId";
             return false;
         }
         //If the mode is not found in the current output
         if (!currentOutput->mode(output->currentModeId())) {
-            qCDebug(KSCREEN) << "canBeApplied: The output:" << output->id() << "has no mode:" << output->currentModeId();
+            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "has no mode:" << output->currentModeId();
             return false;
         }
 
@@ -180,22 +180,22 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
     }
 
     if (flags & ValidityFlag::RequireAtLeastOneEnabledScreen && enabledOutputsCount == 0) {
-        qCDebug(KSCREEN) << "canBeAppled: There are no enabled screens, at least one required";
+        qCDebug(DISMAN) << "canBeAppled: There are no enabled screens, at least one required";
         return false;
     }
 
     const int maxEnabledOutputsCount = config->screen()->maxActiveOutputsCount();
     if (enabledOutputsCount > maxEnabledOutputsCount) {
-        qCDebug(KSCREEN) << "canBeApplied: Too many active screens. Requested: " << enabledOutputsCount << ", Max: " << maxEnabledOutputsCount;
+        qCDebug(DISMAN) << "canBeApplied: Too many active screens. Requested: " << enabledOutputsCount << ", Max: " << maxEnabledOutputsCount;
         return false;
     }
 
     if (rect.width() > config->screen()->maxSize().width()) {
-        qCDebug(KSCREEN) << "canBeApplied: The configuration is too wide:" << rect.width();
+        qCDebug(DISMAN) << "canBeApplied: The configuration is too wide:" << rect.width();
         return false;
     }
     if (rect.height() > config->screen()->maxSize().height()) {
-        qCDebug(KSCREEN) << "canBeApplied: The configuration is too high:" << rect.height();
+        qCDebug(DISMAN) << "canBeApplied: The configuration is too high:" << rect.height();
         return false;
     }
 
@@ -322,16 +322,16 @@ void Config::setPrimaryOutput(const OutputPtr &newPrimary)
         return;
     }
 
-//     qCDebug(KSCREEN) << "Primary output changed from" << primaryOutput()
+//     qCDebug(DISMAN) << "Primary output changed from" << primaryOutput()
 //                      << "(" << (primaryOutput().isNull() ? "none" : primaryOutput()->name()) << ") to"
 //                      << newPrimary << "(" << (newPrimary.isNull() ? "none" : newPrimary->name()) << ")";
 
     for (OutputPtr &output : d->outputs) {
-        disconnect(output.data(), &KScreen::Output::isPrimaryChanged,
-                d, &KScreen::Config::Private::onPrimaryOutputChanged);
+        disconnect(output.data(), &Disman::Output::isPrimaryChanged,
+                d, &Disman::Config::Private::onPrimaryOutputChanged);
         output->setPrimary(output == newPrimary);
-        connect(output.data(), &KScreen::Output::isPrimaryChanged,
-                d, &KScreen::Config::Private::onPrimaryOutputChanged);
+        connect(output.data(), &Disman::Output::isPrimaryChanged,
+                d, &Disman::Config::Private::onPrimaryOutputChanged);
     }
 
     d->primaryOutput = newPrimary;
@@ -341,8 +341,8 @@ void Config::setPrimaryOutput(const OutputPtr &newPrimary)
 void Config::addOutput(const OutputPtr &output)
 {
     d->outputs.insert(output->id(), output);
-    connect(output.data(), &KScreen::Output::isPrimaryChanged,
-            d, &KScreen::Config::Private::onPrimaryOutputChanged);
+    connect(output.data(), &Disman::Output::isPrimaryChanged,
+            d, &Disman::Config::Private::onPrimaryOutputChanged);
 
     Q_EMIT outputAdded(output);
 
@@ -404,10 +404,10 @@ void Config::apply(const ConfigPtr& other)
 }
 
 
-QDebug operator<<(QDebug dbg, const KScreen::ConfigPtr &config)
+QDebug operator<<(QDebug dbg, const Disman::ConfigPtr &config)
 {
     if (config) {
-        dbg << "KScreen::Config(";
+        dbg << "Disman::Config(";
         const auto outputs = config->outputs();
         for (const auto &output : outputs) {
             if (output->isConnected()) {
@@ -416,7 +416,7 @@ QDebug operator<<(QDebug dbg, const KScreen::ConfigPtr &config)
         }
         dbg << ")";
     } else {
-        dbg << "KScreen::Config(NULL)";
+        dbg << "Disman::Config(NULL)";
     }
     return dbg;
 }

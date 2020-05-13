@@ -27,7 +27,7 @@
 #include "../src/setconfigoperation.h"
 #include "../src/backendmanager_p.h"
 
-using namespace KScreen;
+using namespace Disman;
 
 
 class TestModeListChange : public QObject
@@ -35,9 +35,9 @@ class TestModeListChange : public QObject
     Q_OBJECT
 
 private:
-    KScreen::ConfigPtr getConfig();
-    KScreen::ModeList createModeList();
-    bool compareModeList(KScreen::ModeList before, KScreen::ModeList &after);
+    Disman::ConfigPtr getConfig();
+    Disman::ModeList createModeList();
+    bool compareModeList(Disman::ModeList before, Disman::ModeList &after);
 
     QSize s0 = QSize(1920, 1080);
     QSize s1 = QSize(1600, 1200);
@@ -55,7 +55,7 @@ private Q_SLOTS:
 
 ConfigPtr TestModeListChange::getConfig()
 {
-    qputenv("KSCREEN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_BACKEND_INPROCESS", "1");
     auto *op = new GetConfigOperation();
     if (!op->exec()) {
         qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
@@ -68,36 +68,36 @@ ConfigPtr TestModeListChange::getConfig()
     return op->config();
 }
 
-KScreen::ModeList TestModeListChange::createModeList()
+Disman::ModeList TestModeListChange::createModeList()
 {
 
-    KScreen::ModeList newmodes;
+    Disman::ModeList newmodes;
     {
         QString _id = QString::number(11);
-        KScreen::ModePtr kscreenMode(new KScreen::Mode);
-        kscreenMode->setId(_id);
-        kscreenMode->setName(_id);
-        kscreenMode->setSize(s0);
-        kscreenMode->setRefreshRate(60);
-        newmodes.insert(_id, kscreenMode);
+        Disman::ModePtr dismanMode(new Disman::Mode);
+        dismanMode->setId(_id);
+        dismanMode->setName(_id);
+        dismanMode->setSize(s0);
+        dismanMode->setRefreshRate(60);
+        newmodes.insert(_id, dismanMode);
     }
     {
         QString _id = QString::number(22);
-        KScreen::ModePtr kscreenMode(new KScreen::Mode);
-        kscreenMode->setId(_id);
-        kscreenMode->setName(_id);
-        kscreenMode->setSize(s1);
-        kscreenMode->setRefreshRate(60);
-        newmodes.insert(_id, kscreenMode);
+        Disman::ModePtr dismanMode(new Disman::Mode);
+        dismanMode->setId(_id);
+        dismanMode->setName(_id);
+        dismanMode->setSize(s1);
+        dismanMode->setRefreshRate(60);
+        newmodes.insert(_id, dismanMode);
     }
     {
         QString _id = QString::number(33);
-        KScreen::ModePtr kscreenMode(new KScreen::Mode);
-        kscreenMode->setId(_id);
-        kscreenMode->setName(_id);
-        kscreenMode->setSize(s2);
-        kscreenMode->setRefreshRate(60);
-        newmodes.insert(_id, kscreenMode);
+        Disman::ModePtr dismanMode(new Disman::Mode);
+        dismanMode->setId(_id);
+        dismanMode->setName(_id);
+        dismanMode->setSize(s2);
+        dismanMode->setRefreshRate(60);
+        newmodes.insert(_id, dismanMode);
     }
     return newmodes;
 }
@@ -105,8 +105,8 @@ KScreen::ModeList TestModeListChange::createModeList()
 
 void TestModeListChange::initTestCase()
 {
-    qputenv("KSCREEN_LOGGING", "false");
-    qputenv("KSCREEN_BACKEND", "Fake");
+    qputenv("DISMAN_LOGGING", "false");
+    qputenv("DISMAN_BACKEND", "Fake");
 }
 
 void TestModeListChange::cleanupTestCase()
@@ -117,7 +117,7 @@ void TestModeListChange::cleanupTestCase()
 void TestModeListChange::modeListChange()
 {
     //json file for the fake backend
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
@@ -162,12 +162,12 @@ void TestModeListChange::modeListChange()
     QCOMPARE(modesChangedSpy.count(), 2);
 
     QString _id = QString::number(11);
-    KScreen::ModePtr kscreenMode(new KScreen::Mode);
-    kscreenMode->setId(_id);
-    kscreenMode->setName(_id);
-    kscreenMode->setSize(s0);
-    kscreenMode->setRefreshRate(60);
-    before.insert(_id, kscreenMode);
+    Disman::ModePtr dismanMode(new Disman::Mode);
+    dismanMode->setId(_id);
+    dismanMode->setName(_id);
+    dismanMode->setSize(s0);
+    dismanMode->setRefreshRate(60);
+    before.insert(_id, dismanMode);
     output->setModes(before);
     QCOMPARE(modesChangedSpy.count(), 3);
     QCOMPARE(outputChangedSpy.count(), modesChangedSpy.count());

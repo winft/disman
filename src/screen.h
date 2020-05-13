@@ -20,14 +20,14 @@
 #define SCREEN_CONFIG_H
 
 #include "types.h"
-#include "kscreen_export.h"
+#include "disman_export.h"
 
 #include <QSize>
 #include <QObject>
 
-namespace KScreen {
+namespace Disman {
 
-class KSCREEN_EXPORT Screen : public QObject
+class DISMAN_EXPORT Screen : public QObject
 {
     Q_OBJECT
 
@@ -104,5 +104,5 @@ class KSCREEN_EXPORT Screen : public QObject
         Screen(Private *dd);
 };
 
-} //KScreen namespace
+} //Disman namespace
 #endif //SCREEN_H

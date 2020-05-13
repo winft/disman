@@ -1,12 +1,12 @@
-# Design of libkscreen's Wayland backend
+# Design of disman's Wayland backend
 
 This backend uses KWayland's OutputManagement protocol for listing and
 configuring devices. This is described here.
 
 ## Listing outputs
 
-KScreen's outputs are created from KWayland::Client::OutputDevice objects,
-they copy the data into kscreen's Outputs, and update these objects. A list
+Disman's outputs are created from KWayland::Client::OutputDevice objects,
+they copy the data into disman's Outputs, and update these objects. A list
 of outputs is requested from the client Registry object.
 
 ## Configuring outputs
@@ -32,9 +32,9 @@ internal representation of these objects, and invokes the global notifier,
 which then runs the pointers it holds through the updateK* methods in
 Wayland{Screen,Output,...}.
 
-KScreen:{Screen,Output,Edid,Mode} objects are created from the internal
+Disman:{Screen,Output,Edid,Mode} objects are created from the internal
 representation as requested (usually triggered by the creation of a
-KScreen::Config object through KScreen::Config::current()). As with other
+Disman::Config object through Disman::Config::current()). As with other
 backends, the objects which are handed out to the lib's user are expected
 to be deleted by the user, the backend only takes ownership of its internal
 data representation objects.

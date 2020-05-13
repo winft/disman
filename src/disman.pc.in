@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@KDE_INSTALL_LIBDIR@
+includedir=@CMAKE_INSTALL_PREFIX@/include
+
+Name: Disman
+Description: Qt Based library to manage screens with various backends
+Version: @DISMAN_VERSION_STRING@
+
+Libs: -L${libdir} -lDisman
+Cflags: -I${includedir}

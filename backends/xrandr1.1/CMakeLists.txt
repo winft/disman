@@ -12,15 +12,16 @@ set(xrandr11_SRCS
     ../xcbwrapper.cpp
 )
 
-add_library(KSC_XRandR11 MODULE ${xrandr11_SRCS})
+add_library(randr11 MODULE ${xrandr11_SRCS})
 
-set_target_properties(KSC_XRandR11 PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/kf5/kscreen")
-set_target_properties(KSC_XRandR11 PROPERTIES PREFIX "")
-target_link_libraries(KSC_XRandR11 Qt5::Core
-                                   Qt5::Gui
-                                   Qt5::X11Extras
-                                   ${XCB_LIBRARIES}
-                                   KF5::Screen
+set_target_properties(randr11 PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
+set_target_properties(randr11 PROPERTIES PREFIX "")
+target_link_libraries(randr11
+    Qt5::Core
+    Qt5::Gui
+    Qt5::X11Extras
+    ${XCB_LIBRARIES}
+    Disman
 )
 
-install(TARGETS KSC_XRandR11 DESTINATION ${KDE_INSTALL_PLUGINDIR}/kf5/kscreen/)
+install(TARGETS randr11 DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

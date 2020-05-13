@@ -19,7 +19,7 @@
 
 #include "mode.h"
 
-using namespace KScreen;
+using namespace Disman;
 class Q_DECL_HIDDEN Mode::Private
 {
   public:
@@ -129,12 +129,12 @@ void Mode::setRefreshRate(float refresh)
     Q_EMIT modeChanged();
 }
 
-QDebug operator<<(QDebug dbg, const KScreen::ModePtr &mode)
+QDebug operator<<(QDebug dbg, const Disman::ModePtr &mode)
 {
     if (mode) {
-        dbg << "KScreen::Mode(Id:" << mode->id() << ", Size:" << mode->size() << "@" << mode->refreshRate() << ")";
+        dbg << "Disman::Mode(Id:" << mode->id() << ", Size:" << mode->size() << "@" << mode->refreshRate() << ")";
     }  else {
-        dbg << "KScreen::Mode(NULL)";
+        dbg << "Disman::Mode(NULL)";
     }
     return dbg;
 }

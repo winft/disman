@@ -29,9 +29,9 @@
 
 #include "../src/edid.h"
 
-Q_LOGGING_CATEGORY(KSCREEN_WAYLAND_TESTSERVER, "kscreen.kwayland.testserver")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND_TESTSERVER, "disman.kwayland.testserver")
 
-using namespace KScreen;
+using namespace Disman;
 using namespace KWayland::Server;
 
 WaylandTestServer::WaylandTestServer(QObject *parent)
@@ -48,7 +48,7 @@ WaylandTestServer::WaylandTestServer(QObject *parent)
 WaylandTestServer::~WaylandTestServer()
 {
     stop();
-    qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Wayland server shut down.";
+    qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Wayland server shut down.";
 }
 
 void WaylandTestServer::start()
@@ -70,9 +70,9 @@ void WaylandTestServer::start()
     m_outputManagement->create();
     connect(m_outputManagement, &OutputManagementInterface::configurationChangeRequested, this, &WaylandTestServer::configurationChangeRequested);
 
-    KScreen::WaylandConfigReader::outputsFromConfig(m_configFile, m_display, m_outputs);
-    qCDebug(KSCREEN_WAYLAND_TESTSERVER) << QStringLiteral("export WAYLAND_DISPLAY=") + m_display->socketName();
-    qCDebug(KSCREEN_WAYLAND_TESTSERVER) << QStringLiteral("You can specify the WAYLAND_DISPLAY for this server by exporting it in the environment");
+    Disman::WaylandConfigReader::outputsFromConfig(m_configFile, m_display, m_outputs);
+    qCDebug(DISMAN_WAYLAND_TESTSERVER) << QStringLiteral("export WAYLAND_DISPLAY=") + m_display->socketName();
+    qCDebug(DISMAN_WAYLAND_TESTSERVER) << QStringLiteral("You can specify the WAYLAND_DISPLAY for this server by exporting it in the environment");
     //showOutputs();
 }
 
@@ -94,7 +94,7 @@ KWayland::Server::Display* WaylandTestServer::display()
 
 void WaylandTestServer::setConfig(const QString& configfile)
 {
-    qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Creating Wayland server from " << configfile;
+    qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Creating Wayland server from " << configfile;
     m_configFile = configfile;
 }
 
@@ -122,7 +122,7 @@ void WaylandTestServer::suspendChanges(bool suspend)
 
 void WaylandTestServer::configurationChangeRequested(KWayland::Server::OutputConfigurationInterface* configurationInterface)
 {
-    qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Server received change request, changes:" << configurationInterface->changes().count();
+    qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Server received change request, changes:" << configurationInterface->changes().count();
     Q_EMIT configReceived();
 
     auto changes = configurationInterface->changes();
@@ -130,23 +130,23 @@ void WaylandTestServer::configurationChangeRequested(KWayland::Server::OutputCon
         auto outputdevice = it.key();
         auto c = it.value();
         if (c->enabledChanged()) {
-            qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Setting enabled:";
+            qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Setting enabled:";
             outputdevice->setEnabled(c->enabled());
         }
         if (c->modeChanged()) {
-            qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Setting new mode:" << c->mode() << modeString(outputdevice, c->mode());
+            qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Setting new mode:" << c->mode() << modeString(outputdevice, c->mode());
             outputdevice->setCurrentMode(c->mode());
         }
         if (c->transformChanged()) {
-            qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Server setting transform: " << (int)(c->transform());
+            qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Server setting transform: " << (int)(c->transform());
             outputdevice->setTransform(c->transform());
         }
         if (c->positionChanged()) {
-            qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Server setting position: " << c->position();
+            qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Server setting position: " << c->position();
             outputdevice->setGlobalPosition(c->position());
         }
         if (c->scaleChanged()) {
-            qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "Setting scale:" << c->scale();
+            qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Setting scale:" << c->scale();
             outputdevice->setScale(c->scale());
         }
     }
@@ -164,19 +164,19 @@ void WaylandTestServer::configurationChangeRequested(KWayland::Server::OutputCon
 
 void WaylandTestServer::showOutputs()
 {
-    qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "******** Wayland server running: " << m_outputs.count() << " outputs. ********";
+    qCDebug(DISMAN_WAYLAND_TESTSERVER) << "******** Wayland server running: " << m_outputs.count() << " outputs. ********";
     foreach (auto o, m_outputs) {
         bool enabled = (o->enabled() == KWayland::Server::OutputDeviceInterface::Enablement::Enabled);
-        qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "  * Output id: " << o->uuid();
-        qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "      Enabled: " << (enabled ? "enabled" : "disabled");
-        qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "         Name: " << QStringLiteral("%2-%3").arg(o->manufacturer(), o->model());
-        qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "         Mode: " << modeString(o, o->currentModeId());
-        qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "          Pos: " << o->globalPosition();
-        qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "         Edid: " << o->edid();
+        qCDebug(DISMAN_WAYLAND_TESTSERVER) << "  * Output id: " << o->uuid();
+        qCDebug(DISMAN_WAYLAND_TESTSERVER) << "      Enabled: " << (enabled ? "enabled" : "disabled");
+        qCDebug(DISMAN_WAYLAND_TESTSERVER) << "         Name: " << QStringLiteral("%2-%3").arg(o->manufacturer(), o->model());
+        qCDebug(DISMAN_WAYLAND_TESTSERVER) << "         Mode: " << modeString(o, o->currentModeId());
+        qCDebug(DISMAN_WAYLAND_TESTSERVER) << "          Pos: " << o->globalPosition();
+        qCDebug(DISMAN_WAYLAND_TESTSERVER) << "         Edid: " << o->edid();
         // << o->currentMode().size();
 
     }
-    qCDebug(KSCREEN_WAYLAND_TESTSERVER) << "******************************************************";
+    qCDebug(DISMAN_WAYLAND_TESTSERVER) << "******************************************************";
 }
 
 QString WaylandTestServer::modeString(KWayland::Server::OutputDeviceInterface* outputdevice, int mid)

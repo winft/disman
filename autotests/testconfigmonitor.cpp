@@ -41,12 +41,12 @@ public:
     {
     }
 
-    KScreen::ConfigPtr getConfig()
+    Disman::ConfigPtr getConfig()
     {
-        auto op = new KScreen::GetConfigOperation();
+        auto op = new Disman::GetConfigOperation();
         if (!op->exec()) {
             qWarning("Failed to retrieve backend: %s", qPrintable(op->errorString()));
-            return KScreen::ConfigPtr();
+            return Disman::ConfigPtr();
         }
 
         return op->config();
@@ -55,39 +55,39 @@ public:
 private Q_SLOTS:
     void initTestCase()
     {
-        qputenv("KSCREEN_LOGGING", "false");
-        qputenv("KSCREEN_BACKEND", "Fake");
+        qputenv("DISMAN_LOGGING", "false");
+        qputenv("DISMAN_BACKEND", "Fake");
         // This particular test is only useful for out of process operation, so enforce that
-        qputenv("KSCREEN_BACKEND_INPROCESS", "0");
-        KScreen::BackendManager::instance()->shutdownBackend();
+        qputenv("DISMAN_BACKEND_INPROCESS", "0");
+        Disman::BackendManager::instance()->shutdownBackend();
     }
 
     void cleanupTestCase()
     {
-        KScreen::BackendManager::instance()->shutdownBackend();
+        Disman::BackendManager::instance()->shutdownBackend();
     }
 
     void testChangeNotifyInProcess()
     {
-        qputenv("KSCREEN_BACKEND_INPROCESS", "1");
-        KScreen::BackendManager::instance()->shutdownBackend();
-        KScreen::BackendManager::instance()->setMethod(KScreen::BackendManager::InProcess);
+        qputenv("DISMAN_BACKEND_INPROCESS", "1");
+        Disman::BackendManager::instance()->shutdownBackend();
+        Disman::BackendManager::instance()->setMethod(Disman::BackendManager::InProcess);
         //json file for the fake backend
-        qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
+        qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
         // Prepare monitor
-        KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+        Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
         QSignalSpy spy(monitor, SIGNAL(configurationChanged()));
 
         // Get config and monitor it for changes
-        KScreen::ConfigPtr config = getConfig();
+        Disman::ConfigPtr config = getConfig();
         monitor->addConfig(config);
         QSignalSpy enabledSpy(config->outputs().first().data(), SIGNAL(isEnabledChanged()));
 
         auto output = config->outputs().first();
 
         output->setEnabled(false);
-        auto setop = new KScreen::SetConfigOperation(config);
+        auto setop = new Disman::SetConfigOperation(config);
         QVERIFY(!setop->hasError());
         setop->exec();
         QTRY_VERIFY(!spy.isEmpty());
@@ -97,7 +97,7 @@ private Q_SLOTS:
         QCOMPARE(config->output(1)->isEnabled(), false);
 
         output->setEnabled(false);
-        auto setop2 = new KScreen::SetConfigOperation(config);
+        auto setop2 = new Disman::SetConfigOperation(config);
         QVERIFY(!setop2->hasError());
         setop2->exec();
         QTRY_VERIFY(!spy.isEmpty());

@@ -40,7 +40,7 @@
 #include "../log.h"
 #include "../output.h"
 
-Q_LOGGING_CATEGORY(KSCREEN_DOCTOR, "kscreen.doctor")
+Q_LOGGING_CATEGORY(DISMAN_DOCTOR, "disman.doctor")
 
 
 static QTextStream cout(stdout);
@@ -53,16 +53,16 @@ const static QString blue = QStringLiteral("\033[01;34m");
 const static QString bold = QStringLiteral("\033[01;39m");
 const static QString cr = QStringLiteral("\033[0;0m");
 
-namespace KScreen
+namespace Disman
 {
 namespace ConfigSerializer
 {
-// Exported private symbol in configserializer_p.h in KScreen
-extern QJsonObject serializeConfig(const KScreen::ConfigPtr &config);
+// Exported private symbol in configserializer_p.h in Disman
+extern QJsonObject serializeConfig(const Disman::ConfigPtr &config);
 }
 }
 
-using namespace KScreen;
+using namespace Disman;
 
 Doctor::Doctor(QObject *parent)
     : QObject(parent)
@@ -84,9 +84,9 @@ void Doctor::start(QCommandLineParser *parser)
     }
     if (parser->isSet(QStringLiteral("json")) || parser->isSet(QStringLiteral("outputs")) || !m_positionalArgs.isEmpty()) {
 
-        KScreen::GetConfigOperation *op = new KScreen::GetConfigOperation();
-        connect(op, &KScreen::GetConfigOperation::finished, this,
-                [this](KScreen::ConfigOperation *op) {
+        Disman::GetConfigOperation *op = new Disman::GetConfigOperation();
+        connect(op, &Disman::GetConfigOperation::finished, this,
+                [this](Disman::ConfigOperation *op) {
                     configReceived(op);
                 });
         return;
@@ -115,7 +115,7 @@ void Doctor::start(QCommandLineParser *parser)
 
         const QString logmsg = m_parser->value(QStringLiteral("log"));
         if (!Log::instance()->enabled()) {
-            qCWarning(KSCREEN_DOCTOR) << "Logging is disabled, unset KSCREEN_LOGGING in your environment.";
+            qCWarning(DISMAN_DOCTOR) << "Logging is disabled, unset DISMAN_LOGGING in your environment.";
         } else {
             Log::log(logmsg);
         }
@@ -124,7 +124,7 @@ void Doctor::start(QCommandLineParser *parser)
     QTimer::singleShot(0, qApp->quit);
 }
 
-void KScreen::Doctor::setDpms(const QString& dpmsArg)
+void Disman::Doctor::setDpms(const QString& dpmsArg)
 {
     qDebug() << "SetDpms: " << dpmsArg;
     connect(m_dpmsClient, &DpmsClient::ready, this, [this, dpmsArg]() {
@@ -156,18 +156,18 @@ void Doctor::showDpms()
 void Doctor::showBackends() const
 {
     cout << "Environment: " << endl;
-    auto env_kscreen_backend = (qgetenv("KSCREEN_BACKEND").isEmpty()) ? QStringLiteral("[not set]") : QString::fromUtf8(qgetenv("KSCREEN_BACKEND"));
-    cout << "  * KSCREEN_BACKEND           : " << env_kscreen_backend << endl;
-    auto env_kscreen_backend_inprocess = (qgetenv("KSCREEN_BACKEND_INPROCESS").isEmpty()) ? QStringLiteral("[not set]") : QString::fromUtf8(qgetenv("KSCREEN_BACKEND_INPROCESS"));
-    cout << "  * KSCREEN_BACKEND_INPROCESS : " << env_kscreen_backend_inprocess << endl;
-    auto env_kscreen_logging = (qgetenv("KSCREEN_LOGGING").isEmpty()) ? QStringLiteral("[not set]") : QString::fromUtf8(qgetenv("KSCREEN_LOGGING"));
-    cout << "  * KSCREEN_LOGGING           : " << env_kscreen_logging << endl;
+    auto env_disman_backend = (qgetenv("DISMAN_BACKEND").isEmpty()) ? QStringLiteral("[not set]") : QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
+    cout << "  * DISMAN_BACKEND           : " << env_disman_backend << endl;
+    auto env_disman_backend_inprocess = (qgetenv("DISMAN_BACKEND_INPROCESS").isEmpty()) ? QStringLiteral("[not set]") : QString::fromUtf8(qgetenv("DISMAN_BACKEND_INPROCESS"));
+    cout << "  * DISMAN_BACKEND_INPROCESS : " << env_disman_backend_inprocess << endl;
+    auto env_disman_logging = (qgetenv("DISMAN_LOGGING").isEmpty()) ? QStringLiteral("[not set]") : QString::fromUtf8(qgetenv("DISMAN_LOGGING"));
+    cout << "  * DISMAN_LOGGING           : " << env_disman_logging << endl;
 
     cout << "Logging to                : " << (Log::instance()->enabled() ? Log::instance()->logFile() : QStringLiteral("[logging disabled]")) << endl;
     auto backends = BackendManager::instance()->listBackends();
     auto preferred = BackendManager::instance()->preferredBackend();
-    cout << "Preferred KScreen backend : " << green << preferred.fileName() << cr << endl;
-    cout << "Available KScreen backends:" << endl;
+    cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << endl;
+    cout << "Available Disman backends:" << endl;
     Q_FOREACH(const QFileInfo f, backends) {
         auto c = blue;
         if (preferred == f) {
@@ -185,7 +185,7 @@ void Doctor::setOptionList(const QStringList &positionalArgs)
 
 void Doctor::parsePositionalArgs()
 {
-    //qCDebug(KSCREEN_DOCTOR) << "POSARGS" << m_positionalArgs;
+    //qCDebug(DISMAN_DOCTOR) << "POSARGS" << m_positionalArgs;
     Q_FOREACH(const QString &op, m_positionalArgs) {
         auto ops = op.split(QLatin1Char('.'));
         if (ops.count() > 2) {
@@ -222,12 +222,12 @@ void Doctor::parsePositionalArgs()
                         qApp->exit(9);
                         return;
                     }
-                    qCDebug(KSCREEN_DOCTOR) << "Output" << output_id << "set mode" << mode_id;
+                    qCDebug(DISMAN_DOCTOR) << "Output" << output_id << "set mode" << mode_id;
 
                 } else if (ops.count() == 4 && ops[2] == QLatin1String("position")) {
                     QStringList _pos = ops[3].split(QLatin1Char(','));
                     if (_pos.count() != 2) {
-                        qCWarning(KSCREEN_DOCTOR) << "Invalid position:" << ops[3];
+                        qCWarning(DISMAN_DOCTOR) << "Invalid position:" << ops[3];
                         qApp->exit(5);
                         return;
                     }
@@ -240,7 +240,7 @@ void Doctor::parsePositionalArgs()
                     }
 
                     QPoint p(x, y);
-                    qCDebug(KSCREEN_DOCTOR) << "Output position" << p;
+                    qCDebug(DISMAN_DOCTOR) << "Output position" << p;
                     if (!setPosition(output_id, p)) {
                         qApp->exit(1);
                         return;
@@ -254,28 +254,28 @@ void Doctor::parsePositionalArgs()
                     };
                     // set scale
                     if (!ok || qFuzzyCompare(scale, 0.0) || !setScale(output_id, scale)) {
-                        qCDebug(KSCREEN_DOCTOR) << "Could not set scale " << scale << " to output " << output_id;
+                        qCDebug(DISMAN_DOCTOR) << "Could not set scale " << scale << " to output " << output_id;
                         qApp->exit(9);
                         return;
                     }
                 } else if ((ops.count() == 4) && (ops[2] == QLatin1String("orientation") || ops[2] == QStringLiteral("rotation"))) {
                     const QString _rotation = ops[3].toLower();
                     bool ok = false;
-                    const QHash<QString, KScreen::Output::Rotation> rotationMap({
-                                                                            {QStringLiteral("none"), KScreen::Output::None},
-                                                                            {QStringLiteral("normal"), KScreen::Output::None},
-                                                                            {QStringLiteral("left"), KScreen::Output::Left},
-                                                                            {QStringLiteral("right"), KScreen::Output::Right},
-                                                                            {QStringLiteral("inverted"), KScreen::Output::Inverted}
+                    const QHash<QString, Disman::Output::Rotation> rotationMap({
+                                                                            {QStringLiteral("none"), Disman::Output::None},
+                                                                            {QStringLiteral("normal"), Disman::Output::None},
+                                                                            {QStringLiteral("left"), Disman::Output::Left},
+                                                                            {QStringLiteral("right"), Disman::Output::Right},
+                                                                            {QStringLiteral("inverted"), Disman::Output::Inverted}
                                                                         });
-                    KScreen::Output::Rotation rot = KScreen::Output::None;
+                    Disman::Output::Rotation rot = Disman::Output::None;
                     // set orientation
                     if (rotationMap.contains(_rotation)) {
                         ok = true;
                         rot = rotationMap[_rotation];
                     }
                     if (!ok || !setRotation(output_id, rot)) {
-                        qCDebug(KSCREEN_DOCTOR) << "Could not set orientation " << _rotation << " to output " << output_id;
+                        qCDebug(DISMAN_DOCTOR) << "Could not set orientation " << _rotation << " to output " << output_id;
                         qApp->exit(9);
                         return;
                     }
@@ -289,7 +289,7 @@ void Doctor::parsePositionalArgs()
     }
 }
 
-void Doctor::configReceived(KScreen::ConfigOperation *op)
+void Doctor::configReceived(Disman::ConfigOperation *op)
 {
     m_config = op->config();
 
@@ -313,7 +313,7 @@ void Doctor::configReceived(KScreen::ConfigOperation *op)
 int Doctor::outputCount() const
 {
     if (!m_config) {
-        qCWarning(KSCREEN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
         return 0;
     }
     return m_config->outputs().count();
@@ -322,26 +322,26 @@ int Doctor::outputCount() const
 void Doctor::showOutputs() const
 {
     if (!m_config) {
-        qCWarning(KSCREEN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
         return;
     }
 
-    QHash<KScreen::Output::Type, QString> typeString;
-    typeString[KScreen::Output::Unknown] = QStringLiteral("Unknown");
-    typeString[KScreen::Output::VGA] = QStringLiteral("VGA");
-    typeString[KScreen::Output::DVI] = QStringLiteral("DVI");
-    typeString[KScreen::Output::DVII] = QStringLiteral("DVII");
-    typeString[KScreen::Output::DVIA] = QStringLiteral("DVIA");
-    typeString[KScreen::Output::DVID] = QStringLiteral("DVID");
-    typeString[KScreen::Output::HDMI] = QStringLiteral("HDMI");
-    typeString[KScreen::Output::Panel] = QStringLiteral("Panel");
-    typeString[KScreen::Output::TV] = QStringLiteral("TV");
-    typeString[KScreen::Output::TVComposite] = QStringLiteral("TVComposite");
-    typeString[KScreen::Output::TVSVideo] = QStringLiteral("TVSVideo");
-    typeString[KScreen::Output::TVComponent] = QStringLiteral("TVComponent");
-    typeString[KScreen::Output::TVSCART] = QStringLiteral("TVSCART");
-    typeString[KScreen::Output::TVC4] = QStringLiteral("TVC4");
-    typeString[KScreen::Output::DisplayPort] = QStringLiteral("DisplayPort");
+    QHash<Disman::Output::Type, QString> typeString;
+    typeString[Disman::Output::Unknown] = QStringLiteral("Unknown");
+    typeString[Disman::Output::VGA] = QStringLiteral("VGA");
+    typeString[Disman::Output::DVI] = QStringLiteral("DVI");
+    typeString[Disman::Output::DVII] = QStringLiteral("DVII");
+    typeString[Disman::Output::DVIA] = QStringLiteral("DVIA");
+    typeString[Disman::Output::DVID] = QStringLiteral("DVID");
+    typeString[Disman::Output::HDMI] = QStringLiteral("HDMI");
+    typeString[Disman::Output::Panel] = QStringLiteral("Panel");
+    typeString[Disman::Output::TV] = QStringLiteral("TV");
+    typeString[Disman::Output::TVComposite] = QStringLiteral("TVComposite");
+    typeString[Disman::Output::TVSVideo] = QStringLiteral("TVSVideo");
+    typeString[Disman::Output::TVComponent] = QStringLiteral("TVComponent");
+    typeString[Disman::Output::TVSCART] = QStringLiteral("TVSCART");
+    typeString[Disman::Output::TVC4] = QStringLiteral("TVC4");
+    typeString[Disman::Output::DisplayPort] = QStringLiteral("DisplayPort");
 
     Q_FOREACH (const auto &output, m_config->outputs()) {
         cout << green << "Output: " << cr << output->id() << " " << output->name();
@@ -376,14 +376,14 @@ void Doctor::showOutputs() const
 
 void Doctor::showJson() const
 {
-    QJsonDocument doc(KScreen::ConfigSerializer::serializeConfig(m_config));
+    QJsonDocument doc(Disman::ConfigSerializer::serializeConfig(m_config));
     cout << doc.toJson(QJsonDocument::Indented);
 }
 
 bool Doctor::setEnabled(int id, bool enabled = true)
 {
     if (!m_config) {
-        qCWarning(KSCREEN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
         return false;
     }
 
@@ -403,13 +403,13 @@ bool Doctor::setEnabled(int id, bool enabled = true)
 bool Doctor::setPosition(int id, const QPoint &pos)
 {
     if (!m_config) {
-        qCWarning(KSCREEN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
         return false;
     }
 
     Q_FOREACH (const auto &output, m_config->outputs()) {
         if (output->id() == id) {
-            qCDebug(KSCREEN_DOCTOR) << "Set output position" << pos;
+            qCDebug(DISMAN_DOCTOR) << "Set output position" << pos;
             output->setPos(pos);
             m_changed = true;
             return true;
@@ -422,19 +422,19 @@ bool Doctor::setPosition(int id, const QPoint &pos)
 bool Doctor::setMode(int id, const QString &mode_id)
 {
     if (!m_config) {
-        qCWarning(KSCREEN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
         return false;
     }
 
     Q_FOREACH (const auto &output, m_config->outputs()) {
         if (output->id() == id) {
             // find mode
-            Q_FOREACH (const KScreen::ModePtr mode, output->modes()) {
+            Q_FOREACH (const Disman::ModePtr mode, output->modes()) {
                 auto name = QStringLiteral("%1x%2@%3").arg(QString::number(mode->size().width()),
                                     QString::number(mode->size().height()),
                                     QString::number(qRound(mode->refreshRate())));
                 if (mode->id() == mode_id || name == mode_id) {
-                    qCDebug(KSCREEN_DOCTOR) << "Taddaaa! Found mode" << mode->id() << name;
+                    qCDebug(DISMAN_DOCTOR) << "Taddaaa! Found mode" << mode->id() << name;
                     output->setCurrentModeId(mode->id());
                     m_changed = true;
                     return true;
@@ -449,7 +449,7 @@ bool Doctor::setMode(int id, const QString &mode_id)
 bool Doctor::setScale(int id, qreal scale)
 {
     if (!m_config) {
-        qCWarning(KSCREEN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
         return false;
     }
 
@@ -464,10 +464,10 @@ bool Doctor::setScale(int id, qreal scale)
     return false;
 }
 
-bool Doctor::setRotation(int id, KScreen::Output::Rotation rot)
+bool Doctor::setRotation(int id, Disman::Output::Rotation rot)
 {
     if (!m_config) {
-        qCWarning(KSCREEN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
         return false;
     }
 
@@ -489,6 +489,6 @@ void Doctor::applyConfig()
     }
     auto setop = new SetConfigOperation(m_config, this);
     setop->exec();
-    qCDebug(KSCREEN_DOCTOR) << "setop exec returned" << m_config;
+    qCDebug(DISMAN_DOCTOR) << "setop exec returned" << m_config;
     qApp->exit(0);
 }

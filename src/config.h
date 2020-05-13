@@ -17,24 +17,24 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_CONFIG_H
-#define KSCREEN_CONFIG_H
+#ifndef DISMAN_CONFIG_H
+#define DISMAN_CONFIG_H
 
 #include "screen.h"
 #include "types.h"
-#include "kscreen_export.h"
+#include "disman_export.h"
 
 #include <QHash>
 #include <QObject>
 #include <QMetaType>
 
 
-namespace KScreen {
+namespace Disman {
 
 /**
  * Represents a (or the) screen configuration.
  *
- * This is the main class of KScreen, with it you can use
+ * This is the main class of Disman, with it you can use
  * the static methods current() to get the systems config and
  * setConfig() to apply a config to the system.
  *
@@ -43,7 +43,7 @@ namespace KScreen {
  * and for example unserialize a saved config to it.
  *
  */
-class KSCREEN_EXPORT Config : public QObject
+class DISMAN_EXPORT Config : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(ScreenPtr screen READ screen)
@@ -148,7 +148,7 @@ class KSCREEN_EXPORT Config : public QObject
     void apply(const ConfigPtr &other);
 
     /** Indicates features supported by the backend. This exists to allow the user
-     * to find out which of the features offered by libkscreen are actually supported
+     * to find out which of the features offered by disman are actually supported
      * by the backend. Not all backends are writable (QScreen, for example is
      * read-only, only XRandR, but not KWayland support the primary display, etc.).
      *
@@ -204,9 +204,9 @@ class KSCREEN_EXPORT Config : public QObject
     void setTabletModeEngaged(bool engaged);
 
   Q_SIGNALS:
-      void outputAdded(const KScreen::OutputPtr &output);
+      void outputAdded(const Disman::OutputPtr &output);
       void outputRemoved(int outputId);
-      void primaryOutputChanged(const KScreen::OutputPtr &output);
+      void primaryOutputChanged(const Disman::OutputPtr &output);
 
   private:
     Q_DISABLE_COPY(Config)
@@ -215,12 +215,12 @@ class KSCREEN_EXPORT Config : public QObject
     Private * const d;
 };
 
-} //KScreen namespace
+} //Disman namespace
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(KScreen::Config::Features)
+Q_DECLARE_OPERATORS_FOR_FLAGS(Disman::Config::Features)
 
-KSCREEN_EXPORT QDebug operator<<(QDebug dbg, const KScreen::ConfigPtr &config);
+DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::ConfigPtr &config);
 
 
 
-#endif //KSCREEN_CONFIG_H
+#endif //DISMAN_CONFIG_H

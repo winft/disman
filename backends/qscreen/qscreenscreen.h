@@ -26,7 +26,7 @@
 #include <QSize>
 #include <QLoggingCategory>
 
-namespace KScreen
+namespace Disman
 {
 class Output;
 
@@ -38,8 +38,8 @@ public:
     explicit QScreenScreen(QScreenConfig *config);
     ~QScreenScreen() override;
 
-    KScreen::ScreenPtr toKScreenScreen() const;
-    void updateKScreenScreen(KScreen::ScreenPtr &screen) const;
+    Disman::ScreenPtr toDismanScreen() const;
+    void updateDismanScreen(Disman::ScreenPtr &screen) const;
 };
 
 } // namespace

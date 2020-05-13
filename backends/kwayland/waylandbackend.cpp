@@ -28,16 +28,16 @@
 #include <QSettings>
 #include <QStandardPaths>
 
-using namespace KScreen;
+using namespace Disman;
 
-Q_LOGGING_CATEGORY(KSCREEN_WAYLAND, "kscreen.kwayland")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.kwayland")
 
 
 WaylandBackend::WaylandBackend()
-    : KScreen::AbstractBackend()
+    : Disman::AbstractBackend()
     , m_internalConfig(new WaylandConfig(this))
 {
-    qCDebug(KSCREEN_WAYLAND) << "Loading Wayland backend.";
+    qCDebug(DISMAN_WAYLAND) << "Loading Wayland backend.";
 
     connect(m_internalConfig, &WaylandConfig::configChanged,
             this, [this]() {
@@ -52,7 +52,7 @@ QString WaylandBackend::name() const
 
 QString WaylandBackend::serviceName() const
 {
-    return QStringLiteral("org.kde.KScreen.Backend.KWayland");
+    return QStringLiteral("org.kde.Disman.Backend.KWayland");
 }
 
 ConfigPtr WaylandBackend::config() const
@@ -61,7 +61,7 @@ ConfigPtr WaylandBackend::config() const
     return m_internalConfig->currentConfig();
 }
 
-void WaylandBackend::setConfig(const KScreen::ConfigPtr &newconfig)
+void WaylandBackend::setConfig(const Disman::ConfigPtr &newconfig)
 {
     if (!newconfig) {
         return;

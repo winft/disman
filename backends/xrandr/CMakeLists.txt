@@ -14,15 +14,16 @@ set(xrandr_SRCS
     ../utils.cpp
 )
 
-add_library(KSC_XRandR MODULE ${xrandr_SRCS})
+add_library(randr MODULE ${xrandr_SRCS})
 
-set_target_properties(KSC_XRandR PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/kf5/kscreen")
-set_target_properties(KSC_XRandR PROPERTIES PREFIX "")
-target_link_libraries(KSC_XRandR Qt5::Core
-                                 Qt5::Gui
-                                 Qt5::X11Extras
-                                 ${XCB_LIBRARIES}
-                                 KF5::Screen
+set_target_properties(randr PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
+set_target_properties(randr PROPERTIES PREFIX "")
+target_link_libraries(randr
+    Qt5::Core
+    Qt5::Gui
+    Qt5::X11Extras
+    ${XCB_LIBRARIES}
+    Disman
 )
 
-install(TARGETS KSC_XRandR DESTINATION ${KDE_INSTALL_PLUGINDIR}/kf5/kscreen/)
+install(TARGETS randr DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

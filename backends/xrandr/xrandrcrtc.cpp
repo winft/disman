@@ -67,10 +67,10 @@ QVector<xcb_randr_output_t> XRandRCrtc::outputs() const
 bool XRandRCrtc::connectOutput(xcb_randr_output_t output)
 {
     update();
-    qCDebug(KSCREEN_XRANDR) << "Connected output" << output << "to CRTC" << m_crtc;
+    qCDebug(DISMAN_XRANDR) << "Connected output" << output << "to CRTC" << m_crtc;
 
     if (!m_possibleOutputs.contains(output)) {
-        qCDebug(KSCREEN_XRANDR) << "Output" << output
+        qCDebug(DISMAN_XRANDR) << "Output" << output
                                 << "is not an allowed output for CRTC" << m_crtc;
         return false;
     }
@@ -84,7 +84,7 @@ bool XRandRCrtc::connectOutput(xcb_randr_output_t output)
 void XRandRCrtc::disconectOutput(xcb_randr_output_t output)
 {
     update();
-    qCDebug(KSCREEN_XRANDR) << "Disconnected output" << output << "from CRTC" << m_crtc;
+    qCDebug(DISMAN_XRANDR) << "Disconnected output" << output << "from CRTC" << m_crtc;
 
     const int index = m_outputs.indexOf(output);
     if (index > -1) {

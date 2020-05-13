@@ -26,7 +26,7 @@
 #include <QGuiApplication>
 #include <QScreen>
 
-using namespace KScreen;
+using namespace Disman;
 
 QScreenScreen::QScreenScreen(QScreenConfig *config)
     : QObject(config)
@@ -37,14 +37,14 @@ QScreenScreen::~QScreenScreen()
 {
 }
 
-ScreenPtr QScreenScreen::toKScreenScreen() const
+ScreenPtr QScreenScreen::toDismanScreen() const
 {
-    KScreen::ScreenPtr kscreenScreen(new KScreen::Screen);
-    updateKScreenScreen(kscreenScreen);
-    return kscreenScreen;
+    Disman::ScreenPtr dismanScreen(new Disman::Screen);
+    updateDismanScreen(dismanScreen);
+    return dismanScreen;
 }
 
-void QScreenScreen::updateKScreenScreen(ScreenPtr &screen) const
+void QScreenScreen::updateDismanScreen(ScreenPtr &screen) const
 {
     if (!screen) {
         return;

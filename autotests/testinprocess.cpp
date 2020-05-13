@@ -31,9 +31,9 @@
 #include "../src/mode.h"
 #include "../src/edid.h"
 
-Q_LOGGING_CATEGORY(KSCREEN, "kscreen")
+Q_LOGGING_CATEGORY(DISMAN, "disman")
 
-using namespace KScreen;
+using namespace Disman;
 
 class TestInProcess : public QObject
 {
@@ -74,12 +74,12 @@ void TestInProcess::initTestCase()
 {
     m_backendServiceInstalled = true;
 
-    const QString kscreenServiceName = QStringLiteral("org.kde.KScreen");
+    const QString dismanServiceName = QStringLiteral("Disman");
     QDBusConnectionInterface *bus = QDBusConnection::sessionBus().interface();
-    if (!bus->isServiceRegistered(kscreenServiceName)) {
-        auto reply = bus->startService(kscreenServiceName);
+    if (!bus->isServiceRegistered(dismanServiceName)) {
+        auto reply = bus->startService(dismanServiceName);
         if (!reply.isValid()) {
-            qDebug() << "D-Bus service org.kde.KScreen could not be started, skipping out-of-process tests";
+            qDebug() << "D-Bus service Disman could not be started, skipping out-of-process tests";
             m_backendServiceInstalled = false;
         }
     }
@@ -87,24 +87,24 @@ void TestInProcess::initTestCase()
 
 void TestInProcess::init()
 {
-    qputenv("KSCREEN_LOGGING", "false");
+    qputenv("DISMAN_LOGGING", "false");
     // Make sure we do everything in-process
-    qputenv("KSCREEN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_BACKEND_INPROCESS", "1");
     // Use Fake backend with one of the json configs
-    qputenv("KSCREEN_BACKEND", "Fake");
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
+    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
 }
 
 void TestInProcess::cleanup()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
 }
 
 void TestInProcess::loadConfig()
 {
-    qputenv("KSCREEN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_BACKEND_INPROCESS", "1");
     BackendManager::instance()->setMethod(BackendManager::InProcess);
 
     auto *op = new GetConfigOperation();
@@ -116,11 +116,11 @@ void TestInProcess::loadConfig()
 
 void TestInProcess::testModeSwitching()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     // Load QScreen backend in-process
     qDebug() << "TT qscreen in-process";
-    qputenv("KSCREEN_BACKEND", "QScreen");
+    qputenv("DISMAN_BACKEND", "QScreen");
     auto op = new GetConfigOperation();
     QVERIFY(op->exec());
     auto oc = op->config();
@@ -129,7 +129,7 @@ void TestInProcess::testModeSwitching()
 
     qDebug() << "TT fake in-process";
     // Load the Fake backend in-process
-    qputenv("KSCREEN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "Fake");
     auto ip = new GetConfigOperation();
     QVERIFY(ip->exec());
     auto ic = ip->config();
@@ -137,12 +137,12 @@ void TestInProcess::testModeSwitching()
     QVERIFY(ic->isValid());
     QVERIFY(ic->outputs().count());
 
-    KScreen::ConfigPtr xc(nullptr);
+    Disman::ConfigPtr xc(nullptr);
     if (m_backendServiceInstalled) {
         qDebug() << "TT xrandr out-of-process";
         // Load the xrandr backend out-of-process
-        qputenv("KSCREEN_BACKEND", "QScreen");
-        qputenv("KSCREEN_BACKEND_INPROCESS", "0");
+        qputenv("DISMAN_BACKEND", "QScreen");
+        qputenv("DISMAN_BACKEND_INPROCESS", "0");
         BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
         auto xp = new GetConfigOperation();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
@@ -155,10 +155,10 @@ void TestInProcess::testModeSwitching()
 
     qDebug() << "TT fake in-process";
 
-    qputenv("KSCREEN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_BACKEND_INPROCESS", "1");
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     // Load the Fake backend in-process
-    qputenv("KSCREEN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "Fake");
     auto fp = new GetConfigOperation();
     QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
     QVERIFY(fp->exec());
@@ -177,8 +177,8 @@ void TestInProcess::testModeSwitching()
 
 void TestInProcess::testBackendCaching()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
-    qputenv("KSCREEN_BACKEND", "Fake");
+    Disman::BackendManager::instance()->shutdownBackend();
+    qputenv("DISMAN_BACKEND", "Fake");
     QElapsedTimer t;
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
@@ -196,7 +196,7 @@ void TestInProcess::testBackendCaching()
         QVERIFY(cc->outputs().count());
     }
     {
-        //KScreen::BackendManager::instance()->shutdownBackend();
+        //Disman::BackendManager::instance()->shutdownBackend();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
         t.start();
         auto cp = new GetConfigOperation();
@@ -217,11 +217,11 @@ void TestInProcess::testBackendCaching()
         QVERIFY(cc->outputs().count());
     }
     // Check if all our configs are still valid after the backend is gone
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
 
     if (m_backendServiceInstalled) {
-        //qputenv("KSCREEN_BACKEND", "QScreen");
-        qputenv("KSCREEN_BACKEND_INPROCESS", "0");
+        //qputenv("DISMAN_BACKEND", "QScreen");
+        qputenv("DISMAN_BACKEND_INPROCESS", "0");
         BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
         int t_x_cold;
@@ -258,7 +258,7 @@ void TestInProcess::testBackendCaching()
 
 void TestInProcess::testCreateJob()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     {
         BackendManager::instance()->setMethod(BackendManager::InProcess);
         auto op = new GetConfigOperation();
@@ -281,14 +281,14 @@ void TestInProcess::testCreateJob()
         QVERIFY(cc != nullptr);
         QVERIFY(cc->isValid());
     }
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     BackendManager::instance()->setMethod(BackendManager::InProcess);
 }
 
 void TestInProcess::testConfigApply()
 {
-    qputenv("KSCREEN_BACKEND", "Fake");
-    KScreen::BackendManager::instance()->shutdownBackend();
+    qputenv("DISMAN_BACKEND", "Fake");
+    Disman::BackendManager::instance()->shutdownBackend();
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     auto op = new GetConfigOperation();
     op->exec();
@@ -312,9 +312,9 @@ void TestInProcess::testConfigApply()
 
 void TestInProcess::testConfigMonitor()
 {
-    qputenv("KSCREEN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "Fake");
 
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     auto op = new GetConfigOperation();
     op->exec();

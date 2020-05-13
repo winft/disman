@@ -39,7 +39,7 @@ class OutputManagement;
 }
 }
 
-namespace KScreen
+namespace Disman
 {
 class Output;
 class WaylandOutput;
@@ -66,10 +66,10 @@ public:
     explicit WaylandConfig(QObject *parent = nullptr);
     ~WaylandConfig() override;
 
-    KScreen::ConfigPtr currentConfig();
+    Disman::ConfigPtr currentConfig();
     QMap<int, WaylandOutput*> outputMap() const;
 
-    void applyConfig(const KScreen::ConfigPtr &newConfig);
+    void applyConfig(const Disman::ConfigPtr &newConfig);
 
     bool isInitialized() const;
 
@@ -109,8 +109,8 @@ private:
     bool m_registryInitialized;
     bool m_blockSignals;
     QEventLoop m_syncLoop;
-    KScreen::ConfigPtr m_kscreenConfig;
-    KScreen::ConfigPtr m_kscreenPendingConfig;
+    Disman::ConfigPtr m_dismanConfig;
+    Disman::ConfigPtr m_dismanPendingConfig;
     WaylandScreen *m_screen;
 
     bool m_tabletModeAvailable;

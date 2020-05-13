@@ -36,16 +36,16 @@ XRandRMode::~XRandRMode()
 {
 }
 
-KScreen::ModePtr XRandRMode::toKScreenMode()
+Disman::ModePtr XRandRMode::toDismanMode()
 {
-    KScreen::ModePtr kscreenMode(new KScreen::Mode);
+    Disman::ModePtr dismanMode(new Disman::Mode);
 
-    kscreenMode->setId(QString::number(m_id));
-    kscreenMode->setName(m_name);
-    kscreenMode->setSize(m_size);
-    kscreenMode->setRefreshRate(m_refreshRate);
+    dismanMode->setId(QString::number(m_id));
+    dismanMode->setName(m_name);
+    dismanMode->setSize(m_size);
+    dismanMode->setRefreshRate(m_refreshRate);
 
-    return kscreenMode;
+    return dismanMode;
 }
 
 xcb_randr_mode_t XRandRMode::id() const

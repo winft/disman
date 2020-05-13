@@ -24,15 +24,15 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 
-namespace KScreen {
+namespace Disman {
 
 Log* Log::sInstance = nullptr;
 QtMessageHandler sDefaultMessageHandler = nullptr;
 
-void kscreenLogOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+void dismanLogOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     auto category = QString::fromLocal8Bit(context.category);
-    if (category.startsWith(QLatin1String("kscreen"))) {
+    if (category.startsWith(QLatin1String("disman"))) {
         Log::log(msg, category);
     }
     sDefaultMessageHandler(type, context, msg);
@@ -52,7 +52,7 @@ Log* Log::instance()
     return sInstance;
 }
 
-using namespace KScreen;
+using namespace Disman;
 class Q_DECL_HIDDEN Log::Private
 {
   public:
@@ -64,7 +64,7 @@ class Q_DECL_HIDDEN Log::Private
 Log::Log() :
    d(new Private)
 {
-    const char* logging_env = "KSCREEN_LOGGING";
+    const char* logging_env = "DISMAN_LOGGING";
 
     if (qEnvironmentVariableIsSet(logging_env)) {
         const QString logging_env_value = QString::fromUtf8(qgetenv(logging_env));
@@ -75,16 +75,16 @@ Log::Log() :
     if (!d->enabled) {
          return;
     }
-    d->logFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/kscreen/kscreen.log");
+    d->logFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/disman/disman.log");
 
-    QLoggingCategory::setFilterRules(QStringLiteral("kscreen.*=true"));
+    QLoggingCategory::setFilterRules(QStringLiteral("disman.*=true"));
     QFileInfo fi(d->logFile);
     if (!QDir().mkpath(fi.absolutePath())) {
         qWarning() << "Failed to create logging dir" << fi.absolutePath();
     }
 
     if (!sDefaultMessageHandler) {
-        sDefaultMessageHandler = qInstallMessageHandler(kscreenLogOutput);
+        sDefaultMessageHandler = qInstallMessageHandler(dismanLogOutput);
     }
 }
 
@@ -125,7 +125,7 @@ void Log::log(const QString &msg, const QString &category)
         return;
     }
     auto _cat = category;
-    _cat.remove(QStringLiteral("kscreen."));
+    _cat.remove(QStringLiteral("disman."));
     const QString timestamp = QDateTime::currentDateTime().toString(QStringLiteral("dd.MM.yyyy hh:mm:ss.zzz"));
     QString logMessage = QStringLiteral("\n%1 ; %2 ; %3 : %4").arg(timestamp, _cat, instance()->context(), msg);
     QFile file(instance()->logFile());

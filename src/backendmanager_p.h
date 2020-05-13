@@ -24,8 +24,8 @@
  * releases
  */
 
-#ifndef KSCREEN_BACKENDMANAGER_H
-#define KSCREEN_BACKENDMANAGER_H
+#ifndef DISMAN_BACKENDMANAGER_H
+#define DISMAN_BACKENDMANAGER_H
 
 #include <QObject>
 #include <QPluginLoader>
@@ -36,16 +36,16 @@
 #include <QEventLoop>
 
 #include "types.h"
-#include "kscreen_export.h"
+#include "disman_export.h"
 
 class QDBusPendingCallWatcher;
-class OrgKdeKscreenBackendInterface;
+class OrgKwinftDismanBackendInterface;
 
-namespace KScreen {
+namespace Disman {
 
 class AbstractBackend;
 
-class KSCREEN_EXPORT BackendManager : public QObject
+class DISMAN_EXPORT BackendManager : public QObject
 {
     Q_OBJECT
 
@@ -58,15 +58,15 @@ public:
     static BackendManager *instance();
     ~BackendManager() override;
 
-    KScreen::ConfigPtr config() const;
-    void setConfig(KScreen::ConfigPtr c);
+    Disman::ConfigPtr config() const;
+    void setConfig(Disman::ConfigPtr c);
 
     /** Choose which backend to use
      *
      * This method uses a couple of heuristics to pick the backend to be loaded:
      * - If the @p backend argument is specified and not empty it's used to filter the
      *   available backend list
-     * - If specified, the KSCREEN_BACKEND env var is considered (case insensitive)
+     * - If specified, the DISMAN_BACKEND env var is considered (case insensitive)
      * - Otherwise, the wayland backend is picked when the runtime platform is Wayland
      *   (we assume kwin in this case
      * - Otherwise, if the runtime platform is X11, the XRandR backend is picked
@@ -93,11 +93,11 @@ public:
      * @return a pointer to the backend loaded from the plugin
      * @since 5.6
      */
-    static KScreen::AbstractBackend *loadBackendPlugin(QPluginLoader *loader,
+    static Disman::AbstractBackend *loadBackendPlugin(QPluginLoader *loader,
                                                  const QString &name,
                                                  const QVariantMap &arguments);
 
-    KScreen::AbstractBackend *loadBackendInProcess(const QString &name);
+    Disman::AbstractBackend *loadBackendInProcess(const QString &name);
 
     BackendManager::Method method() const;
     void setMethod(BackendManager::Method m);
@@ -107,7 +107,7 @@ public:
     void shutdownBackend();
 
 Q_SIGNALS:
-    void backendReady(OrgKdeKscreenBackendInterface *backend);
+    void backendReady(OrgKwinftDismanBackendInterface *backend);
 
 private Q_SLOTS:
     void emitBackendReady();
@@ -134,12 +134,12 @@ private:
     void backendServiceReady();
 
     static const int sMaxCrashCount;
-    OrgKdeKscreenBackendInterface *mInterface;
+    OrgKwinftDismanBackendInterface *mInterface;
     int mCrashCount;
 
     QString mBackendService;
     QDBusServiceWatcher mServiceWatcher;
-    KScreen::ConfigPtr mConfig;
+    Disman::ConfigPtr mConfig;
     QTimer mResetCrashCountTimer;
     bool mShuttingDown;
     int mRequestsCounter;
@@ -147,11 +147,11 @@ private:
 
     // For in-process operation
     QPluginLoader *mLoader;
-    QPair<KScreen::AbstractBackend*, QVariantMap> m_inProcessBackend;
+    QPair<Disman::AbstractBackend*, QVariantMap> m_inProcessBackend;
 
     Method mMethod;
 };
 
 }
 
-#endif // KSCREEN_BACKENDMANAGER_H
+#endif // DISMAN_BACKENDMANAGER_H

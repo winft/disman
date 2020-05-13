@@ -23,7 +23,7 @@
 #include <QObject>
 #include <QDBusContext>
 
-namespace KScreen
+namespace Disman
 {
 class AbstractBackend;
 }
@@ -35,7 +35,7 @@ class BackendLoader : public QObject
                     , protected QDBusContext
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.kde.KScreen")
+    Q_CLASSINFO("D-Bus Interface", "org.kwinft.disman")
 
 public:
     explicit BackendLoader();
@@ -48,7 +48,7 @@ public:
     Q_INVOKABLE void quit();
 
 private:
-    KScreen::AbstractBackend *loadBackend(const QString &name, const QVariantMap &arguments);
+    Disman::AbstractBackend *loadBackend(const QString &name, const QVariantMap &arguments);
 
 private:
     QPluginLoader *mLoader = nullptr;

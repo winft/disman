@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
 
-    KScreen::WaylandTestServer server;
+    Disman::WaylandTestServer server;
 
     QCommandLineOption config = QCommandLineOption(QStringList() << QStringLiteral("c") << QStringLiteral("config"),
                                                   QStringLiteral("Config file"), QStringLiteral("config"));

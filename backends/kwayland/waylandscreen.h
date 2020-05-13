@@ -24,7 +24,7 @@
 #include <QObject>
 #include <QSize>
 
-namespace KScreen
+namespace Disman
 {
 class WaylandConfig;
 class WaylandOutput;
@@ -37,8 +37,8 @@ public:
     explicit WaylandScreen(WaylandConfig *config);
     ~WaylandScreen() override = default;
 
-    KScreen::ScreenPtr toKScreenScreen(KScreen::ConfigPtr &parent) const;
-    void updateKScreenScreen(KScreen::ScreenPtr &screen) const;
+    Disman::ScreenPtr toDismanScreen(Disman::ConfigPtr &parent) const;
+    void updateDismanScreen(Disman::ScreenPtr &screen) const;
     void setOutputs(const QList<WaylandOutput*> &outputs);
 
     void setSize(const QSize &size);

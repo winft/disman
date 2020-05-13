@@ -22,14 +22,14 @@
 #include "edid.h"
 #include "abstractbackend.h"
 #include "backendmanager_p.h"
-#include "kscreen_debug.h"
+#include "disman_debug.h"
 
 #include <QStringList>
 #include <QScopedPointer>
 #include <QRect>
 #include <QCryptographicHash>
 
-using namespace KScreen;
+using namespace Disman;
 
 class Q_DECL_HIDDEN Output::Private
 {
@@ -136,8 +136,8 @@ bool Output::Private::compareModeList(const ModeList& before, const ModeList &af
 QString Output::Private::biggestMode(const ModeList& modes) const
 {
     int area, total = 0;
-    KScreen::ModePtr biggest;
-    Q_FOREACH(const KScreen::ModePtr &mode, modes) {
+    Disman::ModePtr biggest;
+    Q_FOREACH(const Disman::ModePtr &mode, modes) {
         area = mode->size().width() * mode->size().height();
         if (area < total) {
             continue;
@@ -333,8 +333,8 @@ QString Output::preferredModeId() const
     }
 
     int area, total = 0;
-    KScreen::ModePtr biggest;
-    KScreen::ModePtr candidateMode;
+    Disman::ModePtr biggest;
+    Disman::ModePtr candidateMode;
     Q_FOREACH(const QString &modeId, d->preferredModes) {
         candidateMode = mode(modeId);
         area = candidateMode->size().width() * candidateMode->size().height();
@@ -440,7 +440,7 @@ QSizeF Output::logicalSize() const
     size = size / d->scale;
 
     // We can't use d->size, because d->size does not reflect the actual rotation() set by caller.
-    // It is only updated when we get update from KScreen, but not when user changes mode or
+    // It is only updated when we get update from Disman, but not when user changes mode or
     // rotation manually.
 
     if (!isHorizontal()) {
@@ -565,12 +565,12 @@ void Output::setSizeMm(const QSize &size)
     d->sizeMm = size;
 }
 
-bool KScreen::Output::followPreferredMode() const
+bool Disman::Output::followPreferredMode() const
 {
     return d->followPreferredMode;
 }
 
-void KScreen::Output::setFollowPreferredMode(bool follow)
+void Disman::Output::setFollowPreferredMode(bool follow)
 {
     if (follow != d->followPreferredMode) {
         d->followPreferredMode = follow;
@@ -607,7 +607,7 @@ QRect Output::geometry() const
 
 void Output::apply(const OutputPtr& other)
 {
-    typedef void (KScreen::Output::*ChangeSignal)();
+    typedef void (Disman::Output::*ChangeSignal)();
     QList<ChangeSignal> changes;
 
     // We block all signals, and emit them only after we have set up everything
@@ -689,10 +689,10 @@ void Output::apply(const OutputPtr& other)
     }
 }
 
-QDebug operator<<(QDebug dbg, const KScreen::OutputPtr &output)
+QDebug operator<<(QDebug dbg, const Disman::OutputPtr &output)
 {
     if(output) {
-        dbg << "KScreen::Output(" << output->id() << " "
+        dbg << "Disman::Output(" << output->id() << " "
                                   << output->name()
                                   << (output->isConnected() ? "connected" : "disconnected")
                                   << (output->isEnabled() ? "enabled" : "disabled")
@@ -704,7 +704,7 @@ QDebug operator<<(QDebug dbg, const KScreen::OutputPtr &output)
                                   << "followPreferredMode:" << output->followPreferredMode()
                                   << ")";
     } else {
-        dbg << "KScreen::Output(NULL)";
+        dbg << "Disman::Output(NULL)";
     }
     return dbg;
 }

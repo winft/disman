@@ -16,8 +16,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_WAYLAND_CONFIGREADER_H
-#define KSCREEN_WAYLAND_CONFIGREADER_H
+#ifndef DISMAN_WAYLAND_CONFIGREADER_H
+#define DISMAN_WAYLAND_CONFIGREADER_H
 
 #include <QObject>
 #include <QRect>
@@ -27,7 +27,7 @@
 #include <KWayland/Server/output_interface.h>
 #include <KWayland/Server/outputdevice_interface.h>
 
-namespace KScreen
+namespace Disman
 {
 
 using namespace KWayland::Server;
@@ -48,4 +48,4 @@ public:
 
 } // namespace
 
-#endif // KSCREEN_WAYLAND_CONFIGREADER_H
+#endif // DISMAN_WAYLAND_CONFIGREADER_H

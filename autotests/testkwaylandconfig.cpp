@@ -32,9 +32,9 @@
 
 #include "waylandtestserver.h"
 
-Q_LOGGING_CATEGORY(KSCREEN_WAYLAND, "kscreen.kwayland")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.kwayland")
 
-using namespace KScreen;
+using namespace Disman;
 
 class TestKWaylandConfig : public QObject
 {
@@ -65,13 +65,13 @@ TestKWaylandConfig::TestKWaylandConfig(QObject *parent)
     : QObject(parent)
     , m_server(nullptr)
 {
-    qputenv("KSCREEN_LOGGING", "false");
+    qputenv("DISMAN_LOGGING", "false");
 }
 
 void TestKWaylandConfig::initTestCase()
 {
-    setenv("KSCREEN_BACKEND", "kwayland", 1);
-    KScreen::BackendManager::instance()->shutdownBackend();
+    setenv("DISMAN_BACKEND", "kwayland", 1);
+    Disman::BackendManager::instance()->shutdownBackend();
 
     // This is how KWayland will pick up the right socket,
     // and thus connect to our internal test server.
@@ -84,7 +84,7 @@ void TestKWaylandConfig::initTestCase()
 void TestKWaylandConfig::cleanupTestCase()
 {
     qDebug() << "Shutting down";
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     delete m_server;
 }
 
@@ -96,9 +96,9 @@ void TestKWaylandConfig::changeConfig()
     QVERIFY(config);
 
     // Prepare monitor & spy
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
 
     // The first output is currently disabled, let's try to enable it
@@ -109,7 +109,7 @@ void TestKWaylandConfig::changeConfig()
 
     auto output2 = config->outputs()[2]; // is this id stable enough?
     output2->setPos(QPoint(4000, 1080));
-    output2->setRotation(KScreen::Output::Left);
+    output2->setRotation(Disman::Output::Left);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     auto sop = new SetConfigOperation(config, this);
@@ -133,9 +133,9 @@ void TestKWaylandConfig::testPositionChange()
     QVERIFY(config);
 
     // Prepare monitor & spy
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     auto output = config->outputs()[2]; // is this id stable enough?
     auto new_pos = QPoint(3840, 1080);
@@ -154,16 +154,16 @@ void TestKWaylandConfig::testPositionChange()
 
 void TestKWaylandConfig::testRotationChange_data()
 {
-    QTest::addColumn<KScreen::Output::Rotation>("rotation");
-    QTest::newRow("left") << KScreen::Output::Left;
-    QTest::newRow("inverted") << KScreen::Output::Inverted;
-    QTest::newRow("right") << KScreen::Output::Right;
-    QTest::newRow("none") << KScreen::Output::None;
+    QTest::addColumn<Disman::Output::Rotation>("rotation");
+    QTest::newRow("left") << Disman::Output::Left;
+    QTest::newRow("inverted") << Disman::Output::Inverted;
+    QTest::newRow("right") << Disman::Output::Right;
+    QTest::newRow("none") << Disman::Output::None;
 }
 
 void TestKWaylandConfig::testRotationChange()
 {
-    QFETCH(KScreen::Output::Rotation, rotation);
+    QFETCH(Disman::Output::Rotation, rotation);
 
     auto op = new GetConfigOperation();
     QVERIFY(op->exec());
@@ -171,9 +171,9 @@ void TestKWaylandConfig::testRotationChange()
     QVERIFY(config);
 
     // Prepare monitor & spy
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     auto output = config->outputs().first(); // is this id stable enough?
     output->setRotation(rotation);
@@ -212,14 +212,14 @@ void TestKWaylandConfig::testScaleChange()
     QVERIFY(config2);
 
     // Prepare monitor & spy
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     monitor->addConfig(config2);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
-    QSignalSpy configSpy2(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy2(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     auto output2 = config2->outputs()[2]; // is this id stable enough?
-    QSignalSpy outputSpy(output2.data(), &KScreen::Output::scaleChanged);
+    QSignalSpy outputSpy(output2.data(), &Disman::Output::scaleChanged);
     QCOMPARE(output2->scale(), 1.0);
 
     auto output = config->outputs()[2]; // is this id stable enough?
@@ -246,9 +246,9 @@ void TestKWaylandConfig::testModeChange()
     auto config = op->config();
     QVERIFY(config);
 
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     auto output = config->outputs()[1]; // is this id stable enough?
 
@@ -278,9 +278,9 @@ void TestKWaylandConfig::testApplyOnPending()
     auto config2 = op2->config();
     QVERIFY(config2);
 
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     auto output = config->outputs()[1]; // is this id stable enough?
 

@@ -24,10 +24,10 @@
 #include <QObject>
 #include <QLoggingCategory>
 
-class Fake : public KScreen::AbstractBackend
+class Fake : public Disman::AbstractBackend
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf5.kscreen.backends.fake")
+    Q_PLUGIN_METADATA(IID "org.kf5.disman.backends.fake")
 
 public:
     explicit Fake();
@@ -37,8 +37,8 @@ public:
 
     QString name() const override;
     QString serviceName() const override;
-    KScreen::ConfigPtr config() const override;
-    void setConfig(const KScreen::ConfigPtr &config) override;
+    Disman::ConfigPtr config() const override;
+    void setConfig(const Disman::ConfigPtr &config) override;
     QByteArray edid(int outputId) const override;
     bool isValid() const override;
 
@@ -56,7 +56,7 @@ private Q_SLOTS:
 
 private:
     QString mConfigFile;
-    mutable KScreen::ConfigPtr mConfig;
+    mutable Disman::ConfigPtr mConfig;
 };
-Q_DECLARE_LOGGING_CATEGORY(KSCREEN_FAKE)
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_FAKE)
 #endif //FAKE_BACKEND_H

@@ -16,8 +16,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_WAYLAND_TESTSERVER_H
-#define KSCREEN_WAYLAND_TESTSERVER_H
+#ifndef DISMAN_WAYLAND_TESTSERVER_H
+#define DISMAN_WAYLAND_TESTSERVER_H
 
 #include <QObject>
 
@@ -31,10 +31,10 @@
 #include <KWayland/Server/shell_interface.h>
 #include <KWayland/Server/outputmanagement_interface.h>
 
-namespace KScreen
+namespace Disman
 {
 
-static const QString s_socketName = QStringLiteral("libkscreen-test-wayland-backend-0");
+static const QString s_socketName = QStringLiteral("disman-test-wayland-backend-0");
 
 using namespace KWayland::Server;
 
@@ -83,4 +83,4 @@ private:
 
 } // namespace
 
-#endif // KSCREEN_WAYLAND_SCREEN_H
+#endif // DISMAN_WAYLAND_SCREEN_H

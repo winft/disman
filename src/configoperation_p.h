@@ -23,7 +23,7 @@
 #include "abstractbackend.h"
 #include "backendinterface.h"
 
-namespace KScreen
+namespace Disman
 {
 
 class ConfigOperationPrivate : public QObject
@@ -36,10 +36,10 @@ public:
 
     // For out-of-process
     void requestBackend();
-    virtual void backendReady(org::kde::kscreen::Backend *backend);
+    virtual void backendReady(org::kwinft::disman::backend *backend);
 
     // For in-process
-    KScreen::AbstractBackend* loadBackend();
+    Disman::AbstractBackend* loadBackend();
 
 public Q_SLOTS:
     void doEmitResult();

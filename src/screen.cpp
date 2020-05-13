@@ -19,7 +19,7 @@
 
 #include "screen.h"
 
-using namespace KScreen;
+using namespace Disman;
 
 class Q_DECL_HIDDEN Screen::Private
 {

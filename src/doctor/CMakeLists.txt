@@ -1,4 +1,4 @@
 
-add_executable(kscreen-doctor main.cpp doctor.cpp dpmsclient.cpp)
-target_link_libraries(kscreen-doctor Qt5::DBus KF5::Screen KF5::WaylandClient)
-install(TARGETS kscreen-doctor ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+add_executable(disman-doctor main.cpp doctor.cpp dpmsclient.cpp)
+target_link_libraries(disman-doctor Qt5::DBus Disman KF5::WaylandClient)
+install(TARGETS disman-doctor ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})

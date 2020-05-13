@@ -23,15 +23,15 @@
 
 #include <QLoggingCategory>
 
-namespace KScreen
+namespace Disman
 {
 
 class WaylandConfig;
 
-class WaylandBackend : public KScreen::AbstractBackend
+class WaylandBackend : public Disman::AbstractBackend
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf5.kscreen.backends.kwayland")
+    Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.wayland")
 
 public:
     explicit WaylandBackend();
@@ -39,8 +39,8 @@ public:
 
     QString name() const override;
     QString serviceName() const override;
-    KScreen::ConfigPtr config() const override;
-    void setConfig(const KScreen::ConfigPtr &config) override;
+    Disman::ConfigPtr config() const override;
+    void setConfig(const Disman::ConfigPtr &config) override;
     bool isValid() const override;
     QByteArray edid(int outputId) const override;
 
@@ -50,4 +50,4 @@ private:
 
 }
 
-Q_DECLARE_LOGGING_CATEGORY(KSCREEN_WAYLAND)
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_WAYLAND)

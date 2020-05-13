@@ -36,17 +36,17 @@
 
 #include "fakebackendadaptor.h"
 
-using namespace KScreen;
+using namespace Disman;
 
-Q_LOGGING_CATEGORY(KSCREEN_FAKE, "kscreen.fake")
+Q_LOGGING_CATEGORY(DISMAN_FAKE, "disman.fake")
 
 Fake::Fake()
-    : KScreen::AbstractBackend()
+    : Disman::AbstractBackend()
 {
-    QLoggingCategory::setFilterRules(QStringLiteral("kscreen.fake.debug = true"));
+    QLoggingCategory::setFilterRules(QStringLiteral("disman.fake.debug = true"));
 
 
-    if (qgetenv("KSCREEN_BACKEND_INPROCESS") != QByteArray("1")) {
+    if (qgetenv("DISMAN_BACKEND_INPROCESS") != QByteArray("1")) {
         QTimer::singleShot(0, this, &Fake::delayedInit);
     }
 }
@@ -58,13 +58,13 @@ void Fake::init(const QVariantMap &arguments)
     }
 
     mConfigFile = arguments[QStringLiteral("TEST_DATA")].toString();
-    qCDebug(KSCREEN_FAKE) << "Fake profile file:" << mConfigFile;
+    qCDebug(DISMAN_FAKE) << "Fake profile file:" << mConfigFile;
 
 }
 
 void Fake::delayedInit()
 {
-    new FakeBackendAdaptor(this);
+    new FakebackendAdaptor(this);
     QDBusConnection::sessionBus().registerObject(QStringLiteral("/fake"), this);
 }
 
@@ -79,7 +79,7 @@ QString Fake::name() const
 
 QString Fake::serviceName() const
 {
-    return QStringLiteral("org.kde.KScreen.Backend.Fake");
+    return QStringLiteral("org.kwinft.disman.fakebackend");
 }
 
 ConfigPtr Fake::config() const
@@ -93,7 +93,7 @@ ConfigPtr Fake::config() const
 
 void Fake::setConfig(const ConfigPtr &config)
 {
-    qCDebug(KSCREEN_FAKE) << "set config" << config->outputs();
+    qCDebug(DISMAN_FAKE) << "set config" << config->outputs();
     mConfig = config->clone();
     emit configChanged(mConfig);
 }
@@ -126,19 +126,19 @@ QByteArray Fake::edid(int outputId) const
 
 void Fake::setConnected(int outputId, bool connected)
 {
-    KScreen::OutputPtr output = config()->output(outputId);
+    Disman::OutputPtr output = config()->output(outputId);
     if (output->isConnected() == connected) {
         return;
     }
 
     output->setConnected(connected);
-    qCDebug(KSCREEN_FAKE) << "emitting configChanged in Fake";
+    qCDebug(DISMAN_FAKE) << "emitting configChanged in Fake";
     Q_EMIT configChanged(mConfig);
 }
 
 void Fake::setEnabled(int outputId, bool enabled)
 {
-    KScreen::OutputPtr output = config()->output(outputId);
+    Disman::OutputPtr output = config()->output(outputId);
     if (output->isEnabled() == enabled) {
         return;
     }
@@ -149,12 +149,12 @@ void Fake::setEnabled(int outputId, bool enabled)
 
 void Fake::setPrimary(int outputId, bool primary)
 {
-    KScreen::OutputPtr output = config()->output(outputId);
+    Disman::OutputPtr output = config()->output(outputId);
     if (output->isPrimary() == primary) {
         return;
     }
 
-    Q_FOREACH (KScreen::OutputPtr output, config()->outputs()) {
+    Q_FOREACH (Disman::OutputPtr output, config()->outputs()) {
         if (output->id() == outputId) {
             output->setPrimary(primary);
         } else {
@@ -166,7 +166,7 @@ void Fake::setPrimary(int outputId, bool primary)
 
 void Fake::setCurrentModeId(int outputId, const QString &modeId)
 {
-    KScreen::OutputPtr output = config()->output(outputId);
+    Disman::OutputPtr output = config()->output(outputId);
     if (output->currentModeId() == modeId) {
         return;
     }
@@ -177,8 +177,8 @@ void Fake::setCurrentModeId(int outputId, const QString &modeId)
 
 void Fake::setRotation(int outputId, int rotation)
 {
-    KScreen::OutputPtr output = config()->output(outputId);
-    const KScreen::Output::Rotation rot = static_cast<KScreen::Output::Rotation>(rotation);
+    Disman::OutputPtr output = config()->output(outputId);
+    const Disman::Output::Rotation rot = static_cast<Disman::Output::Rotation>(rotation);
     if (output->rotation() == rot) {
         return;
     }
@@ -189,7 +189,7 @@ void Fake::setRotation(int outputId, int rotation)
 
 void Fake::addOutput(int outputId, const QString &name)
 {
-    KScreen::OutputPtr output(new KScreen::Output);
+    Disman::OutputPtr output(new Disman::Output);
     output->setId(outputId);
     output->setName(name);
     mConfig->addOutput(output);

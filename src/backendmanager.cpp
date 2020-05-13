@@ -25,7 +25,7 @@
 #include "config.h"
 #include "configmonitor.h"
 #include "backendinterface.h"
-#include "kscreen_debug.h"
+#include "disman_debug.h"
 #include "getconfigoperation.h"
 #include "configserializer_p.h"
 #include "log.h"
@@ -43,9 +43,9 @@
 #include <memory>
 
 
-using namespace KScreen;
+using namespace Disman;
 
-Q_DECLARE_METATYPE(org::kde::kscreen::Backend*)
+Q_DECLARE_METATYPE(org::kwinft::disman::backend*)
 
 const int BackendManager::sMaxCrashCount = 4;
 
@@ -71,8 +71,8 @@ BackendManager::BackendManager()
     Log::instance();
     // Decide whether to run in, or out-of-process
 
-    // if KSCREEN_BACKEND_INPROCESS is set explicitly, we respect that
-    const auto _inprocess = qgetenv("KSCREEN_BACKEND_INPROCESS");
+    // if DISMAN_BACKEND_INPROCESS is set explicitly, we respect that
+    const auto _inprocess = qgetenv("DISMAN_BACKEND_INPROCESS");
     if (!_inprocess.isEmpty()) {
 
         const QByteArrayList falses({QByteArray("0"), QByteArray("false")});
@@ -83,11 +83,14 @@ BackendManager::BackendManager()
         }
     } else {
         // For XRandR backends, use out of process
-        if (preferredBackend().fileName().startsWith(QLatin1String("KSC_XRandR"))) {
+        if (preferredBackend().fileName().startsWith(QLatin1String("randr"))) {
             mMethod = OutOfProcess;
         } else {
             mMethod = InProcess;
         }
+
+        // TODO: Currently dbus service not working. Also do for randr in process.
+        mMethod = InProcess;
     }
     initMethod();
 }
@@ -95,7 +98,7 @@ BackendManager::BackendManager()
 void BackendManager::initMethod()
 {
     if (mMethod == OutOfProcess) {
-        qRegisterMetaType<org::kde::kscreen::Backend*>("OrgKdeKscreenBackendInterface");
+        qRegisterMetaType<org::kwinft::disman::backend*>("OrgKwinftDismanBackendInterface");
 
         mServiceWatcher.setConnection(QDBusConnection::sessionBus());
         connect(&mServiceWatcher, &QDBusServiceWatcher::serviceUnregistered,
@@ -137,7 +140,7 @@ QFileInfo BackendManager::preferredBackend(const QString &backend)
     /** this is the logic to pick a backend, in order of priority
      *
      * - backend argument is used if not empty
-     * - env var KSCREEN_BACKEND is considered
+     * - env var DISMAN_BACKEND is considered
      * - if platform is X11, the XRandR backend is picked
      * - if platform is wayland, KWayland backend is picked
      * - if neither is the case, QScreen backend is picked
@@ -145,44 +148,45 @@ QFileInfo BackendManager::preferredBackend(const QString &backend)
      *
      */
     QString backendFilter;
-    const auto env_kscreen_backend = QString::fromUtf8(qgetenv("KSCREEN_BACKEND"));
+    const auto env_disman_backend = QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
     if (!backend.isEmpty()) {
         backendFilter = backend;
-    } else if (!env_kscreen_backend.isEmpty()) {
-        backendFilter = env_kscreen_backend;
+    } else if (!env_disman_backend.isEmpty()) {
+        backendFilter = env_disman_backend;
     } else {
         if (QX11Info::isPlatformX11()) {
-            backendFilter = QStringLiteral("XRandR");
+            backendFilter = QStringLiteral("randr");
         } else if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
-            backendFilter = QStringLiteral("KWayland");
+            backendFilter = QStringLiteral("wayland");
         } else {
-            backendFilter = QStringLiteral("QScreen");
+            backendFilter = QStringLiteral("qscreen");
         }
     }
+
     QFileInfo fallback;
     Q_FOREACH (const QFileInfo &f, listBackends()) {
         // Here's the part where we do the match case-insensitive
-        if (f.baseName().toLower() == QStringLiteral("ksc_%1").arg(backendFilter.toLower())) {
+        if (f.baseName().toLower() == QStringLiteral("%1").arg(backendFilter.toLower())) {
             return f;
         }
-        if (f.baseName() == QLatin1String("KSC_QScreen")) {
+        if (f.baseName() == QLatin1String("qscreen")) {
             fallback = f;
         }
     }
-//     qCWarning(KSCREEN) << "No preferred backend found. KSCREEN_BACKEND is set to " << env_kscreen_backend;
-//     qCWarning(KSCREEN) << "falling back to " << fallback.fileName();
+//     qCWarning(DISMAN) << "No preferred backend found. DISMAN_BACKEND is set to " << env_disman_backend;
+//     qCWarning(DISMAN) << "falling back to " << fallback.fileName();
     return fallback;
 }
 
 QFileInfoList BackendManager::listBackends()
 {
     // Compile a list of installed backends first
-    const QString backendFilter = QStringLiteral("KSC_*");
     const QStringList paths = QCoreApplication::libraryPaths();
+
     QFileInfoList finfos;
     for (const QString &path : paths) {
-        const QDir dir(path + QLatin1String("/kf5/kscreen/"),
-                       backendFilter,
+        const QDir dir(path + QLatin1String("/disman/"),
+                       QString(),
                        QDir::SortFlags(QDir::QDir::Name),
                        QDir::NoDotAndDotDot | QDir::Files);
         finfos.append(dir.entryInfoList());
@@ -190,39 +194,39 @@ QFileInfoList BackendManager::listBackends()
     return finfos;
 }
 
-KScreen::AbstractBackend *BackendManager::loadBackendPlugin(QPluginLoader *loader, const QString &name,
+Disman::AbstractBackend *BackendManager::loadBackendPlugin(QPluginLoader *loader, const QString &name,
                                                      const QVariantMap &arguments)
 {
     const auto finfo = preferredBackend(name);
     loader->setFileName(finfo.filePath());
     QObject *instance = loader->instance();
     if (!instance) {
-        qCDebug(KSCREEN) << loader->errorString();
+        qCDebug(DISMAN) << loader->errorString();
         return nullptr;
     }
 
-    auto backend = qobject_cast<KScreen::AbstractBackend*>(instance);
+    auto backend = qobject_cast<Disman::AbstractBackend*>(instance);
     if (backend) {
         backend->init(arguments);
         if (!backend->isValid()) {
-            qCDebug(KSCREEN) << "Skipping" << backend->name() << "backend";
+            qCDebug(DISMAN) << "Skipping" << backend->name() << "backend";
             delete backend;
             return nullptr;
         }
-        //qCDebug(KSCREEN) << "Loaded" << backend->name() << "backend";
+        //qCDebug(DISMAN) << "Loaded" << backend->name() << "backend";
         return backend;
     } else {
-        qCDebug(KSCREEN) << finfo.fileName() << "does not provide valid KScreen backend";
+        qCDebug(DISMAN) << finfo.fileName() << "does not provide valid Disman backend";
     }
 
     return nullptr;
 }
 
-KScreen::AbstractBackend *BackendManager::loadBackendInProcess(const QString &name)
+Disman::AbstractBackend *BackendManager::loadBackendInProcess(const QString &name)
 {
     Q_ASSERT(mMethod == InProcess);
     if (mMethod == OutOfProcess) {
-        qCWarning(KSCREEN) << "You are trying to load a backend in process, while the BackendManager is set to use OutOfProcess communication. Use loadBackendPlugin() instead.";
+        qCWarning(DISMAN) << "You are trying to load a backend in process, while the BackendManager is set to use OutOfProcess communication. Use loadBackendPlugin() instead.";
         return nullptr;
     }
     if (m_inProcessBackend.first != nullptr && (name.isEmpty() || m_inProcessBackend.first->name() == name)) {
@@ -236,7 +240,7 @@ KScreen::AbstractBackend *BackendManager::loadBackendInProcess(const QString &na
     }
     auto test_data_equals = QStringLiteral("TEST_DATA=");
     QVariantMap arguments;
-    auto beargs = QString::fromLocal8Bit(qgetenv("KSCREEN_BACKEND_ARGS"));
+    auto beargs = QString::fromLocal8Bit(qgetenv("DISMAN_BACKEND_ARGS"));
     if (beargs.startsWith(test_data_equals)) {
         arguments[QStringLiteral("TEST_DATA")] = beargs.remove(test_data_equals);
     }
@@ -244,9 +248,9 @@ KScreen::AbstractBackend *BackendManager::loadBackendInProcess(const QString &na
     if (!backend) {
         return nullptr;
     }
-    //qCDebug(KSCREEN) << "Connecting ConfigMonitor to backend.";
+    //qCDebug(DISMAN) << "Connecting ConfigMonitor to backend.";
     ConfigMonitor::instance()->connectInProcessBackend(backend);
-    m_inProcessBackend = qMakePair<KScreen::AbstractBackend*, QVariantMap>(backend, arguments);
+    m_inProcessBackend = qMakePair<Disman::AbstractBackend*, QVariantMap>(backend, arguments);
     setConfig(backend->config());
     return backend;
 }
@@ -266,7 +270,7 @@ void BackendManager::requestBackend()
     }
     ++mRequestsCounter;
 
-    const QByteArray args = qgetenv("KSCREEN_BACKEND_ARGS");
+    const QByteArray args = qgetenv("DISMAN_BACKEND_ARGS");
     QVariantMap arguments;
     if (!args.isEmpty()) {
         QList<QByteArray> arglist = args.split(';');
@@ -279,7 +283,7 @@ void BackendManager::requestBackend()
         }
     }
 
-    startBackend(QString::fromLatin1(qgetenv("KSCREEN_BACKEND")), arguments);
+    startBackend(QString::fromLatin1(qgetenv("DISMAN_BACKEND")), arguments);
 }
 
 void BackendManager::emitBackendReady()
@@ -300,9 +304,9 @@ void BackendManager::startBackend(const QString &backend, const QVariantMap &arg
     //   b) if the launcher is already running it will make sure it's running with
     //      the same backend as the one we requested and send an error otherwise
     QDBusConnection conn = QDBusConnection::sessionBus();
-    QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KScreen"),
+    QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.kwinft.disman"),
                                                        QStringLiteral("/"),
-                                                       QStringLiteral("org.kde.KScreen"),
+                                                       QStringLiteral("org.kwinft.disman"),
                                                        QStringLiteral("requestBackend"));
     call.setArguments({ backend, arguments });
     QDBusPendingCall pending = conn.asyncCall(call);
@@ -319,7 +323,7 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
     // Most probably we requested an explicit backend that is different than the
     // one already loaded in the launcher
     if (reply.isError()) {
-        qCWarning(KSCREEN) << "Failed to request backend:" << reply.error().name() << ":" << reply.error().message();
+        qCWarning(DISMAN) << "Failed to request backend:" << reply.error().name() << ":" << reply.error().message();
         invalidateInterface();
         emitBackendReady();
         return;
@@ -329,7 +333,7 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
     // to initialize, or the launcher did not find any suitable backend for the
     // current platform.
     if (!reply.value()) {
-        qCWarning(KSCREEN) << "Failed to request backend: unknown error";
+        qCWarning(DISMAN) << "Failed to request backend: unknown error";
         invalidateInterface();
         emitBackendReady();
         return;
@@ -340,11 +344,11 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
     if (mInterface) {
         invalidateInterface();
     }
-    mInterface = new org::kde::kscreen::Backend(QStringLiteral("org.kde.KScreen"),
+    mInterface = new org::kwinft::disman::backend(QStringLiteral("org.kwinft.disman"),
                                                 QStringLiteral("/backend"),
                                                 QDBusConnection::sessionBus());
     if (!mInterface->isValid()) {
-        qCWarning(KSCREEN) << "Backend successfully requested, but we failed to obtain a valid DBus interface for it";
+        qCWarning(DISMAN) << "Backend successfully requested, but we failed to obtain a valid DBus interface for it";
         invalidateInterface();
         emitBackendReady();
         return;
@@ -361,9 +365,9 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
                 emitBackendReady();
             });
     // And listen for its change.
-    connect(mInterface, &org::kde::kscreen::Backend::configChanged,
+    connect(mInterface, &org::kwinft::disman::backend::configChanged,
             [&](const QVariantMap &newConfig) {
-                mConfig = KScreen::ConfigSerializer::deserializeConfig(newConfig);
+                mConfig = Disman::ConfigSerializer::deserializeConfig(newConfig);
             });
 }
 
@@ -391,7 +395,7 @@ ConfigPtr BackendManager::config() const
 
 void BackendManager::setConfig(ConfigPtr c)
 {
-    //qCDebug(KSCREEN) << "BackendManager::setConfig, outputs:" << c->outputs().count();
+    //qCDebug(DISMAN) << "BackendManager::setConfig, outputs:" << c->outputs().count();
     mConfig = c;
 }
 
@@ -418,15 +422,15 @@ void BackendManager::shutdownBackend()
         mServiceWatcher.removeWatchedService(mBackendService);
         mShuttingDown = true;
 
-        QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KScreen"),
+        QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.kwinft.disman"),
                                                         QStringLiteral("/"),
-                                                        QStringLiteral("org.kde.KScreen"),
+                                                        QStringLiteral("org.kwinft.disman"),
                                                         QStringLiteral("quit"));
         // Call synchronously
         QDBusConnection::sessionBus().call(call);
         invalidateInterface();
 
-        while (QDBusConnection::sessionBus().interface()->isServiceRegistered(QStringLiteral("org.kde.KScreen"))) {
+        while (QDBusConnection::sessionBus().interface()->isServiceRegistered(QStringLiteral("org.kwinft.disman"))) {
             QThread::msleep(100);
         }
     }

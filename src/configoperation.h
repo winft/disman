@@ -18,19 +18,19 @@
  *
  */
 
-#ifndef KSCREEN_CONFIGOPERATION_H
-#define KSCREEN_CONFIGOPERATION_H
+#ifndef DISMAN_CONFIGOPERATION_H
+#define DISMAN_CONFIGOPERATION_H
 
 #include <QObject>
 
-#include "kscreen_export.h"
+#include "disman_export.h"
 #include "types.h"
 
-namespace KScreen {
+namespace Disman {
 
 class ConfigOperationPrivate;
 
-class KSCREEN_EXPORT ConfigOperation : public QObject
+class DISMAN_EXPORT ConfigOperation : public QObject
 {
     Q_OBJECT
 
@@ -46,7 +46,7 @@ public:
     bool hasError() const;
     QString errorString() const;
 
-    virtual KScreen::ConfigPtr config() const = 0;
+    virtual Disman::ConfigPtr config() const = 0;
 
     bool exec();
 
@@ -68,4 +68,4 @@ protected:
 };
 }
 
-#endif // KSCREEN_CONFIGOPERATION_H
+#endif // DISMAN_CONFIGOPERATION_H

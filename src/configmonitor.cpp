@@ -22,12 +22,12 @@
 #include "abstractbackend.h"
 #include "configserializer_p.h"
 #include "getconfigoperation.h"
-#include "kscreen_debug.h"
+#include "disman_debug.h"
 #include "output.h"
 
 #include <QDBusPendingCallWatcher>
 
-using namespace KScreen;
+using namespace Disman;
 
 
 class Q_DECL_HIDDEN ConfigMonitor::Private : public QObject
@@ -38,19 +38,19 @@ public:
     Private(ConfigMonitor *q);
 
     void updateConfigs();
-    void onBackendReady(org::kde::kscreen::Backend *backend);
+    void onBackendReady(org::kwinft::disman::backend *backend);
     void backendConfigChanged(const QVariantMap &configMap);
     void configDestroyed(QObject* removedConfig);
     void getConfigFinished(ConfigOperation *op);
-    void updateConfigs(const KScreen::ConfigPtr &newConfig);
+    void updateConfigs(const Disman::ConfigPtr &newConfig);
     void edidReady(QDBusPendingCallWatcher *watcher);
 
-    QList<QWeakPointer<KScreen::Config>>  watchedConfigs;
+    QList<QWeakPointer<Disman::Config>>  watchedConfigs;
 
-    QPointer<org::kde::kscreen::Backend> mBackend;
+    QPointer<org::kwinft::disman::backend> mBackend;
     bool mFirstBackend;
 
-    QMap<KScreen::ConfigPtr, QList<int>> mPendingEDIDRequests;
+    QMap<Disman::ConfigPtr, QList<int>> mPendingEDIDRequests;
 private:
     ConfigMonitor *q;
 };
@@ -62,7 +62,7 @@ ConfigMonitor::Private::Private(ConfigMonitor *q)
 {
 }
 
-void ConfigMonitor::Private::onBackendReady(org::kde::kscreen::Backend *backend)
+void ConfigMonitor::Private::onBackendReady(org::kwinft::disman::backend *backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     if (backend == mBackend) {
@@ -70,18 +70,18 @@ void ConfigMonitor::Private::onBackendReady(org::kde::kscreen::Backend *backend)
     }
 
     if (mBackend) {
-        disconnect(mBackend.data(), &org::kde::kscreen::Backend::configChanged,
+        disconnect(mBackend.data(), &org::kwinft::disman::backend::configChanged,
                    this, &ConfigMonitor::Private::backendConfigChanged);
     }
 
-    mBackend = QPointer<org::kde::kscreen::Backend>(backend);
+    mBackend = QPointer<org::kwinft::disman::backend>(backend);
     // If we received a new backend interface, then it's very likely that it is
     // because the backend process has crashed - just to be sure we haven't missed
     // any change, request the current config now and update our watched configs
     //
     // Only request the config if this is not initial backend request, because it
     // can happen that if a change happened before now, or before we get the config,
-    // the result will be invalid. This can happen when KScreen KDED launches and
+    // the result will be invalid. This can happen when Disman KDED launches and
     // detects changes need to be done.
     if (!mFirstBackend && !watchedConfigs.isEmpty()) {
         connect(new GetConfigOperation(), &GetConfigOperation::finished,
@@ -89,7 +89,7 @@ void ConfigMonitor::Private::onBackendReady(org::kde::kscreen::Backend *backend)
     }
     mFirstBackend = false;
 
-    connect(mBackend.data(), &org::kde::kscreen::Backend::configChanged,
+    connect(mBackend.data(), &org::kwinft::disman::backend::configChanged,
             this, &ConfigMonitor::Private::backendConfigChanged);
 
 }
@@ -98,11 +98,11 @@ void ConfigMonitor::Private::getConfigFinished(ConfigOperation* op)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     if (op->hasError()) {
-        qCWarning(KSCREEN) << "Failed to retrieve current config: " << op->errorString();
+        qCWarning(DISMAN) << "Failed to retrieve current config: " << op->errorString();
         return;
     }
 
-    const KScreen::ConfigPtr config = qobject_cast<GetConfigOperation*>(op)->config();
+    const Disman::ConfigPtr config = qobject_cast<GetConfigOperation*>(op)->config();
     updateConfigs(config);
 }
 
@@ -111,7 +111,7 @@ void ConfigMonitor::Private::backendConfigChanged(const QVariantMap &configMap)
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     ConfigPtr newConfig = ConfigSerializer::deserializeConfig(configMap);
     if (!newConfig) {
-        qCWarning(KSCREEN) << "Failed to deserialize config from DBus change notification";
+        qCWarning(DISMAN) << "Failed to deserialize config from DBus change notification";
         return;
     }
 
@@ -128,7 +128,7 @@ void ConfigMonitor::Private::backendConfigChanged(const QVariantMap &configMap)
     }
 
     if (mPendingEDIDRequests.contains(newConfig)) {
-        qCDebug(KSCREEN) << "Requesting missing EDID for outputs" << mPendingEDIDRequests[newConfig];
+        qCDebug(DISMAN) << "Requesting missing EDID for outputs" << mPendingEDIDRequests[newConfig];
     } else {
         updateConfigs(newConfig);
     }
@@ -139,7 +139,7 @@ void ConfigMonitor::Private::edidReady(QDBusPendingCallWatcher* watcher)
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
 
     const int outputId = watcher->property("outputId").toInt();
-    const ConfigPtr config = watcher->property("config").value<KScreen::ConfigPtr>();
+    const ConfigPtr config = watcher->property("config").value<Disman::ConfigPtr>();
     Q_ASSERT(mPendingEDIDRequests.contains(config));
     Q_ASSERT(mPendingEDIDRequests[config].contains(outputId));
 
@@ -149,7 +149,7 @@ void ConfigMonitor::Private::edidReady(QDBusPendingCallWatcher* watcher)
 
     const QDBusPendingReply<QByteArray> reply = *watcher;
     if (reply.isError()) {
-        qCWarning(KSCREEN) << "Error when retrieving EDID: " << reply.error().message();
+        qCWarning(DISMAN) << "Error when retrieving EDID: " << reply.error().message();
     } else {
         const QByteArray edid = reply.argumentAt<0>();
         if (!edid.isEmpty()) {
@@ -165,11 +165,11 @@ void ConfigMonitor::Private::edidReady(QDBusPendingCallWatcher* watcher)
 }
 
 
-void ConfigMonitor::Private::updateConfigs(const KScreen::ConfigPtr &newConfig)
+void ConfigMonitor::Private::updateConfigs(const Disman::ConfigPtr &newConfig)
 {
     QMutableListIterator<QWeakPointer<Config>> iter(watchedConfigs);
     while (iter.hasNext()) {
-        KScreen::ConfigPtr config = iter.next().toStrongRef();
+        Disman::ConfigPtr config = iter.next().toStrongRef();
         if (!config) {
             iter.remove();
             continue;
@@ -239,14 +239,14 @@ void ConfigMonitor::removeConfig(const ConfigPtr &config)
     }
 }
 
-void ConfigMonitor::connectInProcessBackend(KScreen::AbstractBackend* backend)
+void ConfigMonitor::connectInProcessBackend(Disman::AbstractBackend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
-    connect(backend, &AbstractBackend::configChanged, [=](KScreen::ConfigPtr config) {
+    connect(backend, &AbstractBackend::configChanged, [=](Disman::ConfigPtr config) {
         if (config.isNull()) {
             return;
         }
-        qCDebug(KSCREEN) << "Backend change!" << config;
+        qCDebug(DISMAN) << "Backend change!" << config;
         d->updateConfigs(config);
     });
 }

@@ -16,30 +16,30 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_LOG_H
-#define KSCREEN_LOG_H
+#ifndef DISMAN_LOG_H
+#define DISMAN_LOG_H
 
-#include "kscreen_export.h"
+#include "disman_export.h"
 #include "types.h"
 
 #include <QObject>
 #include <QLoggingCategory>
 
-namespace KScreen {
+namespace Disman {
 
 void log(const QString& msg);
 
-/** KScreen-internal file logging.
+/** Disman-internal file logging.
  *
- * The purpose of this class is to allow better debugging of kscreen. QDebug falls short here, since
- * we need to debug the concert of kscreen components from different processes.
+ * The purpose of this class is to allow better debugging of disman. QDebug falls short here, since
+ * we need to debug the concert of disman components from different processes.
  *
- * KScreen::Log manages access to kscreen's log file.
+ * Disman::Log manages access to disman's log file.
  *
  * The following environment variables are considered:
  * - disable logging by setting
- * KSCREEN_LOGGING=false
- * - set the log file to a custom path, the default is in ~/.local/share/kscreen/kscreen.log
+ * DISMAN_LOGGING=false
+ * - set the log file to a custom path, the default is in ~/.local/share/disman/disman.log
  *
  * Please do not translate messages written to the logs, it's developer information and should be
  * english, independent from the user's locale preferences.
@@ -53,7 +53,7 @@ void log(const QString& msg);
  *
  * @since 5.8
  */
-class KSCREEN_EXPORT Log
+class DISMAN_EXPORT Log
 {
     public:
         virtual ~Log();
@@ -95,8 +95,8 @@ class KSCREEN_EXPORT Log
 
         /** Path to the log file
          *
-         * This is usually ~/.local/share/kscreen/kscreen.log, but can be changed by setting
-         * KSCREEN_LOGFILE in the environment.
+         * This is usually ~/.local/share/disman/disman.log, but can be changed by setting
+         * DISMAN_LOGFILE in the environment.
          *
          * @return The path to the log file.
          */
@@ -111,7 +111,7 @@ class KSCREEN_EXPORT Log
         explicit Log(Private *dd);
 };
 
-} //KSCreen namespace
+} //Disman namespace
 
 
-#endif //KSCREEN_LOG_H
+#endif //DISMAN_LOG_H

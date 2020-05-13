@@ -31,10 +31,10 @@ class QTimer;
 class XCBEventListener;
 class XRandRConfig;
 
-class XRandR : public KScreen::AbstractBackend
+class XRandR : public Disman::AbstractBackend
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf5.kscreen.backends.xrandr")
+    Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.randr")
 
     public:
         explicit XRandR();
@@ -42,8 +42,8 @@ class XRandR : public KScreen::AbstractBackend
 
         QString name() const override;
         QString serviceName() const override;
-        KScreen::ConfigPtr config() const override;
-        void setConfig(const KScreen::ConfigPtr &config) override;
+        Disman::ConfigPtr config() const override;
+        void setConfig(const Disman::ConfigPtr &config) override;
         bool isValid() const override;
         QByteArray edid(int outputId) const override;
 
@@ -81,4 +81,4 @@ class XRandR : public KScreen::AbstractBackend
         QTimer *m_configChangeCompressor;
 };
 
-Q_DECLARE_LOGGING_CATEGORY(KSCREEN_XRANDR)
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_XRANDR)

@@ -16,15 +16,15 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 
-#ifndef KSCREEN_TESTPNP_H
-#define KSCREEN_TESTPNP_H
+#ifndef DISMAN_TESTPNP_H
+#define DISMAN_TESTPNP_H
 
 #include "../src/config.h"
 #include "../src/screen.h"
 
 #include <QObject>
 
-namespace KScreen
+namespace Disman
 {
 class Output;
 class ConfigOperation;
@@ -39,7 +39,7 @@ public:
 
 private Q_SLOTS:
     void init();
-    void configReady(KScreen::ConfigOperation *op);
+    void configReady(Disman::ConfigOperation *op);
     void print();
 
 private:
@@ -49,4 +49,4 @@ private:
 
 } // namespace
 
-#endif // KSCREEN_TESTPNP_H
+#endif // DISMAN_TESTPNP_H

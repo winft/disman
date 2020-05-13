@@ -27,14 +27,14 @@
 #include "../src/setconfigoperation.h"
 #include "../src/backendmanager_p.h"
 
-using namespace KScreen;
+using namespace Disman;
 
 class testScreenConfig : public QObject
 {
     Q_OBJECT
 
 private:
-    KScreen::ConfigPtr getConfig();
+    Disman::ConfigPtr getConfig();
 
 private Q_SLOTS:
     void initTestCase();
@@ -51,7 +51,7 @@ private Q_SLOTS:
 
 ConfigPtr testScreenConfig::getConfig()
 {
-    qputenv("KSCREEN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_BACKEND_INPROCESS", "1");
     auto *op = new GetConfigOperation();
     if (!op->exec()) {
         qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
@@ -67,8 +67,8 @@ ConfigPtr testScreenConfig::getConfig()
 
 void testScreenConfig::initTestCase()
 {
-    qputenv("KSCREEN_LOGGING", "false");
-    qputenv("KSCREEN_BACKEND", "Fake");
+    qputenv("DISMAN_LOGGING", "false");
+    qputenv("DISMAN_BACKEND", "Fake");
 }
 
 void testScreenConfig::cleanupTestCase()
@@ -79,11 +79,11 @@ void testScreenConfig::cleanupTestCase()
 void testScreenConfig::singleOutput()
 {
     //json file for the fake backend
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
-//     QVERIFY2(kscreen, KScreen::errorString().toLatin1());
+//     QVERIFY2(disman, Disman::errorString().toLatin1());
 
-//     QVERIFY2(!kscreen->backend().isEmpty(), "No backend loaded");
+//     QVERIFY2(!disman->backend().isEmpty(), "No backend loaded");
 
 
 
@@ -123,7 +123,7 @@ void testScreenConfig::singleOutput()
 
 void testScreenConfig::singleOutputWithoutPreferred()
 {
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleOutputWithoutPreferred.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleOutputWithoutPreferred.json");
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
@@ -136,7 +136,7 @@ void testScreenConfig::singleOutputWithoutPreferred()
 
 void testScreenConfig::multiOutput()
 {
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
@@ -174,7 +174,7 @@ void testScreenConfig::multiOutput()
 
 void testScreenConfig::clonesOutput()
 {
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleclone.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleclone.json");
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
@@ -196,10 +196,10 @@ void testScreenConfig::clonesOutput()
 
 void testScreenConfig::configCanBeApplied()
 {
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutputBroken.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutputBroken.json");
     const ConfigPtr brokenConfig = getConfig();
 
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
     const ConfigPtr currentConfig = getConfig();
     QVERIFY(!currentConfig.isNull());
     const OutputPtr primaryBroken = brokenConfig->outputs()[2];
@@ -222,7 +222,7 @@ void testScreenConfig::configCanBeApplied()
     QVERIFY(Config::canBeApplied(brokenConfig));
 
 
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "tooManyOutputs.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "tooManyOutputs.json");
     const ConfigPtr brokenConfig2 = getConfig();
     QVERIFY(!brokenConfig2.isNull());
 
@@ -243,28 +243,28 @@ void testScreenConfig::supportedFeatures()
 {
     ConfigPtr config = getConfig();
 
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::PrimaryDisplay));
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::PerOutputScaling));
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::None));
+    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
+    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
 
-    config->setSupportedFeatures(KScreen::Config::Feature::Writable | KScreen::Config::Feature::PrimaryDisplay);
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PrimaryDisplay));
+    config->setSupportedFeatures(Disman::Config::Feature::Writable | Disman::Config::Feature::PrimaryDisplay);
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
 
-    config->setSupportedFeatures(KScreen::Config::Feature::None);
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
+    config->setSupportedFeatures(Disman::Config::Feature::None);
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::None));
 
-    config->setSupportedFeatures(KScreen::Config::Feature::PerOutputScaling | KScreen::Config::Feature::Writable);
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PerOutputScaling));
+    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling | Disman::Config::Feature::Writable);
+    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::None));
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
 
-    config->setSupportedFeatures(KScreen::Config::Feature::PerOutputScaling | KScreen::Config::Feature::Writable | KScreen::Config::Feature::PrimaryDisplay);
-    QVERIFY(!config->supportedFeatures().testFlag(KScreen::Config::Feature::None));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PrimaryDisplay));
-    QVERIFY(config->supportedFeatures().testFlag(KScreen::Config::Feature::PerOutputScaling));
+    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling | Disman::Config::Feature::Writable | Disman::Config::Feature::PrimaryDisplay);
+    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::None));
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
+    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
 }
 
 void testScreenConfig::testInvalidMode()
@@ -273,7 +273,7 @@ void testScreenConfig::testInvalidMode()
     ModePtr invalidMode = modes.value(QStringLiteral("99"));
     QVERIFY(invalidMode.isNull());
 
-    auto output = new KScreen::Output();
+    auto output = new Disman::Output();
     auto currentMode = output->currentMode();
     QVERIFY(currentMode.isNull());
     QVERIFY(!currentMode);
@@ -282,7 +282,7 @@ void testScreenConfig::testInvalidMode()
 
 void testScreenConfig::testOutputPositionNormalization()
 {
-    qputenv("KSCREEN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
+    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());

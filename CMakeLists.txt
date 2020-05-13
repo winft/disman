@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(libkscreen)
-set(PROJECT_VERSION "5.18.80")
+project(Disman)
+set(PROJECT_VERSION "0.518.80")
 
 set(QT_MIN_VERSION "5.14.0")
 set(KF5_MIN_VERSION "5.66.0")
@@ -26,7 +26,7 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core DBus Gui Test X11Extras)
 
 # Wayland backend
 find_package(KF5Wayland ${KF5_MIN_VERSION} CONFIG REQUIRED)
-add_feature_info("KF5Wayland" KF5Wayland_FOUND "Required for building libkscreen's KWayland backend")
+add_feature_info("KF5Wayland" KF5Wayland_FOUND "Required for building Disman's KWayland backend")
 
 # xrandr backend
 
@@ -39,12 +39,11 @@ set_package_properties(XCB PROPERTIES
 option(BUILD_QCH "Build API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)" OFF)
 add_feature_info(QCH ${BUILD_QCH} "API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)")
 
-
-set(KF5_MIN_VERSION ${PROJECT_VERSION}) #When we are happy with the api, we can sync with frameworks
-ecm_setup_version(${KF5_MIN_VERSION} VARIABLE_PREFIX KSCREEN
-                        VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/kscreen_version.h"
-                        PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/KF5ScreenConfigVersion.cmake"
-                        SOVERSION 7)
+ecm_setup_version(${PROJECT_VERSION} VARIABLE_PREFIX Disman
+                        VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
+                        PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
+                        SOVERSION 0
+)
 
 check_cxx_compiler_flag(-fvisibility=hidden _HAVE_VISIBILITY)
 if (_HAVE_VISIBILITY AND NOT WIN32)
@@ -63,7 +62,7 @@ if(BUILD_TESTING)
    add_subdirectory(tests)
 endif()
 
-set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/KF5Screen")
+set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/Disman")
 
 # add clang-format target for all our real source files
 file(GLOB_RECURSE ALL_CLANG_FORMAT_SOURCE_FILES *.cpp *.h)
@@ -71,40 +70,39 @@ kde_clang_format(${ALL_CLANG_FORMAT_SOURCE_FILES})
 
 if (BUILD_QCH)
     ecm_install_qch_export(
-        TARGETS KF5Screen_QCH
-        FILE KF5ScreenQchTargets.cmake
+        TARGETS Disman_QCH
+        FILE DismanQchTargets.cmake
         DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
         COMPONENT Devel
     )
-    set(PACKAGE_INCLUDE_QCHTARGETS "include(\"\${CMAKE_CURRENT_LIST_DIR}/KF5ScreenQchTargets.cmake\")")
+    set(PACKAGE_INCLUDE_QCHTARGETS "include(\"\${CMAKE_CURRENT_LIST_DIR}/DismanQchTargets.cmake\")")
 endif()
 
-configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/KF5ScreenConfig.cmake.in"
-                              "${CMAKE_CURRENT_BINARY_DIR}/KF5ScreenConfig.cmake"
+configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/DismanConfig.cmake.in"
+                              "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
                               INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
 )
 
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/KF5ScreenConfig.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/KF5ScreenConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 
 install(EXPORT
-  KF5ScreenTargets
+  DismanTargets
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-  FILE KF5ScreenTargets.cmake
-  NAMESPACE KF5::
+  FILE DismanTargets.cmake
   COMPONENT Devel
 )
 
 install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/kscreen_version.h"
-  DESTINATION "${KF5_INCLUDE_INSTALL_DIR}"
+  "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
+  DESTINATION "${INCLUDE_INSTALL_DIR}"
   COMPONENT Devel
 )
-install(FILES libkscreen.categories  DESTINATION  ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
+install(FILES Disman.categories  DESTINATION  ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
 
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

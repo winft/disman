@@ -22,7 +22,7 @@
 
 #include "../src/edid.h"
 
-using namespace KScreen;
+using namespace Disman;
 
 class TestEdid : public QObject
 {

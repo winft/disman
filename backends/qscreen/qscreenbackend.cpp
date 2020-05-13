@@ -22,14 +22,14 @@
 #include "qscreenconfig.h"
 #include "qscreenoutput.h"
 
-using namespace KScreen;
+using namespace Disman;
 
-Q_LOGGING_CATEGORY(KSCREEN_QSCREEN, "kscreen.qscreen")
+Q_LOGGING_CATEGORY(DISMAN_QSCREEN, "disman.qscreen")
 
 QScreenConfig *QScreenBackend::s_internalConfig = nullptr;
 
 QScreenBackend::QScreenBackend()
-    : KScreen::AbstractBackend()
+    : Disman::AbstractBackend()
     , m_isValid(true)
 {
     if (s_internalConfig == nullptr) {
@@ -50,13 +50,13 @@ QString QScreenBackend::name() const
 
 QString QScreenBackend::serviceName() const
 {
-    return QStringLiteral("org.kde.KScreen.Backend.QScreen");
+    return QStringLiteral("org.kde.Disman.Backend.QScreen");
 }
 
 
 ConfigPtr QScreenBackend::config() const
 {
-    return s_internalConfig->toKScreenConfig();
+    return s_internalConfig->toDismanConfig();
 }
 
 void QScreenBackend::setConfig(const ConfigPtr &config)
@@ -65,9 +65,9 @@ void QScreenBackend::setConfig(const ConfigPtr &config)
         return;
     }
 
-    qWarning() << "The QScreen backend for libkscreen is read-only,";
+    qWarning() << "The QScreen backend for disman is read-only,";
     qWarning() << "setting a configuration is not supported.";
-    qWarning() << "You can force another backend using the KSCREEN_BACKEND env var.";
+    qWarning() << "You can force another backend using the DISMAN_BACKEND env var.";
 }
 
 bool QScreenBackend::isValid() const

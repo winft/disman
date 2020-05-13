@@ -9,14 +9,15 @@ set(qscreen_SRCS
     qscreenoutput.cpp
 )
 
-add_library(KSC_QScreen MODULE ${qscreen_SRCS})
+add_library(qscreen MODULE ${qscreen_SRCS})
 
-set_target_properties(KSC_QScreen PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/kf5/kscreen")
-set_target_properties(KSC_QScreen PROPERTIES PREFIX "")
-target_link_libraries(KSC_QScreen Qt5::Core
-                                 Qt5::Gui
-                                 Qt5::X11Extras
-                                 KF5::Screen
+set_target_properties(qscreen PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
+set_target_properties(qscreen PROPERTIES PREFIX "")
+target_link_libraries(qscreen
+    Qt5::Core
+    Qt5::Gui
+    Qt5::X11Extras
+    Disman
 )
 
-install(TARGETS KSC_QScreen DESTINATION ${KDE_INSTALL_PLUGINDIR}/kf5/kscreen/)
+install(TARGETS qscreen DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

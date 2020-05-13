@@ -21,7 +21,7 @@
 #include <QGuiApplication>
 #include <QCommandLineParser>
 
-using namespace KScreen;
+using namespace Disman;
 
 int main(int argc, char **argv)
 {

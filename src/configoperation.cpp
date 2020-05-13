@@ -22,9 +22,9 @@
 #include "configoperation_p.h"
 #include "backendmanager_p.h"
 
-#include "kscreen_debug.h"
+#include "disman_debug.h"
 
-using namespace KScreen;
+using namespace Disman;
 
 ConfigOperationPrivate::ConfigOperationPrivate(ConfigOperation* qq)
     : QObject()
@@ -45,7 +45,7 @@ void ConfigOperationPrivate::requestBackend()
     BackendManager::instance()->requestBackend();
 }
 
-void ConfigOperationPrivate::backendReady(org::kde::kscreen::Backend *backend)
+void ConfigOperationPrivate::backendReady(org::kwinft::disman::backend *backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     Q_UNUSED(backend);
@@ -130,15 +130,15 @@ bool ConfigOperation::exec()
     return !hasError();
 }
 
-KScreen::AbstractBackend* ConfigOperationPrivate::loadBackend()
+Disman::AbstractBackend* ConfigOperationPrivate::loadBackend()
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
     Q_Q(ConfigOperation);
-    const QString &name = QString::fromUtf8(qgetenv("KSCREEN_BACKEND"));
-    auto backend = KScreen::BackendManager::instance()->loadBackendInProcess(name);
+    const QString &name = QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
+    auto backend = Disman::BackendManager::instance()->loadBackendInProcess(name);
     if (backend == nullptr) {
-        const QString &e = QStringLiteral("Plugin does not provide valid KScreen backend");
-        qCDebug(KSCREEN) << e;
+        const QString &e = QStringLiteral("Plugin does not provide valid Disman backend");
+        qCDebug(DISMAN) << e;
         q->setError(e);
         q->emitResult();
     }

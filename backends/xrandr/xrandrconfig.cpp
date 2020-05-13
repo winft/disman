@@ -32,7 +32,7 @@
 #include <QRect>
 #include <QScopedPointer>
 
-using namespace KScreen;
+using namespace Disman;
 
 XRandRConfig::XRandRConfig()
     : QObject()
@@ -104,30 +104,30 @@ void XRandRConfig::removeOutput(xcb_randr_output_t id)
     delete m_outputs.take(id);
 }
 
-KScreen::ConfigPtr XRandRConfig::toKScreenConfig() const
+Disman::ConfigPtr XRandRConfig::toDismanConfig() const
 {
-    KScreen::ConfigPtr config(new KScreen::Config);
+    Disman::ConfigPtr config(new Disman::Config);
 
     const Config::Features features = Config::Feature::Writable | Config::Feature::PrimaryDisplay |
                                       Config::Feature::OutputReplication;
     config->setSupportedFeatures(features);
 
-    KScreen::OutputList kscreenOutputs;
+    Disman::OutputList dismanOutputs;
 
     for (auto iter = m_outputs.constBegin(); iter != m_outputs.constEnd(); ++iter) {
-        KScreen::OutputPtr kscreenOutput = (*iter)->toKScreenOutput();
-        kscreenOutputs.insert(kscreenOutput->id(), kscreenOutput);
+        Disman::OutputPtr dismanOutput = (*iter)->toDismanOutput();
+        dismanOutputs.insert(dismanOutput->id(), dismanOutput);
     }
 
-    config->setOutputs(kscreenOutputs);
-    config->setScreen(m_screen->toKScreenScreen());
+    config->setOutputs(dismanOutputs);
+    config->setScreen(m_screen->toDismanScreen());
 
     return config;
 }
 
-void XRandRConfig::applyKScreenConfig(const KScreen::ConfigPtr &config)
+void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr &config)
 {
-    const KScreen::OutputList kscreenOutputs = config->outputs();
+    const Disman::OutputList dismanOutputs = config->outputs();
 
     const QSize newScreenSize = screenSize(config);
     const QSize currentScreenSize = m_screen->currentSize();
@@ -155,57 +155,57 @@ void XRandRConfig::applyKScreenConfig(const KScreen::ConfigPtr &config)
         }
     }
 
-    KScreen::OutputList toDisable, toEnable, toChange;
+    Disman::OutputList toDisable, toEnable, toChange;
 
-    for (const KScreen::OutputPtr &kscreenOutput : kscreenOutputs) {
-        xcb_randr_output_t outputId = kscreenOutput->id();
+    for (const Disman::OutputPtr &dismanOutput : dismanOutputs) {
+        xcb_randr_output_t outputId = dismanOutput->id();
         XRandROutput *currentOutput = output(outputId);
         //Only set the output as primary if it is enabled.
-        if (kscreenOutput->isPrimary() && kscreenOutput->isEnabled()) {
+        if (dismanOutput->isPrimary() && dismanOutput->isEnabled()) {
             primaryOutput = outputId;
         }
 
         const bool currentEnabled = currentOutput->isEnabled();
 
-        if (!kscreenOutput->isEnabled() && currentEnabled) {
-            toDisable.insert(outputId, kscreenOutput);
+        if (!dismanOutput->isEnabled() && currentEnabled) {
+            toDisable.insert(outputId, dismanOutput);
             continue;
-        } else if (kscreenOutput->isEnabled() && !currentEnabled) {
-            toEnable.insert(outputId, kscreenOutput);
+        } else if (dismanOutput->isEnabled() && !currentEnabled) {
+            toEnable.insert(outputId, dismanOutput);
             ++neededCrtcs;
             continue;
-        } else if (!kscreenOutput->isEnabled() && !currentEnabled) {
+        } else if (!dismanOutput->isEnabled() && !currentEnabled) {
             continue;
         }
 
         ++neededCrtcs;
 
-        if (kscreenOutput->currentModeId() != currentOutput->currentModeId()) {
+        if (dismanOutput->currentModeId() != currentOutput->currentModeId()) {
             if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, kscreenOutput);
+                toChange.insert(outputId, dismanOutput);
             }
         }
 
-        if (kscreenOutput->pos() != currentOutput->position()) {
+        if (dismanOutput->pos() != currentOutput->position()) {
             if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, kscreenOutput);
+                toChange.insert(outputId, dismanOutput);
             }
         }
 
-        if (kscreenOutput->rotation() != currentOutput->rotation()) {
+        if (dismanOutput->rotation() != currentOutput->rotation()) {
             if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, kscreenOutput);
+                toChange.insert(outputId, dismanOutput);
             }
         }
 
-        if (kscreenOutput->explicitLogicalSize() != currentOutput->logicalSize()) {
+        if (dismanOutput->explicitLogicalSize() != currentOutput->logicalSize()) {
             if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, kscreenOutput);
+                toChange.insert(outputId, dismanOutput);
             }
         }
 
         XRandRMode *currentMode = currentOutput->modes().value(
-                                    kscreenOutput->currentModeId().toInt());
+                                    dismanOutput->currentModeId().toInt());
         // For some reason, in some environments currentMode is null
         // which doesn't make sense because it is the *current* mode...
         // Since we haven't been able to figure out the reason why
@@ -222,63 +222,63 @@ void XRandRConfig::applyKScreenConfig(const KScreen::ConfigPtr &config)
         }
 
         // When the output would not fit into new screen size, we need to disable and reposition it.
-        const QRect geom = kscreenOutput->geometry();
+        const QRect geom = dismanOutput->geometry();
         if (geom.right() > newScreenSize.width() || geom.bottom() > newScreenSize.height()) {
             if (!toDisable.contains(outputId)) {
-                qCDebug(KSCREEN_XRANDR)
+                qCDebug(DISMAN_XRANDR)
                         << "The new output would not fit into screen - new geometry: " << geom
                         << ", new screen size:" << newScreenSize;
-                toDisable.insert(outputId, kscreenOutput);
+                toDisable.insert(outputId, dismanOutput);
             }
         }
     }
 
-    const KScreen::ScreenPtr kscreenScreen = config->screen();
-    if (newScreenSize.width() > kscreenScreen->maxSize().width() ||
-        newScreenSize.height() > kscreenScreen->maxSize().height()) {
-        qCDebug(KSCREEN_XRANDR) << "The new screen size is too big - requested: "
-                                << newScreenSize << ", maximum: " << kscreenScreen->maxSize();
+    const Disman::ScreenPtr dismanScreen = config->screen();
+    if (newScreenSize.width() > dismanScreen->maxSize().width() ||
+        newScreenSize.height() > dismanScreen->maxSize().height()) {
+        qCDebug(DISMAN_XRANDR) << "The new screen size is too big - requested: "
+                                << newScreenSize << ", maximum: " << dismanScreen->maxSize();
         return;
     }
 
-    qCDebug(KSCREEN_XRANDR) << "Needed CRTCs: " << neededCrtcs;
+    qCDebug(DISMAN_XRANDR) << "Needed CRTCs: " << neededCrtcs;
 
     XCB::ScopedPointer<xcb_randr_get_screen_resources_reply_t>
             screenResources(XRandR::screenResources());
 
     if (neededCrtcs > screenResources->num_crtcs) {
-        qCDebug(KSCREEN_XRANDR) << "We need more CRTCs than we have available - requested: "
+        qCDebug(DISMAN_XRANDR) << "We need more CRTCs than we have available - requested: "
                                 << neededCrtcs << ", available: " << screenResources->num_crtcs;
             return;
     }
 
-    qCDebug(KSCREEN_XRANDR) << "Actions to perform:" << "\n"
+    qCDebug(DISMAN_XRANDR) << "Actions to perform:" << "\n"
                             << "\tPrimary Output:" << (primaryOutput != oldPrimaryOutput);
     if (primaryOutput != oldPrimaryOutput) {
-        qCDebug(KSCREEN_XRANDR) << "\t\tOld:" << oldPrimaryOutput << "\n"
+        qCDebug(DISMAN_XRANDR) << "\t\tOld:" << oldPrimaryOutput << "\n"
                                 << "\t\tNew:" << primaryOutput;
     }
 
-    qCDebug(KSCREEN_XRANDR) << "\tChange Screen Size:" << (newScreenSize != currentScreenSize);
+    qCDebug(DISMAN_XRANDR) << "\tChange Screen Size:" << (newScreenSize != currentScreenSize);
     if (newScreenSize != currentScreenSize) {
-        qCDebug(KSCREEN_XRANDR) << "\t\tOld:" << currentScreenSize << "\n"
+        qCDebug(DISMAN_XRANDR) << "\t\tOld:" << currentScreenSize << "\n"
                                 << "\t\tIntermediate:" << intermediateScreenSize << "\n"
                                 << "\t\tNew:" << newScreenSize;
     }
 
-    qCDebug(KSCREEN_XRANDR) << "\tDisable outputs:" << !toDisable.isEmpty();
+    qCDebug(DISMAN_XRANDR) << "\tDisable outputs:" << !toDisable.isEmpty();
     if (!toDisable.isEmpty()) {
-        qCDebug(KSCREEN_XRANDR) << "\t\t" << toDisable.keys();
+        qCDebug(DISMAN_XRANDR) << "\t\t" << toDisable.keys();
     }
 
-    qCDebug(KSCREEN_XRANDR) << "\tChange outputs:" << !toChange.isEmpty();
+    qCDebug(DISMAN_XRANDR) << "\tChange outputs:" << !toChange.isEmpty();
     if (!toChange.isEmpty()) {
-        qCDebug(KSCREEN_XRANDR) << "\t\t" << toChange.keys();
+        qCDebug(DISMAN_XRANDR) << "\t\t" << toChange.keys();
     }
 
-    qCDebug(KSCREEN_XRANDR) << "\tEnable outputs:" << !toEnable.isEmpty();
+    qCDebug(DISMAN_XRANDR) << "\tEnable outputs:" << !toEnable.isEmpty();
     if (!toEnable.isEmpty()) {
-        qCDebug(KSCREEN_XRANDR) << "\t\t" << toEnable.keys();
+        qCDebug(DISMAN_XRANDR) << "\t\t" << toEnable.keys();
     }
 
     // Grab the server so that no-one else can do changes to XRandR and to block
@@ -294,7 +294,7 @@ void XRandRConfig::applyKScreenConfig(const KScreen::ConfigPtr &config)
         return;
     }
 
-    for (const KScreen::OutputPtr &output : toDisable) {
+    for (const Disman::OutputPtr &output : toDisable) {
         disableOutput(output);
     }
 
@@ -304,21 +304,21 @@ void XRandRConfig::applyKScreenConfig(const KScreen::ConfigPtr &config)
 
     bool forceScreenSizeUpdate = false;
 
-    for (const KScreen::OutputPtr &output : toChange) {
+    for (const Disman::OutputPtr &output : toChange) {
         if (!changeOutput(output)) {
             /* If we disabled the output before changing it and XRandR failed
              * to re-enable it, then update screen size too */
             if (toDisable.contains(output->id())) {
                 output->setEnabled(false);
-                qCDebug(KSCREEN_XRANDR) << "Output failed to change: " << output->name();
+                qCDebug(DISMAN_XRANDR) << "Output failed to change: " << output->name();
                 forceScreenSizeUpdate = true;
             }
         }
     }
 
-    for (const KScreen::OutputPtr &output : toEnable) {
+    for (const Disman::OutputPtr &output : toEnable) {
         if (!enableOutput(output)) {
-            qCDebug(KSCREEN_XRANDR) << "Output failed to be Enabled: " << output->name();
+            qCDebug(DISMAN_XRANDR) << "Output failed to be Enabled: " << output->name();
             forceScreenSizeUpdate = true;
         }
     }
@@ -331,7 +331,7 @@ void XRandRConfig::applyKScreenConfig(const KScreen::ConfigPtr &config)
         QSize newSize = newScreenSize;
         if (forceScreenSizeUpdate) {
             newSize = screenSize(config);
-            qCDebug(KSCREEN_XRANDR) << "Forced to change screen size: " << newSize;
+            qCDebug(DISMAN_XRANDR) << "Forced to change screen size: " << newSize;
         }
         setScreenSize(newSize);
     }
@@ -339,25 +339,25 @@ void XRandRConfig::applyKScreenConfig(const KScreen::ConfigPtr &config)
 
 void XRandRConfig::printConfig(const ConfigPtr &config) const
 {
-    qCDebug(KSCREEN_XRANDR) << "KScreen version:" /*<< LIBKSCREEN_VERSION*/;
+    qCDebug(DISMAN_XRANDR) << "Disman version:" /*<< DISMAN_VERSION*/;
 
     if (!config) {
-        qCDebug(KSCREEN_XRANDR) << "Config is invalid";
+        qCDebug(DISMAN_XRANDR) << "Config is invalid";
         return;
     }
     if (!config->screen()) {
-        qCDebug(KSCREEN_XRANDR) << "No screen in the configuration, broken backend";
+        qCDebug(DISMAN_XRANDR) << "No screen in the configuration, broken backend";
         return;
     }
 
-    qCDebug(KSCREEN_XRANDR) << "Screen:" << "\n"
+    qCDebug(DISMAN_XRANDR) << "Screen:" << "\n"
                             << "\tmaxSize:" << config->screen()->maxSize() << "\n"
                             << "\tminSize:" << config->screen()->minSize() << "\n"
                             << "\tcurrentSize:" << config->screen()->currentSize();
 
     const OutputList outputs = config->outputs();
     for (const OutputPtr &output : outputs) {
-        qCDebug(KSCREEN_XRANDR) << "\n-----------------------------------------------------\n" << "\n"
+        qCDebug(DISMAN_XRANDR) << "\n-----------------------------------------------------\n" << "\n"
                                 << "Id: " << output->id() << "\n"
                                 << "Name: " << output->name() << "\n"
                                 << "Type: " << output->type() << "\n"
@@ -367,16 +367,16 @@ void XRandRConfig::printConfig(const ConfigPtr &config) const
             continue;
         }
 
-        qCDebug(KSCREEN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
+        qCDebug(DISMAN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
                                 << "Primary: " << output->isPrimary() << "\n"
                                 << "Rotation: " << output->rotation() << "\n"
                                 << "Pos: " << output->pos() << "\n"
                                 << "MMSize: " << output->sizeMm();
         if (output->currentMode()) {
-            qCDebug(KSCREEN_XRANDR) << "Size: " << output->currentMode()->size();
+            qCDebug(DISMAN_XRANDR) << "Size: " << output->currentMode()->size();
         }
 
-        qCDebug(KSCREEN_XRANDR) << "Clones: "
+        qCDebug(DISMAN_XRANDR) << "Clones: "
                                 << (output->clones().isEmpty() ? QStringLiteral("None") :
                                                         QString::number(output->clones().count()))
                                 << "\n"
@@ -387,14 +387,14 @@ void XRandRConfig::printConfig(const ConfigPtr &config) const
 
         ModeList modes = output->modes();
         for (const ModePtr &mode : modes) {
-            qCDebug(KSCREEN_XRANDR) << "\t" << mode->id() << "  " << mode->name() << " "
+            qCDebug(DISMAN_XRANDR) << "\t" << mode->id() << "  " << mode->name() << " "
                                     << mode->size() << " " << mode->refreshRate();
         }
 
         Edid* edid = output->edid();
-        qCDebug(KSCREEN_XRANDR) << "EDID Info: ";
+        qCDebug(DISMAN_XRANDR) << "EDID Info: ";
         if (edid && edid->isValid()) {
-            qCDebug(KSCREEN_XRANDR) << "\tDevice ID: " << edid->deviceId() << "\n"
+            qCDebug(DISMAN_XRANDR) << "\tDevice ID: " << edid->deviceId() << "\n"
                                     << "\tName: " << edid->name() << "\n"
                                     << "\tVendor: " << edid->vendor() << "\n"
                                     << "\tSerial: " << edid->serial() << "\n"
@@ -408,16 +408,16 @@ void XRandRConfig::printConfig(const ConfigPtr &config) const
                                     << "\tBlue: " << edid->blue() << "\n"
                                     << "\tWhite: " << edid->white();
         } else {
-            qCDebug(KSCREEN_XRANDR) << "\tUnavailable";
+            qCDebug(DISMAN_XRANDR) << "\tUnavailable";
         }
     }
 }
 
 void XRandRConfig::printInternalCond() const
 {
-    qCDebug(KSCREEN_XRANDR) << "Internal config in xrandr";
+    qCDebug(DISMAN_XRANDR) << "Internal config in xrandr";
     for (const XRandROutput *output : m_outputs) {
-        qCDebug(KSCREEN_XRANDR) << "Id: " << output->id() << "\n"
+        qCDebug(DISMAN_XRANDR) << "Id: " << output->id() << "\n"
                                 << "Current Mode: " << output->currentMode() << "\n"
                                 << "Current mode id: " << output->currentModeId() << "\n"
                                 << "Connected: " << output->isConnected() << "\n"
@@ -429,24 +429,24 @@ void XRandRConfig::printInternalCond() const
 
         XRandRMode::Map modes = output->modes();
         for (const XRandRMode *mode : modes) {
-            qCDebug(KSCREEN_XRANDR) << "\t" << mode->id() << "\n"
+            qCDebug(DISMAN_XRANDR) << "\t" << mode->id() << "\n"
                                     << "\t" << mode->name() << "\n"
                                     << "\t" << mode->size() << mode->refreshRate();
         }
     }
 }
 
-QSize XRandRConfig::screenSize(const KScreen::ConfigPtr &config) const
+QSize XRandRConfig::screenSize(const Disman::ConfigPtr &config) const
 {
     QRect rect;
-    for (const KScreen::OutputPtr &output : config->outputs()) {
+    for (const Disman::OutputPtr &output : config->outputs()) {
         if (!output->isConnected() || !output->isEnabled()) {
             continue;
         }
 
         const ModePtr currentMode = output->currentMode();
         if (!currentMode) {
-            qCDebug(KSCREEN_XRANDR) << "Output: " << output->name() << " has no current Mode!";
+            qCDebug(DISMAN_XRANDR) << "Output: " << output->name() << " has no current Mode!";
             continue;
         }
 
@@ -455,7 +455,7 @@ QSize XRandRConfig::screenSize(const KScreen::ConfigPtr &config) const
     }
 
     const QSize size = QSize(rect.width(), rect.height());
-    qCDebug(KSCREEN_XRANDR) << "Requested screen size is" << size;
+    qCDebug(DISMAN_XRANDR) << "Requested screen size is" << size;
     return size;
 }
 
@@ -466,7 +466,7 @@ bool XRandRConfig::setScreenSize(const QSize &size) const
     const int widthMM =  (25.4 * size.width()) / dpi;
     const int heightMM = (25.4 * size.height()) / dpi;
 
-    qCDebug(KSCREEN_XRANDR) << "RRSetScreenSize" << "\n"
+    qCDebug(DISMAN_XRANDR) << "RRSetScreenSize" << "\n"
                             << "\tDPI:" << dpi << "\n"
                             << "\tSize:" << size << "\n"
                             << "\tSizeMM:" << QSize(widthMM, heightMM);
@@ -479,7 +479,7 @@ bool XRandRConfig::setScreenSize(const QSize &size) const
 
 void XRandRConfig::setPrimaryOutput(xcb_randr_output_t outputId) const
 {
-    qCDebug(KSCREEN_XRANDR) << "RRSetOutputPrimary" << "\n"
+    qCDebug(DISMAN_XRANDR) << "RRSetOutputPrimary" << "\n"
                             << "\tNew primary:" << outputId;
     xcb_randr_set_output_primary(XCB::connection(), XRandR::rootWindow(), outputId);
 
@@ -488,20 +488,20 @@ void XRandRConfig::setPrimaryOutput(xcb_randr_output_t outputId) const
     }
 }
 
-bool XRandRConfig::disableOutput(const OutputPtr &kscreenOutput) const
+bool XRandRConfig::disableOutput(const OutputPtr &dismanOutput) const
 {
-    XRandROutput *xOutput = output(kscreenOutput->id());
+    XRandROutput *xOutput = output(dismanOutput->id());
     Q_ASSERT(xOutput);
     Q_ASSERT(xOutput->crtc());
 
     if (!xOutput->crtc()) {
-        qCWarning(KSCREEN_XRANDR) << "Attempting to disable output without CRTC, wth?";
+        qCWarning(DISMAN_XRANDR) << "Attempting to disable output without CRTC, wth?";
         return false;
     }
 
     const xcb_randr_crtc_t crtc = xOutput->crtc()->crtc();
 
-    qCDebug(KSCREEN_XRANDR) << "RRSetCrtcConfig (disable output)" << "\n"
+    qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (disable output)" << "\n"
                             << "\tCRTC:" << crtc;
 
     auto cookie = xcb_randr_set_crtc_config(XCB::connection(), crtc,
@@ -515,10 +515,10 @@ bool XRandRConfig::disableOutput(const OutputPtr &kscreenOutput) const
             reply(xcb_randr_set_crtc_config_reply(XCB::connection(), cookie, nullptr));
 
     if (!reply) {
-        qCDebug(KSCREEN_XRANDR) << "\tResult: unknown (error)";
+        qCDebug(DISMAN_XRANDR) << "\tResult: unknown (error)";
         return false;
     }
-    qCDebug(KSCREEN_XRANDR) << "\tResult:" << reply->status;
+    qCDebug(DISMAN_XRANDR) << "\tResult:" << reply->status;
 
     // Update the cached output now, otherwise we get RRNotify_CrtcChange notification
     // for an outdated output, which can lead to a crash.
@@ -526,110 +526,110 @@ bool XRandRConfig::disableOutput(const OutputPtr &kscreenOutput) const
         xOutput->update(XCB_NONE, XCB_NONE,
                         xOutput->isConnected() ? XCB_RANDR_CONNECTION_CONNECTED :
                                                  XCB_RANDR_CONNECTION_DISCONNECTED,
-                        kscreenOutput->isPrimary());
+                        dismanOutput->isPrimary());
     }
     return (reply->status == XCB_RANDR_SET_CONFIG_SUCCESS);
 }
 
-bool XRandRConfig::enableOutput(const OutputPtr &kscreenOutput) const
+bool XRandRConfig::enableOutput(const OutputPtr &dismanOutput) const
 {
     XRandRCrtc *freeCrtc = nullptr;
-    qCDebug(KSCREEN_XRANDR) << m_crtcs;
+    qCDebug(DISMAN_XRANDR) << m_crtcs;
 
     for (XRandRCrtc *crtc : m_crtcs) {
         crtc->update();
-        qCDebug(KSCREEN_XRANDR) << "Testing CRTC" << crtc->crtc() << "\n"
+        qCDebug(DISMAN_XRANDR) << "Testing CRTC" << crtc->crtc() << "\n"
                                 << "\tFree:" << crtc->isFree() << "\n"
                                 << "\tMode:" << crtc->mode() << "\n"
                                 << "\tPossible outputs:" << crtc->possibleOutputs() << "\n"
                                 << "\tConnected outputs:" << crtc->outputs() << "\n"
                                 << "\tGeometry:" << crtc->geometry();
 
-        if (crtc->isFree() && crtc->possibleOutputs().contains(kscreenOutput->id())) {
+        if (crtc->isFree() && crtc->possibleOutputs().contains(dismanOutput->id())) {
             freeCrtc = crtc;
             break;
         }
     }
 
     if (!freeCrtc) {
-        qCWarning(KSCREEN_XRANDR) << "Failed to get free CRTC for output" << kscreenOutput->id();
+        qCWarning(DISMAN_XRANDR) << "Failed to get free CRTC for output" << dismanOutput->id();
         return false;
     }
 
-    XRandROutput *xOutput = output(kscreenOutput->id());
-    const int modeId = kscreenOutput->currentMode() ? kscreenOutput->currentModeId().toInt() :
-                                                      kscreenOutput->preferredModeId().toInt();
-    xOutput->updateLogicalSize(kscreenOutput, freeCrtc);
+    XRandROutput *xOutput = output(dismanOutput->id());
+    const int modeId = dismanOutput->currentMode() ? dismanOutput->currentModeId().toInt() :
+                                                      dismanOutput->preferredModeId().toInt();
+    xOutput->updateLogicalSize(dismanOutput, freeCrtc);
 
-    qCDebug(KSCREEN_XRANDR) << "RRSetCrtcConfig (enable output)" << "\n"
-                            << "\tOutput:" << kscreenOutput->id() << "(" << kscreenOutput->name()
+    qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (enable output)" << "\n"
+                            << "\tOutput:" << dismanOutput->id() << "(" << dismanOutput->name()
                             << ")" << "\n"
                             << "\tNew CRTC:" << freeCrtc->crtc() << "\n"
-                            << "\tPos:" << kscreenOutput->pos() << "\n"
-                            << "\tMode:" << kscreenOutput->currentMode()
-                            << "Preferred:" << kscreenOutput->preferredModeId() << "\n"
-                            << "\tRotation:" << kscreenOutput->rotation();
+                            << "\tPos:" << dismanOutput->pos() << "\n"
+                            << "\tMode:" << dismanOutput->currentMode()
+                            << "Preferred:" << dismanOutput->preferredModeId() << "\n"
+                            << "\tRotation:" << dismanOutput->rotation();
 
-    if (!sendConfig(kscreenOutput, freeCrtc)) {
+    if (!sendConfig(dismanOutput, freeCrtc)) {
         return false;
     }
 
     xOutput->update(freeCrtc->crtc(), modeId, XCB_RANDR_CONNECTION_CONNECTED,
-                    kscreenOutput->isPrimary());
+                    dismanOutput->isPrimary());
     return true;
 }
 
-bool XRandRConfig::changeOutput(const KScreen::OutputPtr &kscreenOutput) const
+bool XRandRConfig::changeOutput(const Disman::OutputPtr &dismanOutput) const
 {
-    XRandROutput *xOutput = output(kscreenOutput->id());
+    XRandROutput *xOutput = output(dismanOutput->id());
     Q_ASSERT(xOutput);
 
     if (!xOutput->crtc()) {
-        qCDebug(KSCREEN_XRANDR) << "Output" << kscreenOutput->id()
+        qCDebug(DISMAN_XRANDR) << "Output" << dismanOutput->id()
                                 << "has no CRTC, falling back to enableOutput()";
-        return enableOutput(kscreenOutput);
+        return enableOutput(dismanOutput);
     }
 
-    int modeId = kscreenOutput->currentMode() ? kscreenOutput->currentModeId().toInt() :
-                                                kscreenOutput->preferredModeId().toInt();
-    xOutput->updateLogicalSize(kscreenOutput);
+    int modeId = dismanOutput->currentMode() ? dismanOutput->currentModeId().toInt() :
+                                                dismanOutput->preferredModeId().toInt();
+    xOutput->updateLogicalSize(dismanOutput);
 
-    qCDebug(KSCREEN_XRANDR) << "RRSetCrtcConfig (change output)" << "\n"
-                            << "\tOutput:" << kscreenOutput->id() << "(" << kscreenOutput->name()
+    qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (change output)" << "\n"
+                            << "\tOutput:" << dismanOutput->id() << "(" << dismanOutput->name()
                             << ")" << "\n"
                             << "\tCRTC:" << xOutput->crtc()->crtc() << "\n"
-                            << "\tPos:" << kscreenOutput->pos() << "\n"
-                            << "\tMode:" << modeId  << kscreenOutput->currentMode() << "\n"
-                            << "\tRotation:" << kscreenOutput->rotation();
+                            << "\tPos:" << dismanOutput->pos() << "\n"
+                            << "\tMode:" << modeId  << dismanOutput->currentMode() << "\n"
+                            << "\tRotation:" << dismanOutput->rotation();
 
-    if (!sendConfig(kscreenOutput, xOutput->crtc())) {
+    if (!sendConfig(dismanOutput, xOutput->crtc())) {
         return false;
     }
 
     xOutput->update(xOutput->crtc()->crtc(), modeId,
-                    XCB_RANDR_CONNECTION_CONNECTED, kscreenOutput->isPrimary());
+                    XCB_RANDR_CONNECTION_CONNECTED, dismanOutput->isPrimary());
     return true;
 }
 
-bool XRandRConfig::sendConfig(const KScreen::OutputPtr &kscreenOutput, XRandRCrtc *crtc) const
+bool XRandRConfig::sendConfig(const Disman::OutputPtr &dismanOutput, XRandRCrtc *crtc) const
 {
-    xcb_randr_output_t outputs[1] { static_cast<xcb_randr_output_t>(kscreenOutput->id()) };
-    const int modeId = kscreenOutput->currentMode() ? kscreenOutput->currentModeId().toInt() :
-                                                      kscreenOutput->preferredModeId().toInt();
+    xcb_randr_output_t outputs[1] { static_cast<xcb_randr_output_t>(dismanOutput->id()) };
+    const int modeId = dismanOutput->currentMode() ? dismanOutput->currentModeId().toInt() :
+                                                      dismanOutput->preferredModeId().toInt();
 
     auto cookie = xcb_randr_set_crtc_config(XCB::connection(), crtc->crtc(),
                                             XCB_CURRENT_TIME, XCB_CURRENT_TIME,
-                                            kscreenOutput->pos().rx(), kscreenOutput->pos().ry(),
+                                            dismanOutput->pos().rx(), dismanOutput->pos().ry(),
                                             modeId,
-                                            kscreenOutput->rotation(),
+                                            dismanOutput->rotation(),
                                             1, outputs);
 
     XCB::ScopedPointer<xcb_randr_set_crtc_config_reply_t>
             reply(xcb_randr_set_crtc_config_reply(XCB::connection(), cookie, nullptr));
     if (!reply) {
-        qCDebug(KSCREEN_XRANDR) << "\tResult: unknown (error)";
+        qCDebug(DISMAN_XRANDR) << "\tResult: unknown (error)";
         return false;
     }
-    qCDebug(KSCREEN_XRANDR) << "\tResult: " << reply->status;
+    qCDebug(DISMAN_XRANDR) << "\tResult: " << reply->status;
     return (reply->status == XCB_RANDR_SET_CONFIG_SUCCESS);
 }

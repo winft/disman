@@ -23,9 +23,9 @@
 
 #include "../src/backendmanager_p.h"
 
-Q_LOGGING_CATEGORY(KSCREEN, "kscreen")
+Q_LOGGING_CATEGORY(DISMAN, "disman")
 
-using namespace KScreen;
+using namespace Disman;
 
 class TestBackendLoader : public QObject
 {
@@ -47,9 +47,9 @@ private Q_SLOTS:
 TestBackendLoader::TestBackendLoader(QObject *parent)
     : QObject(parent)
 {
-    qputenv("KSCREEN_LOGGING", "false");
-    qputenv("KSCREEN_BACKEND_INPROCESS", QByteArray());
-    qputenv("KSCREEN_BACKEND", QByteArray());
+    qputenv("DISMAN_LOGGING", "false");
+    qputenv("DISMAN_BACKEND_INPROCESS", QByteArray());
+    qputenv("DISMAN_BACKEND", QByteArray());
 }
 
 void TestBackendLoader::initTestCase()
@@ -59,7 +59,7 @@ void TestBackendLoader::initTestCase()
 void TestBackendLoader::cleanupTestCase()
 {
     // set to original value
-    qputenv("KSCREEN_BACKEND", QByteArray());
+    qputenv("DISMAN_BACKEND", QByteArray());
 }
 
 void TestBackendLoader::testPreferredBackend()
@@ -92,14 +92,14 @@ void TestBackendLoader::testEnv()
     // We want to be pretty liberal, so this should work
     QFETCH(QString, var);
     QFETCH(QString, backend);
-    qputenv("KSCREEN_BACKEND", var.toLocal8Bit());
+    qputenv("DISMAN_BACKEND", var.toLocal8Bit());
     auto preferred = BackendManager::instance()->preferredBackend();
     QVERIFY(preferred.fileName().startsWith(backend));
 }
 
 void TestBackendLoader::testFallback()
 {
-    qputenv("KSCREEN_BACKEND", "nonsense");
+    qputenv("DISMAN_BACKEND", "nonsense");
     auto preferred = BackendManager::instance()->preferredBackend();
     QVERIFY(preferred.fileName().startsWith(QLatin1String("KSC_QScreen")));
 }

@@ -36,9 +36,9 @@
 
 #include "waylandtestserver.h"
 
-Q_LOGGING_CATEGORY(KSCREEN_WAYLAND, "kscreen.kwayland")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.kwayland")
 
-using namespace KScreen;
+using namespace Disman;
 
 class testWaylandBackend : public QObject
 {
@@ -74,15 +74,15 @@ testWaylandBackend::testWaylandBackend(QObject *parent)
     : QObject(parent)
     , m_config(nullptr)
 {
-    qputenv("KSCREEN_LOGGING", "false");
+    qputenv("DISMAN_LOGGING", "false");
     m_server = new WaylandTestServer(this);
     m_server->setConfig(QLatin1String(TEST_DATA) + QLatin1String("multipleoutput.json"));
 }
 
 void testWaylandBackend::initTestCase()
 {
-    qputenv("KSCREEN_BACKEND", "kwayland");
-    KScreen::BackendManager::instance()->shutdownBackend();
+    qputenv("DISMAN_BACKEND", "kwayland");
+    Disman::BackendManager::instance()->shutdownBackend();
     // This is how KWayland will pick up the right socket,
     // and thus connect to our internal test server.
     setenv("WAYLAND_DISPLAY", s_socketName.toLocal8Bit().constData(), 1);
@@ -99,7 +99,7 @@ void testWaylandBackend::loadConfig()
     op->exec();
     m_config = op->config();
     QVERIFY(m_config->isValid());
-    qCDebug(KSCREEN_WAYLAND) << "ops" << m_config->outputs();
+    qCDebug(DISMAN_WAYLAND) << "ops" << m_config->outputs();
 }
 
 void testWaylandBackend::verifyConfig()
@@ -128,17 +128,17 @@ void testWaylandBackend::verifyScreen()
 void testWaylandBackend::verifyOutputs()
 {
     bool primaryFound = false;
-    Q_FOREACH (const KScreen::OutputPtr op, m_config->outputs()) {
+    Q_FOREACH (const Disman::OutputPtr op, m_config->outputs()) {
         if (op->isPrimary()) {
             primaryFound = true;
         }
     }
-    //qCDebug(KSCREEN_WAYLAND) << "Primary found? " << primaryFound << m_config->outputs();
+    //qCDebug(DISMAN_WAYLAND) << "Primary found? " << primaryFound << m_config->outputs();
     QVERIFY(primaryFound);
     QVERIFY(m_config->outputs().count());
     QCOMPARE(m_server->outputCount(), m_config->outputs().count());
 
-    KScreen::OutputPtr primary = m_config->primaryOutput();
+    Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary->isEnabled());
     QVERIFY(primary->isConnected());
 
@@ -160,7 +160,7 @@ void testWaylandBackend::verifyOutputs()
 
 void testWaylandBackend::verifyModes()
 {
-    KScreen::OutputPtr primary = m_config->primaryOutput();
+    Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary);
     QVERIFY(primary->modes().count() > 0);
 
@@ -185,7 +185,7 @@ void testWaylandBackend::verifyIds()
 
 void testWaylandBackend::simpleWrite()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     GetConfigOperation *op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
@@ -202,19 +202,19 @@ void testWaylandBackend::simpleWrite()
 void testWaylandBackend::cleanupTestCase()
 {
     m_config->deleteLater();
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
 }
 
 void testWaylandBackend::addOutput()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     GetConfigOperation *op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
     QCOMPARE(config->outputs().count(), 2);
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     // Now add an outputdevice on the server side
     m_serverOutputDevice = m_server->display()->createOutputDevice(this);
@@ -252,14 +252,14 @@ void testWaylandBackend::addOutput()
 
 void testWaylandBackend::removeOutput()
 {
-    KScreen::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdownBackend();
     GetConfigOperation *op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
     QCOMPARE(config->outputs().count(), 3);
-    KScreen::ConfigMonitor *monitor = KScreen::ConfigMonitor::instance();
+    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &KScreen::ConfigMonitor::configurationChanged);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     delete m_serverOutputDevice;
     QVERIFY(configSpy.wait());
@@ -284,7 +284,7 @@ void testWaylandBackend::testEdid()
     QVERIFY(config->outputs().count() > 0);
 
     auto o = config->outputs().last();
-    qCDebug(KSCREEN_WAYLAND) << "Edid: " << o->edid()->isValid();
+    qCDebug(DISMAN_WAYLAND) << "Edid: " << o->edid()->isValid();
     QVERIFY(o->edid()->isValid());
     QCOMPARE(o->edid()->deviceId(), edid->deviceId());
     QCOMPARE(o->edid()->name(), edid->name());

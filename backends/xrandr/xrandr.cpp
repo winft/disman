@@ -42,12 +42,12 @@ bool XRandR::s_monitorInitialized = false;
 bool XRandR::s_has_1_3 = false;
 bool XRandR::s_xorgCacheInitialized = false;
 
-using namespace KScreen;
+using namespace Disman;
 
-Q_LOGGING_CATEGORY(KSCREEN_XRANDR, "kscreen.xrandr")
+Q_LOGGING_CATEGORY(DISMAN_XRANDR, "disman.xrandr")
 
 XRandR::XRandR()
-    : KScreen::AbstractBackend()
+    : Disman::AbstractBackend()
     , m_x11Helper(nullptr)
     , m_isValid(false)
     , m_configChangeCompressor(nullptr)
@@ -79,7 +79,7 @@ XRandR::XRandR()
         m_isValid = true;
     } else {
         XCB::closeConnection();
-        qCWarning(KSCREEN_XRANDR) << "XRandR extension not available or unsupported version";
+        qCWarning(DISMAN_XRANDR) << "XRandR extension not available or unsupported version";
         return;
     }
 
@@ -117,7 +117,7 @@ XRandR::XRandR()
         m_configChangeCompressor->setInterval(500);
         connect(m_configChangeCompressor, &QTimer::timeout,
                 [&]() {
-                    qCDebug(KSCREEN_XRANDR) << "Emitting configChanged()";
+                    qCDebug(DISMAN_XRANDR) << "Emitting configChanged()";
                     Q_EMIT configChanged(config());
                 });
 
@@ -137,7 +137,7 @@ QString XRandR::name() const
 
 QString XRandR::serviceName() const
 {
-    return QStringLiteral("org.kde.KScreen.Backend.XRandR");
+    return QStringLiteral("org.kde.Disman.Backend.XRandR");
 }
 
 
@@ -157,7 +157,7 @@ void XRandR::outputChanged(xcb_randr_output_t output, xcb_randr_crtc_t crtc,
         XCB::OutputInfo info(output, XCB_TIME_CURRENT_TIME);
         if (info.isNull()) {
             s_internalConfig->removeOutput(output);
-            qCDebug(KSCREEN_XRANDR) << "Output" << output << " removed";
+            qCDebug(DISMAN_XRANDR) << "Output" << output << " removed";
             return;
         }
         // info is valid: the output is still there
@@ -165,7 +165,7 @@ void XRandR::outputChanged(xcb_randr_output_t output, xcb_randr_crtc_t crtc,
 
     XCB::PrimaryOutput primary(XRandR::rootWindow());
     xOutput->update(crtc, mode, connection, (primary->output == output));
-    qCDebug(KSCREEN_XRANDR) << "Output" << xOutput->id() << ": connected ="
+    qCDebug(DISMAN_XRANDR) << "Output" << xOutput->id() << ": connected ="
                             << xOutput->isConnected() << ", enabled =" << xOutput->isEnabled();
 }
 
@@ -202,7 +202,7 @@ void XRandR::screenChanged(xcb_randr_rotation_t rotation,
 
 ConfigPtr XRandR::config() const
 {
-    return s_internalConfig->toKScreenConfig();
+    return s_internalConfig->toDismanConfig();
 }
 
 void XRandR::setConfig(const ConfigPtr &config)
@@ -211,9 +211,9 @@ void XRandR::setConfig(const ConfigPtr &config)
         return;
     }
 
-    qCDebug(KSCREEN_XRANDR) << "XRandR::setConfig";
-    s_internalConfig->applyKScreenConfig(config);
-    qCDebug(KSCREEN_XRANDR) << "XRandR::setConfig done!";
+    qCDebug(DISMAN_XRANDR) << "XRandR::setConfig";
+    s_internalConfig->applyDismanConfig(config);
+    qCDebug(DISMAN_XRANDR) << "XRandR::setConfig done!";
 }
 
 QByteArray XRandR::edid(int outputId) const

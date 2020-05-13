@@ -26,9 +26,9 @@
 #include "configserializer_p.h"
 #include "backendinterface.h"
 
-using namespace KScreen;
+using namespace Disman;
 
-namespace KScreen
+namespace Disman
 {
 
 class GetConfigOperationPrivate : public ConfigOperationPrivate
@@ -38,7 +38,7 @@ class GetConfigOperationPrivate : public ConfigOperationPrivate
 public:
     GetConfigOperationPrivate(GetConfigOperation::Options options, GetConfigOperation *qq);
 
-    void backendReady(org::kde::kscreen::Backend* backend) override;
+    void backendReady(org::kwinft::disman::backend* backend) override;
     void onConfigReceived(QDBusPendingCallWatcher *watcher);
     void onEDIDReceived(QDBusPendingCallWatcher *watcher);
 
@@ -46,11 +46,11 @@ public:
     GetConfigOperation::Options options;
     ConfigPtr config;
     // For in-process
-    void loadEdid(KScreen::AbstractBackend* backend);
+    void loadEdid(Disman::AbstractBackend* backend);
 
     // For out-of-process
     int pendingEDIDs;
-    QPointer<org::kde::kscreen::Backend> mBackend;
+    QPointer<org::kwinft::disman::backend> mBackend;
 
 private:
     Q_DECLARE_PUBLIC(GetConfigOperation)
@@ -64,7 +64,7 @@ GetConfigOperationPrivate::GetConfigOperationPrivate(GetConfigOperation::Options
 {
 }
 
-void GetConfigOperationPrivate::backendReady(org::kde::kscreen::Backend *backend)
+void GetConfigOperationPrivate::backendReady(org::kwinft::disman::backend *backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     ConfigOperationPrivate::backendReady(backend);
@@ -160,7 +160,7 @@ GetConfigOperation::~GetConfigOperation()
 {
 }
 
-KScreen::ConfigPtr GetConfigOperation::config() const
+Disman::ConfigPtr GetConfigOperation::config() const
 {
     Q_D(const GetConfigOperation);
     return d->config;
@@ -182,10 +182,10 @@ void GetConfigOperation::start()
     }
 }
 
-void GetConfigOperationPrivate::loadEdid(KScreen::AbstractBackend* backend)
+void GetConfigOperationPrivate::loadEdid(Disman::AbstractBackend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
-    if (options & KScreen::ConfigOperation::NoEDID) {
+    if (options & Disman::ConfigOperation::NoEDID) {
         return;
     }
     if (!config) {

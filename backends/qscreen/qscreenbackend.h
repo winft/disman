@@ -25,14 +25,14 @@
 
 #include <QLoggingCategory>
 
-namespace KScreen
+namespace Disman
 {
 class QScreenConfig;
 
-class QScreenBackend : public KScreen::AbstractBackend
+class QScreenBackend : public Disman::AbstractBackend
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf5.kscreen.backends.qscreen")
+    Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.qscreen")
 
 public:
     explicit QScreenBackend();
@@ -40,16 +40,16 @@ public:
 
     QString name() const override;
     QString serviceName() const override;
-    KScreen::ConfigPtr config() const override;
-    void setConfig(const KScreen::ConfigPtr &config) override;
+    Disman::ConfigPtr config() const override;
+    void setConfig(const Disman::ConfigPtr &config) override;
     bool isValid() const override;
 
 private:
     bool m_isValid;
-    static KScreen::QScreenConfig *s_internalConfig;
+    static Disman::QScreenConfig *s_internalConfig;
 };
 } // namespace
 
-Q_DECLARE_LOGGING_CATEGORY(KSCREEN_QSCREEN)
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_QSCREEN)
 
 #endif //QSCREEN_BACKEND_H

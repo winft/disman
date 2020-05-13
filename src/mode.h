@@ -20,7 +20,7 @@
 #ifndef MODE_CONFIG_H
 #define MODE_CONFIG_H
 
-#include "kscreen_export.h"
+#include "disman_export.h"
 #include "types.h"
 
 #include <QObject>
@@ -28,9 +28,9 @@
 #include <QMetaType>
 #include <QDebug>
 
-namespace KScreen {
+namespace Disman {
 
-class KSCREEN_EXPORT Mode : public QObject
+class DISMAN_EXPORT Mode : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString id READ id WRITE setId NOTIFY modeChanged)
@@ -68,10 +68,10 @@ class KSCREEN_EXPORT Mode : public QObject
         Mode(Private *dd);
 };
 
-} //KSCreen namespace
+} //Disman namespace
 
-KSCREEN_EXPORT QDebug operator<<(QDebug dbg, const KScreen::ModePtr &mode);
+DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::ModePtr &mode);
 
-Q_DECLARE_METATYPE(KScreen::ModeList)
+Q_DECLARE_METATYPE(Disman::ModeList)
 
 #endif //MODE_H

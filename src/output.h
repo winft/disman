@@ -22,7 +22,7 @@
 
 #include "mode.h"
 #include "types.h"
-#include "kscreen_export.h"
+#include "disman_export.h"
 
 #include <QObject>
 #include <QSize>
@@ -31,11 +31,11 @@
 #include <QStringList>
 #include <QDebug>
 
-namespace KScreen {
+namespace Disman {
 
 class Edid;
 
-class KSCREEN_EXPORT Output : public QObject
+class DISMAN_EXPORT Output : public QObject
 {
     Q_OBJECT
 
@@ -58,7 +58,7 @@ class KSCREEN_EXPORT Output : public QObject
         Q_PROPERTY(QList<int> clones READ clones WRITE setClones NOTIFY clonesChanged)
         Q_PROPERTY(int replicationSource READ replicationSource
                    WRITE setReplicationSource NOTIFY replicationSourceChanged)
-        Q_PROPERTY(KScreen::Edid* edid READ edid CONSTANT)
+        Q_PROPERTY(Disman::Edid* edid READ edid CONSTANT)
         Q_PROPERTY(QSize sizeMm READ sizeMm CONSTANT)
         Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged)
         Q_PROPERTY(bool followPreferredMode READ followPreferredMode WRITE setFollowPreferredMode NOTIFY followPreferredModeChanged)
@@ -147,7 +147,7 @@ class KSCREEN_EXPORT Output : public QObject
          */
         Q_INVOKABLE QString preferredModeId() const;
         /**
-         * Returns KScreen::Mode associated with preferredModeId()
+         * Returns Disman::Mode associated with preferredModeId()
          */
         Q_INVOKABLE ModePtr preferredMode() const;
 
@@ -251,7 +251,7 @@ class KSCREEN_EXPORT Output : public QObject
          * Returns the physical size of the screen in milimeters.
          *
          * @note Some broken GPUs or monitors return the size in centimeters instead
-         * of millimeters. KScreen at the moment is not sanitizing the values.
+         * of millimeters. Disman at the moment is not sanitizing the values.
          */
         QSize sizeMm() const;
         void setSizeMm(const QSize &size);
@@ -271,7 +271,7 @@ class KSCREEN_EXPORT Output : public QObject
          * size.
          *
          * The geometry also reflects current orientation (i.e. if current mode
-         * is 1920x1080 and orientation is @p KScreen::Output::Left, then the
+         * is 1920x1080 and orientation is @p Disman::Output::Left, then the
          * size of the returned rectangle will be 1080x1920.
          *
          * This property contains the current settings stored in the particular
@@ -376,12 +376,12 @@ class KSCREEN_EXPORT Output : public QObject
         Output(Private *dd);
 };
 
-} //KScreen namespace
+} //Disman namespace
 
-KSCREEN_EXPORT QDebug operator<<(QDebug dbg, const KScreen::OutputPtr &output);
+DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::OutputPtr &output);
 
-Q_DECLARE_METATYPE(KScreen::OutputList)
-Q_DECLARE_METATYPE(KScreen::Output::Rotation)
-Q_DECLARE_METATYPE(KScreen::Output::Type)
+Q_DECLARE_METATYPE(Disman::OutputList)
+Q_DECLARE_METATYPE(Disman::Output::Rotation)
+Q_DECLARE_METATYPE(Disman::Output::Type)
 
 #endif //OUTPUT_H

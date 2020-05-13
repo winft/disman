@@ -28,10 +28,10 @@
 #include "waylandtestserver.h"
 
 
-static const QString s_socketName = QStringLiteral("libkscreen-test-wayland-backend-0");
+static const QString s_socketName = QStringLiteral("disman-test-wayland-backend-0");
 // static const QString s_socketName = QStringLiteral("wayland-0");
 
-Q_LOGGING_CATEGORY(KSCREEN, "kscreen")
+Q_LOGGING_CATEGORY(DISMAN, "disman")
 
 using namespace KWayland::Client;
 
@@ -57,7 +57,7 @@ private:
     QThread *m_thread;
     Registry *m_registry;
 
-    KScreen::WaylandTestServer *m_server;
+    Disman::WaylandTestServer *m_server;
 };
 
 TestDpmsClient::TestDpmsClient(QObject *parent)
@@ -65,7 +65,7 @@ TestDpmsClient::TestDpmsClient(QObject *parent)
     , m_server(nullptr)
 {
     setenv("WAYLAND_DISPLAY", s_socketName.toLocal8Bit().constData(), true);
-    m_server = new KScreen::WaylandTestServer(this);
+    m_server = new Disman::WaylandTestServer(this);
     m_server->start();
 }
 

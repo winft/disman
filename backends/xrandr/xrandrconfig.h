@@ -24,7 +24,7 @@
 #include "xrandroutput.h"
 
 class XRandRScreen;
-namespace KScreen {
+namespace Disman {
 class Config;
 }
 
@@ -48,26 +48,26 @@ public:
     void addNewCrtc(xcb_randr_crtc_t crtc);
     void removeOutput(xcb_randr_output_t id);
 
-    KScreen::ConfigPtr toKScreenConfig() const;
-    void applyKScreenConfig(const KScreen::ConfigPtr &config);
+    Disman::ConfigPtr toDismanConfig() const;
+    void applyDismanConfig(const Disman::ConfigPtr &config);
 
 private:
-    QSize screenSize(const KScreen::ConfigPtr &config) const;
+    QSize screenSize(const Disman::ConfigPtr &config) const;
     bool setScreenSize(const QSize &size) const;
 
     void setPrimaryOutput(xcb_randr_output_t outputId) const;
 
-    bool disableOutput(const KScreen::OutputPtr &output) const;
-    bool enableOutput(const KScreen::OutputPtr &output) const;
-    bool changeOutput(const KScreen::OutputPtr &output) const;
+    bool disableOutput(const Disman::OutputPtr &output) const;
+    bool enableOutput(const Disman::OutputPtr &output) const;
+    bool changeOutput(const Disman::OutputPtr &output) const;
 
-    bool sendConfig(const KScreen::OutputPtr &kscreenOutput, XRandRCrtc *crtc) const;
+    bool sendConfig(const Disman::OutputPtr &dismanOutput, XRandRCrtc *crtc) const;
 
     /**
      * We need to print stuff to discover the damn bug
      * where currentMode is null
      */
-    void printConfig(const KScreen::ConfigPtr &config) const;
+    void printConfig(const Disman::ConfigPtr &config) const;
     void printInternalCond() const;
 
     XRandROutput::Map m_outputs;

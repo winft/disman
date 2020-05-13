@@ -25,7 +25,7 @@
 #include <QGuiApplication>
 #include <QScreen>
 
-using namespace KScreen;
+using namespace Disman;
 
 QScreenOutput::QScreenOutput(const QScreen *qscreen, QObject *parent)
     : QObject(parent)
@@ -53,16 +53,16 @@ const QScreen *QScreenOutput::qscreen() const
     return m_qscreen;
 }
 
-OutputPtr QScreenOutput::toKScreenOutput() const
+OutputPtr QScreenOutput::toDismanOutput() const
 {
     OutputPtr output(new Output);
     output->setId(m_id);
     output->setName(m_qscreen->name());
-    updateKScreenOutput(output);
+    updateDismanOutput(output);
     return output;
 }
 
-void QScreenOutput::updateKScreenOutput(OutputPtr &output) const
+void QScreenOutput::updateDismanOutput(OutputPtr &output) const
 {
     // Initialize primary output
     output->setEnabled(true);
