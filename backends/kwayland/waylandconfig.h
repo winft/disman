@@ -88,6 +88,7 @@ private:
     Disman::ConfigPtr m_dismanConfig;
     WaylandScreen *m_screen;
     QPointer<WaylandInterface> m_interface;
+    QThread *m_thread;
 
     bool m_tabletModeAvailable;
     bool m_tabletModeEngaged;

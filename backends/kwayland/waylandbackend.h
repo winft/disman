@@ -33,7 +33,7 @@ class WaylandBackend : public Disman::AbstractBackend
 
 public:
     explicit WaylandBackend();
-    ~WaylandBackend() override = default;
+    ~WaylandBackend() override;
 
     QString name() const override;
     QString serviceName() const override;

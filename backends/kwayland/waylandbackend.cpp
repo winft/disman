@@ -44,6 +44,8 @@ WaylandBackend::WaylandBackend()
     });
 }
 
+WaylandBackend::~WaylandBackend() = default;
+
 QString WaylandBackend::name() const
 {
     return QStringLiteral("wayland");

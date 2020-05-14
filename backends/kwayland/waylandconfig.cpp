@@ -50,6 +50,11 @@ WaylandConfig::~WaylandConfig()
         rejectInterface(pending);
     }
     m_pendingInterfaces.clear();
+
+    if (m_thread) {
+        m_thread->quit();
+        m_thread->wait();
+    }
 }
 
 void WaylandConfig::initKWinTabletMode()
@@ -152,13 +157,20 @@ void WaylandConfig::queryInterface(KPluginMetaData *plugin)
 
     pending.name = plugin->name();
 
+    for (auto other : m_pendingInterfaces) {
+        if (pending.name == other.name) {
+            // Names must be unique.
+            return;
+        }
+    }
+
     // TODO: qobject_cast not working here. Why?
     auto *factory = dynamic_cast<WaylandFactory*>(plugin->instantiate());
     if (!factory) {
         return;
     }
-    pending.interface = factory->createInterface(this);
-    pending.thread = new QThread(this);
+    pending.interface = factory->createInterface();
+    pending.thread = new QThread();
 
     m_pendingInterfaces.push_back(pending);
     connect(pending.interface, &WaylandInterface::connectionFailed, this, [this, &pending] {
@@ -192,6 +204,7 @@ void WaylandConfig::queryInterface(KPluginMetaData *plugin)
 void WaylandConfig::takeInterface(const PendingInterface &pending)
 {
     m_interface = pending.interface;
+    m_thread = pending.thread;
     connect(m_interface, &WaylandInterface::configChanged, this, &WaylandConfig::configChanged);
 
     setScreenOutputs();
