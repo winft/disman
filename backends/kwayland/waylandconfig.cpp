@@ -1,75 +1,55 @@
-/*************************************************************************************
- *  Copyright 2014-2015 Sebastian Kügler <sebas@kde.org>                             *
- *  Copyright 2013 Martin Gräßlin <mgraesslin@kde.org>                               *
- *                                                                                   *
- *  This library is free software; you can redistribute it and/or                    *
- *  modify it under the terms of the GNU Lesser General Public                       *
- *  License as published by the Free Software Foundation; either                     *
- *  version 2.1 of the License, or (at your option) any later version.               *
- *                                                                                   *
- *  This library is distributed in the hope that it will be useful,                  *
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of                   *
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU                *
- *  Lesser General Public License for more details.                                  *
- *                                                                                   *
- *  You should have received a copy of the GNU Lesser General Public                 *
- *  License along with this library; if not, write to the Free Software              *
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
- *************************************************************************************/
+/*************************************************************************
+Copyright © 2013        Martin Gräßlin <mgraesslin@kde.org>
+Copyright © 2014-2015   Sebastian Kügler <sebas@kde.org>
+Copyright © 2019-2020   Roman Gilg <subdiff@gmail.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+**************************************************************************/
 #include "waylandconfig.h"
 
 #include "waylandbackend.h"
+#include "wayland_interface.h"
 #include "waylandoutput.h"
 #include "waylandscreen.h"
 
 #include "tabletmodemanager_interface.h"
+#include "wayland_logging.h"
 
-#include <configmonitor.h>
-#include <mode.h>
+#include <KPluginLoader>
+#include <KPluginMetaData>
 
-#include <KWayland/Client/connection_thread.h>
-#include <KWayland/Client/event_queue.h>
-#include <KWayland/Client/registry.h>
-#include <KWayland/Client/outputconfiguration.h>
-#include <KWayland/Client/outputmanagement.h>
-
-#include <QTimer>
-
-using namespace Disman;
+namespace Disman
+{
 
 WaylandConfig::WaylandConfig(QObject *parent)
     : QObject(parent)
-    , m_outputManagement(nullptr)
-    , m_registryInitialized(false)
-    , m_blockSignals(true)
     , m_dismanConfig(new Config)
-    , m_dismanPendingConfig(nullptr)
     , m_screen(new WaylandScreen(this))
     , m_tabletModeAvailable(false)
     , m_tabletModeEngaged(false)
 {
     initKWinTabletMode();
-
-    connect(this, &WaylandConfig::initialized, &m_syncLoop, &QEventLoop::quit);
-    QTimer::singleShot(3000, this, [this] {
-        if (m_syncLoop.isRunning()) {
-            qCWarning(DISMAN_WAYLAND) << "Connection to Wayland server at socket:"
-                                       << m_connection->socketName() << "timed out.";
-            m_syncLoop.quit();
-            m_thread->quit();
-            m_thread->wait();
-        }
-    });
-
-    initConnection();
-    m_syncLoop.exec();
+    queryInterfaces();
 }
 
 WaylandConfig::~WaylandConfig()
 {
-    m_thread->quit();
-    m_thread->wait();
-    m_syncLoop.quit();
+    for (auto pending : m_pendingInterfaces) {
+        rejectInterface(pending);
+    }
+    m_pendingInterfaces.clear();
 }
 
 void WaylandConfig::initKWinTabletMode()
@@ -92,7 +72,7 @@ void WaylandConfig::initKWinTabletMode()
                     return;
                 }
                 m_tabletModeEngaged = tabletMode;
-                if (!m_blockSignals && m_initializingOutputs.empty()) {
+                if (m_interface && m_interface->isInitialized()) {
                     Q_EMIT configChanged();
                 }
             }
@@ -103,271 +83,132 @@ void WaylandConfig::initKWinTabletMode()
                     return;
                 }
                 m_tabletModeAvailable = available;
-                if (!m_blockSignals && m_initializingOutputs.empty()) {
+                if (m_interface && m_interface->isInitialized()) {
                     Q_EMIT configChanged();
                 }
     });
 }
 
-void WaylandConfig::initConnection()
-{
-    m_thread = new QThread(this);
-    m_connection = new KWayland::Client::ConnectionThread;
-
-    connect(m_connection, &KWayland::Client::ConnectionThread::connected,
-            this, &WaylandConfig::setupRegistry, Qt::QueuedConnection);
-
-    connect(m_connection, &KWayland::Client::ConnectionThread::connectionDied,
-            this, &WaylandConfig::disconnected, Qt::QueuedConnection);
-
-    connect(m_connection, &KWayland::Client::ConnectionThread::failed, this, [this] {
-        qCWarning(DISMAN_WAYLAND) << "Failed to connect to Wayland server at socket:"
-                                   << m_connection->socketName();
-        m_syncLoop.quit();
-        m_thread->quit();
-        m_thread->wait();
-    });
-
-    m_thread->start();
-    m_connection->moveToThread(m_thread);
-    m_connection->initConnection();
-
-}
-
-void WaylandConfig::blockSignals()
-{
-    Q_ASSERT(m_blockSignals == false);
-    m_blockSignals = true;
-}
-
-void WaylandConfig::unblockSignals()
-{
-    Q_ASSERT(m_blockSignals == true);
-    m_blockSignals = false;
-}
-
-void WaylandConfig::disconnected()
-{
-    qCWarning(DISMAN_WAYLAND) << "Wayland disconnected, cleaning up.";
-    qDeleteAll(m_outputMap);
-    m_outputMap.clear();
-
-    // Clean up
-    if (m_queue) {
-        delete m_queue;
-        m_queue = nullptr;
-    }
-
-    m_connection->deleteLater();
-    m_connection = nullptr;
-
-    if (m_thread) {
-        m_thread->quit();
-        if (!m_thread->wait(3000)) {
-            m_thread->terminate();
-            m_thread->wait();
-        }
-        delete m_thread;
-        m_thread = nullptr;
-    }
-
-    Q_EMIT configChanged();
-}
-
-void WaylandConfig::setupRegistry()
-{
-    m_queue = new KWayland::Client::EventQueue(this);
-    m_queue->setup(m_connection);
-
-    m_registry = new KWayland::Client::Registry(this);
-
-    connect(m_registry, &KWayland::Client::Registry::outputDeviceAnnounced,
-            this, &WaylandConfig::addOutput);
-
-    connect(m_registry, &KWayland::Client::Registry::outputManagementAnnounced,
-            this, [this](quint32 name, quint32 version) {
-                m_outputManagement = m_registry->createOutputManagement(name, version, m_registry);
-                checkInitialized();
-            }
-    );
-
-    connect(m_registry, &KWayland::Client::Registry::interfacesAnnounced,
-            this, [this] {
-                m_registryInitialized = true;
-                unblockSignals();
-                checkInitialized();
-            }
-    );
-
-    m_registry->create(m_connection);
-    m_registry->setEventQueue(m_queue);
-    m_registry->setup();
-}
-
-int s_outputId = 0;
-
-void WaylandConfig::addOutput(quint32 name, quint32 version)
-{
-    WaylandOutput *waylandoutput = new WaylandOutput(++s_outputId, this);
-    m_initializingOutputs << waylandoutput;
-
-    connect(waylandoutput, &WaylandOutput::deviceRemoved, this, [this, waylandoutput]() {
-        removeOutput(waylandoutput);
-    });
-    waylandoutput->createOutputDevice(m_registry, name, version);
-
-    // finalize: when the output is done, we put it in the known outputs map,
-    // remove if from the list of initializing outputs, and emit configChanged()
-    connect(waylandoutput, &WaylandOutput::complete, this, [this, waylandoutput]{
-        m_outputMap.insert(waylandoutput->id(), waylandoutput);
-        m_initializingOutputs.removeOne(waylandoutput);
-        checkInitialized();
-
-        if (!m_blockSignals && m_initializingOutputs.empty()) {
-            m_screen->setOutputs(m_outputMap.values());
-            Q_EMIT configChanged();
-        }
-
-        connect(waylandoutput, &WaylandOutput::changed, this, [this]() {
-            if (!m_blockSignals) {
-                Q_EMIT configChanged();
-            }
-        });
-    });
-}
-
-void WaylandConfig::removeOutput(WaylandOutput *output)
-{
-    if (m_initializingOutputs.removeOne(output)) {
-        // output was not yet fully initialized, just remove here and return
-        delete output;
-        return;
-    }
-
-    // remove the output from output mapping
-    const auto removedOutput = m_outputMap.take(output->id());
-    Q_ASSERT(removedOutput == output); Q_UNUSED(removedOutput);
-    m_screen->setOutputs(m_outputMap.values());
-    delete output;
-
-    if (!m_blockSignals) {
-        Q_EMIT configChanged();
-    }
-}
-
 bool WaylandConfig::isInitialized() const
 {
-    return !m_blockSignals
-            && m_registryInitialized
-            && m_initializingOutputs.isEmpty()
-            && m_outputMap.count() > 0
-            && m_outputManagement != nullptr;
+    return m_interface && m_interface->isInitialized();
 }
 
-void WaylandConfig::checkInitialized()
-{
-    if (isInitialized()) {
-        m_screen->setOutputs(m_outputMap.values());
-        Q_EMIT initialized();
-    }
-}
-
-Disman::ConfigPtr WaylandConfig::currentConfig()
+ConfigPtr WaylandConfig::currentConfig()
 {
     // TODO: do this setScreen call less clunky
     m_dismanConfig->setScreen(m_screen->toDismanScreen(m_dismanConfig));
 
-    const auto features = Config::Feature::Writable | Config::Feature::PerOutputScaling
-                        | Config::Feature::AutoRotation | Config::Feature::TabletMode;
-    m_dismanConfig->setSupportedFeatures(features);
-    m_dismanConfig->setValid(m_connection->display());
+    m_interface->updateConfig(m_dismanConfig);
 
-    Disman::ScreenPtr screen = m_dismanConfig->screen();
+    ScreenPtr screen = m_dismanConfig->screen();
     m_screen->updateDismanScreen(screen);
-
-    //Removing removed outputs
-    const Disman::OutputList outputs = m_dismanConfig->outputs();
-    for (const auto &output : outputs) {
-        if (!m_outputMap.contains(output->id())) {
-            m_dismanConfig->removeOutput(output->id());
-        }
-    }
-
-    // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
-    Disman::OutputList dismanOutputs = m_dismanConfig->outputs();
-    for (const auto &output : m_outputMap) {
-        Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
-        if (!dismanOutput) {
-            dismanOutput = output->toDismanOutput();
-            dismanOutputs.insert(dismanOutput->id(), dismanOutput);
-        }
-        if (dismanOutput && m_outputMap.count() == 1) {
-            dismanOutput->setPrimary(true);
-        } else if (m_outputMap.count() > 1) {
-            // primaryScreen concept doesn't exist in kwayland, so we don't set one
-        }
-        output->updateDismanOutput(dismanOutput);
-    }
-    m_dismanConfig->setOutputs(dismanOutputs);
-
-    m_dismanConfig->setTabletModeAvailable(m_tabletModeAvailable);
-    m_dismanConfig->setTabletModeEngaged(m_tabletModeEngaged);
 
     return m_dismanConfig;
 }
 
+void WaylandConfig::setScreenOutputs()
+{
+    m_screen->setOutputs(outputMap().values());
+}
+
 QMap<int, WaylandOutput*> WaylandConfig::outputMap() const
 {
-    return m_outputMap;
+    return m_interface->outputMap();
 }
 
-void WaylandConfig::tryPendingConfig()
+void WaylandConfig::applyConfig(const ConfigPtr &newConfig)
 {
-    if (!m_dismanPendingConfig) {
-        return;
-    }
-    applyConfig(m_dismanPendingConfig);
-    m_dismanPendingConfig = nullptr;
+    m_interface->applyConfig(newConfig);
 }
 
-void WaylandConfig::applyConfig(const Disman::ConfigPtr &newConfig)
+void WaylandConfig::queryInterfaces()
 {
-    using namespace KWayland::Client;
-    // Create a new configuration object
-    auto wlConfig = m_outputManagement->createConfiguration();
-    bool changed = false;
-
-    if (m_blockSignals) {
-        /* Last apply still pending, remember new changes and apply afterwards */
-        m_dismanPendingConfig = newConfig;
-        return;
-    }
-
-    for (const auto &output : newConfig->outputs()) {
-        changed |= m_outputMap[output->id()]->setWlConfig(wlConfig, output);
-    }
-
-    if (!changed) {
-        return;
-    }
-
-    // We now block changes in order to compress events while the compositor is doing its thing
-    // once it's done or failed, we'll trigger configChanged() only once, and not per individual
-    // property change.
-    connect(wlConfig, &OutputConfiguration::applied, this, [this, wlConfig] {
-        wlConfig->deleteLater();
-        unblockSignals();
-        Q_EMIT configChanged();
-        tryPendingConfig();
-    });
-    connect(wlConfig, &OutputConfiguration::failed, this, [this, wlConfig] {
-        wlConfig->deleteLater();
-        unblockSignals();
-        Q_EMIT configChanged();
-        tryPendingConfig();
+    QTimer::singleShot(3000, this, [this] {
+        for (auto pending : m_pendingInterfaces) {
+            qCWarning(DISMAN_WAYLAND) << pending.name << "backend could not be aquired in time.";
+            rejectInterface(pending);
+        }
+        if (m_syncLoop.isRunning()) {
+            qCWarning(DISMAN_WAYLAND) << "Connection to Wayland server timed out. Does the "
+                                          "compositor support output management?";
+            m_syncLoop.quit();
+        }
+        m_pendingInterfaces.clear();
     });
 
-    // Now block signals and ask the compositor to apply the changes.
-    blockSignals();
-    wlConfig->apply();
+    auto availableInterfacePlugins
+            = KPluginLoader::findPlugins(QStringLiteral("disman/wayland"));
+
+    for (auto plugin : availableInterfacePlugins) {
+        queryInterface(&plugin);
+    }
+    m_syncLoop.exec();
+}
+
+void WaylandConfig::queryInterface(KPluginMetaData *plugin)
+{
+    PendingInterface pending;
+
+    pending.name = plugin->name();
+
+    // TODO: qobject_cast not working here. Why?
+    auto *factory = dynamic_cast<WaylandFactory*>(plugin->instantiate());
+    if (!factory) {
+        return;
+    }
+    pending.interface = factory->createInterface(this);
+    pending.thread = new QThread(this);
+
+    m_pendingInterfaces.push_back(pending);
+    connect(pending.interface, &WaylandInterface::connectionFailed, this, [this, &pending] {
+        qCWarning(DISMAN_WAYLAND) << "Backend" << pending.name << "failed.";
+        rejectInterface(pending);
+        m_pendingInterfaces.erase(std::remove(m_pendingInterfaces.begin(),
+                                              m_pendingInterfaces.end(), pending),
+                                  m_pendingInterfaces.end());
+    });
+
+    connect(pending.interface, &WaylandInterface::initialized, this, [this, pending] {
+        if (m_interface) {
+            // Too late. Already have an interface initialized.
+            return;
+        }
+
+        for (auto other : m_pendingInterfaces) {
+            if (other.interface != pending.interface) {
+                rejectInterface(other);
+            }
+        }
+        m_pendingInterfaces.clear();
+
+        takeInterface(pending);
+        m_syncLoop.quit();
+    });
+
+    pending.interface->initConnection(pending.thread);
+}
+
+void WaylandConfig::takeInterface(const PendingInterface &pending)
+{
+    m_interface = pending.interface;
+    connect(m_interface, &WaylandInterface::configChanged, this, &WaylandConfig::configChanged);
+
+    setScreenOutputs();
+    connect(m_interface, &WaylandInterface::outputsChanged, this, &WaylandConfig::setScreenOutputs);
+
+    qCDebug(DISMAN_WAYLAND) << "Backend" << pending.name << "initialized.";
+    Q_EMIT initialized();
+}
+
+void WaylandConfig::rejectInterface(const PendingInterface &pending)
+{
+    pending.thread->quit();
+    pending.thread->wait();
+    delete pending.thread;
+    delete pending.interface;
+
+    qCDebug(DISMAN_WAYLAND) << "Backend" << pending.name << "rejected.";
+}
+
 }

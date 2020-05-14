@@ -21,8 +21,6 @@
 
 #include "abstractbackend.h"
 
-#include <QLoggingCategory>
-
 namespace Disman
 {
 
@@ -49,5 +47,3 @@ private:
 };
 
 }
-
-Q_DECLARE_LOGGING_CATEGORY(DISMAN_WAYLAND)

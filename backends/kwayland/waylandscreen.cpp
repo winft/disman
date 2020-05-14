@@ -22,6 +22,8 @@
 
 #include <mode.h>
 
+#include <QRect>
+
 using namespace Disman;
 
 WaylandScreen::WaylandScreen(WaylandConfig *config)
@@ -46,8 +48,7 @@ void WaylandScreen::setOutputs(const QList<WaylandOutput*> &outputs)
     QRect r;
     for (const auto *out : outputs) {
         if (out->enabled()) {
-            const auto *dev = out->outputDevice();
-            r |= QRect(dev->globalPosition(), dev->pixelSize() / dev->scale());
+            r |= out->geometry().toRect();
         }
     }
     m_size = r.size();

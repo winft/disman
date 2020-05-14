@@ -1,47 +1,37 @@
-/*************************************************************************************
- *  Copyright 2014-2015 Sebastian Kügler <sebas@kde.org>                             *
- *                                                                                   *
- *  This library is free software; you can redistribute it and/or                    *
- *  modify it under the terms of the GNU Lesser General Public                       *
- *  License as published by the Free Software Foundation; either                     *
- *  version 2.1 of the License, or (at your option) any later version.               *
- *                                                                                   *
- *  This library is distributed in the hope that it will be useful,                  *
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of                   *
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU                *
- *  Lesser General Public License for more details.                                  *
- *                                                                                   *
- *  You should have received a copy of the GNU Lesser General Public                 *
- *  License along with this library; if not, write to the Free Software              *
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
- *************************************************************************************/
+/*************************************************************************
+Copyright © 2014-2015 Sebastian Kügler <sebas@kde.org>
+Copyright © 2019-2020 Roman Gilg <subdiff@gmail.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+**************************************************************************/
 #pragma once
 
 #include "abstractbackend.h"
 #include "config.h"
 
-#include <QDir>
 #include <QEventLoop>
-#include <QLoggingCategory>
-#include <QSize>
-#include <QScreen>
-#include <QSocketNotifier>
-#include <QThread>
+#include <QPointer>
 
-namespace KWayland
-{
-namespace Client
-{
-class ConnectionThread;
-class EventQueue;
-class Registry;
-class OutputManagement;
-}
-}
+#include <vector>
+
+class KPluginMetaData;
 
 namespace Disman
 {
 class Output;
+class WaylandInterface;
 class WaylandOutput;
 class WaylandScreen;
 
@@ -66,8 +56,8 @@ public:
     explicit WaylandConfig(QObject *parent = nullptr);
     ~WaylandConfig() override;
 
-    Disman::ConfigPtr currentConfig();
-    QMap<int, WaylandOutput*> outputMap() const;
+    virtual Disman::ConfigPtr currentConfig();
+    virtual QMap<int, WaylandOutput*> outputMap() const;
 
     void applyConfig(const Disman::ConfigPtr &newConfig);
 
@@ -78,43 +68,33 @@ Q_SIGNALS:
     void initialized();
 
 private:
-    void setupRegistry();
-    void checkInitialized();
-    void disconnected();
+    struct PendingInterface {
+        bool operator ==(const PendingInterface &other) {
+            return name == other.name;
+        }
+        QString name;
+        WaylandInterface *interface;
+        QThread *thread;
+    };
 
     void initKWinTabletMode();
-    void initConnection();
+    void setScreenOutputs();
 
-    void addOutput(quint32 name, quint32 version);
-    void removeOutput(WaylandOutput *output);
+    void queryInterfaces();
+    void queryInterface(KPluginMetaData *plugin);
+    void takeInterface(const PendingInterface &pending);
+    void rejectInterface(const PendingInterface &pending);
 
-    void blockSignals();
-    void unblockSignals();
-    void tryPendingConfig();
-
-    KWayland::Client::ConnectionThread *m_connection;
-    KWayland::Client::EventQueue *m_queue;
-    QThread *m_thread;
-
-    KWayland::Client::Registry *m_registry;
-    KWayland::Client::OutputManagement *m_outputManagement;
-
-    // KWayland names as keys
-    QMap<int, WaylandOutput*> m_outputMap;
-
-    // KWayland names
-    QList<WaylandOutput*> m_initializingOutputs;
-    int m_lastOutputId = -1;
-
-    bool m_registryInitialized;
-    bool m_blockSignals;
-    QEventLoop m_syncLoop;
     Disman::ConfigPtr m_dismanConfig;
-    Disman::ConfigPtr m_dismanPendingConfig;
     WaylandScreen *m_screen;
+    QPointer<WaylandInterface> m_interface;
 
     bool m_tabletModeAvailable;
     bool m_tabletModeEngaged;
+
+    QEventLoop m_syncLoop;
+
+    std::vector<PendingInterface> m_pendingInterfaces;
 };
 
 }

@@ -31,9 +31,9 @@ amendments:
   * test: addition of a new test or correction of an existing one
 * Only the following optional scopes are allowed:
   * api
-  * kwayland
   * qscreen
   * randr
+  * wayland
 * Angular's [Revert][angular-revert] and [Subject][angular-subject] policies are applied.
 
 ### Example

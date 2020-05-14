@@ -22,6 +22,8 @@
 #include "waylandconfig.h"
 #include "waylandoutput.h"
 
+#include "wayland_logging.h"
+
 #include <configmonitor.h>
 #include <mode.h>
 
@@ -29,9 +31,6 @@
 #include <QStandardPaths>
 
 using namespace Disman;
-
-Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.kwayland")
-
 
 WaylandBackend::WaylandBackend()
     : Disman::AbstractBackend()
@@ -47,12 +46,12 @@ WaylandBackend::WaylandBackend()
 
 QString WaylandBackend::name() const
 {
-    return QStringLiteral("kwayland");
+    return QStringLiteral("wayland");
 }
 
 QString WaylandBackend::serviceName() const
 {
-    return QStringLiteral("org.kde.Disman.Backend.KWayland");
+    return QStringLiteral("org.kwinft.disman.backend.wayland");
 }
 
 ConfigPtr WaylandBackend::config() const
@@ -75,7 +74,7 @@ QByteArray WaylandBackend::edid(int outputId) const
     if (!output) {
         return QByteArray();
     }
-    return output->outputDevice()->edid();
+    return output->edid();
 }
 
 bool WaylandBackend::isValid() const
