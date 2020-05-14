@@ -15,7 +15,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include <QCoreApplication>
 #include <QtTest>
 #include <QObject>
@@ -68,8 +67,8 @@ void TestBackendLoader::testPreferredBackend()
     QVERIFY(!backends.isEmpty());
     auto preferred = BackendManager::instance()->preferredBackend();
     QVERIFY(preferred.exists());
-    auto fake = BackendManager::instance()->preferredBackend(QStringLiteral("Fake"));
-    QVERIFY(fake.fileName().startsWith(QLatin1String("KSC_Fake")));
+    auto fake = BackendManager::instance()->preferredBackend(QStringLiteral("fake"));
+    QVERIFY(fake.fileName().startsWith(QLatin1String("fake")));
 }
 
 void TestBackendLoader::testEnv_data()
@@ -77,14 +76,14 @@ void TestBackendLoader::testEnv_data()
     QTest::addColumn<QString>("var");
     QTest::addColumn<QString>("backend");
 
-    QTest::newRow("all lower") << "kwayland" << "KSC_KWayland";
-    QTest::newRow("camel case") << "KWayland" << "KSC_KWayland";
-    QTest::newRow("all upper") << "KWAYLAND" << "KSC_KWayland";
-    QTest::newRow("mixed") << "kwAYlaND" << "KSC_KWayland";
+    QTest::newRow("all lower") << "wayland" << "wayland";
+    QTest::newRow("camel case") << "Wayland" << "wayland";
+    QTest::newRow("all upper") << "WAYLAND" << "wayland";
+    QTest::newRow("mixed") << "wAYlaND" << "wayland";
 
-    QTest::newRow("xrandr 1.1") << "xrandr11" << "KSC_XRandR11";
-    QTest::newRow("qscreen") << "qscreen" << "KSC_QScreen";
-    QTest::newRow("mixed") << "fake" << "KSC_Fake";
+    QTest::newRow("randr 1.1") << "randr11" << "randr11";
+    QTest::newRow("qscreen") << "qscreen" << "qscreen";
+    QTest::newRow("mixed") << "fake" << "fake";
 }
 
 void TestBackendLoader::testEnv()
@@ -101,7 +100,7 @@ void TestBackendLoader::testFallback()
 {
     qputenv("DISMAN_BACKEND", "nonsense");
     auto preferred = BackendManager::instance()->preferredBackend();
-    QVERIFY(preferred.fileName().startsWith(QLatin1String("KSC_QScreen")));
+    QVERIFY(preferred.fileName().startsWith(QLatin1String("qscreen")));
 }
 
 QTEST_GUILESS_MAIN(TestBackendLoader)

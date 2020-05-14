@@ -36,7 +36,7 @@
 
 #include "waylandtestserver.h"
 
-Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.kwayland")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland.kwayland")
 
 using namespace Disman;
 
@@ -48,19 +48,18 @@ public:
     explicit testWaylandBackend(QObject *parent = nullptr);
 
 private Q_SLOTS:
-    void initTestCase();
-    void cleanupTestCase();
+    void init();
+    void cleanup();
     void loadConfig();
 
     void verifyConfig();
+    void verifyScreen();
     void verifyOutputs();
     void verifyModes();
-    void verifyScreen();
     void verifyIds();
     void verifyFeatures();
     void simpleWrite();
-    void addOutput();
-    void removeOutput();
+    void addAndRemoveOutput();
     void testEdid();
 
 
@@ -79,10 +78,10 @@ testWaylandBackend::testWaylandBackend(QObject *parent)
     m_server->setConfig(QLatin1String(TEST_DATA) + QLatin1String("multipleoutput.json"));
 }
 
-void testWaylandBackend::initTestCase()
+void testWaylandBackend::init()
 {
-    qputenv("DISMAN_BACKEND", "kwayland");
-    Disman::BackendManager::instance()->shutdownBackend();
+    qputenv("DISMAN_BACKEND", "wayland");
+
     // This is how KWayland will pick up the right socket,
     // and thus connect to our internal test server.
     setenv("WAYLAND_DISPLAY", s_socketName.toLocal8Bit().constData(), 1);
@@ -91,6 +90,13 @@ void testWaylandBackend::initTestCase()
     GetConfigOperation *op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
+    QVERIFY(m_config);
+}
+
+void testWaylandBackend::cleanup()
+{
+    Disman::BackendManager::instance()->shutdownBackend();
+    m_server->stop();
 }
 
 void testWaylandBackend::loadConfig()
@@ -99,15 +105,12 @@ void testWaylandBackend::loadConfig()
     op->exec();
     m_config = op->config();
     QVERIFY(m_config->isValid());
-    qCDebug(DISMAN_WAYLAND) << "ops" << m_config->outputs();
+    qCDebug(DISMAN_WAYLAND) << "Outputs:" << m_config->outputs();
 }
 
 void testWaylandBackend::verifyConfig()
 {
     QVERIFY(m_config != nullptr);
-    if (!m_config) {
-        QSKIP("Wayland backend invalid", SkipAll);
-    }
 }
 
 void testWaylandBackend::verifyScreen()
@@ -189,7 +192,7 @@ void testWaylandBackend::simpleWrite()
     GetConfigOperation *op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
-    auto output = m_config->output(3);
+    auto output = m_config->output(18);
     QVERIFY(output);
     auto n_mode = QStringLiteral("800x600@60");
     auto o_mode = output->currentModeId();
@@ -199,13 +202,7 @@ void testWaylandBackend::simpleWrite()
     QVERIFY(setop->exec());
 }
 
-void testWaylandBackend::cleanupTestCase()
-{
-    m_config->deleteLater();
-    Disman::BackendManager::instance()->shutdownBackend();
-}
-
-void testWaylandBackend::addOutput()
+void testWaylandBackend::addAndRemoveOutput()
 {
     Disman::BackendManager::instance()->shutdownBackend();
     GetConfigOperation *op = new GetConfigOperation();
@@ -248,24 +245,13 @@ void testWaylandBackend::addOutput()
     op2->exec();
     auto newconfig = op2->config();
     QCOMPARE(newconfig->outputs().count(), 3);
-}
 
-void testWaylandBackend::removeOutput()
-{
-    Disman::BackendManager::instance()->shutdownBackend();
-    GetConfigOperation *op = new GetConfigOperation();
-    op->exec();
-    auto config = op->config();
-    QCOMPARE(config->outputs().count(), 3);
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
-    monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
-
+    // Now remove the output again.
     delete m_serverOutputDevice;
     QVERIFY(configSpy.wait());
-    GetConfigOperation *op2 = new GetConfigOperation();
-    op2->exec();
-    auto newconfig = op2->config();
+    GetConfigOperation *op3 = new GetConfigOperation();
+    op3->exec();
+    newconfig = op3->config();
     QCOMPARE(newconfig->outputs().count(), 2);
 }
 

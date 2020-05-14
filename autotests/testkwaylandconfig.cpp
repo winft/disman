@@ -32,7 +32,7 @@
 
 #include "waylandtestserver.h"
 
-Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.kwayland")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland.kwayland")
 
 using namespace Disman;
 
@@ -70,7 +70,7 @@ TestKWaylandConfig::TestKWaylandConfig(QObject *parent)
 
 void TestKWaylandConfig::initTestCase()
 {
-    setenv("DISMAN_BACKEND", "kwayland", 1);
+    setenv("DISMAN_BACKEND", "wayland", 1);
     Disman::BackendManager::instance()->shutdownBackend();
 
     // This is how KWayland will pick up the right socket,

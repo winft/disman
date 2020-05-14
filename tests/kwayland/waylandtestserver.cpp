@@ -29,7 +29,7 @@
 
 #include "../src/edid.h"
 
-Q_LOGGING_CATEGORY(DISMAN_WAYLAND_TESTSERVER, "disman.kwayland.testserver")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND_TESTSERVER, "disman.wayland.testserver")
 
 using namespace Disman;
 using namespace KWayland::Server;
