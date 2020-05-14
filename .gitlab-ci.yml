@@ -1,6 +1,7 @@
 stages:
   - Compliance
   - Build
+  - Test
 
 variables:
   IMAGE_BASE: ${CI_REGISTRY}/kwinft/ci-images/archlinux/kwinft-base
@@ -68,4 +69,30 @@ Master build:
 
 Stable build:
   <<: *common-build
+  <<: *common-stable
+
+
+.common-test: &common-test
+  stage: Test
+  script:
+    - cd ci-build
+    - Xvfb :1 -ac -screen 0 1920x1080x24 > /dev/null 2>&1 &
+    - export DISPLAY=:1
+    - export WAYLAND_DEBUG=1 MESA_DEBUG=1 LIBGL_DEBUG=verbose
+    - export QT_LOGGING_RULES="*=true"
+    - ctest -N
+    - dbus-run-session ctest --output-on-failure
+
+Master autotests:
+  needs:
+    - job: Master build
+      artifacts: true
+  <<: *common-test
+  <<: *common-master
+
+Stable autotests:
+  needs:
+    - job: Stable build
+      artifacts: true
+  <<: *common-test
   <<: *common-stable
