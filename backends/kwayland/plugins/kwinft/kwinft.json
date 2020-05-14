@@ -1,0 +1,7 @@
+{
+    "KPlugin": {
+        "Description": "Wayland backend using Wrapland's standard output management protocol.",
+        "Id": "kwinft",
+        "Name": "kwinft"
+    }
+}

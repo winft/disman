@@ -1,0 +1,7 @@
+{
+    "KPlugin": {
+        "Description": "Wayland backend using Wrapland library's output management interface for wlroots based compositors.",
+        "Id": "wlroots-wrapland",
+        "Name": "wlroots-wrapland"
+    }
+}

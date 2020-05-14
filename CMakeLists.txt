@@ -24,9 +24,13 @@ include(KDEClangFormat)
 
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core DBus Gui Test X11Extras)
 
-# Wayland backend
+# Wayland backend plugin KWayland
 find_package(KF5Wayland ${KF5_MIN_VERSION} CONFIG REQUIRED)
 add_feature_info("KF5Wayland" KF5Wayland_FOUND "Required for building Disman's KWayland backend")
+
+# Wayland backend plugin KWinFT and wlroots
+find_package(Wrapland ${PROJECT_VERSION} CONFIG REQUIRED)
+add_feature_info("Wrapland" Wrapland_FOUND "Required for building Disman's KWayland backend")
 
 # xrandr backend
 
