@@ -99,6 +99,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr &output)
     output->setName(name());
     output->setSizeMm(m_device->physicalSize());
     output->setPos(m_device->geometry().topLeft().toPoint());
+    output->setLogicalSize(m_device->geometry().size());
     output->setRotation(s_rotationMap[m_device->transform()]);
 
     ModeList modeList;
@@ -147,7 +148,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr &output)
     output->setCurrentModeId(currentModeId);
     output->setPreferredModes(preferredModeIds);
     output->setModes(modeList);
-//    output->setScale(m_device->scaleF());
+
     output->setType(guessType(m_device->model(), m_device->model()));
 }
 
@@ -170,12 +171,6 @@ bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1 *wlConfig,
         changed = true;
         wlConfig->setGeometry(m_device, QRectF(output->pos(), m_device->geometry().size()));
     }
-
-//    // scale
-//    if (!qFuzzyCompare(m_device->scaleF(), output->scale())) {
-//        changed = true;
-//        wlConfig->setScaleF(m_device, output->scale());
-//    }
 
     // rotation
     if (toDismanRotation(m_device->transform()) != output->rotation()) {

@@ -60,6 +60,7 @@ class Q_DECL_HIDDEN Output::Private
         sizeMm(other.sizeMm),
         pos(other.pos),
         size(other.size),
+        logicalSize(other.logicalSize),
         rotation(other.rotation),
         scale(other.scale),
         connected(other.connected),
@@ -631,6 +632,10 @@ void Output::apply(const OutputPtr& other)
         changes << &Output::posChanged;
         setPos(other->pos());
     }
+    if (d->logicalSize != other->d->logicalSize) {
+        changes << &Output::logicalSizeChanged;
+        setLogicalSize(other->d->logicalSize);
+    }
     if (d->rotation != other->d->rotation) {
         changes << &Output::rotationChanged;
         setRotation(other->d->rotation);
@@ -697,7 +702,10 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr &output)
                                   << (output->isConnected() ? "connected" : "disconnected")
                                   << (output->isEnabled() ? "enabled" : "disabled")
                                   << (output->isPrimary() ? "primary" : "")
-                                  << "pos:" << output->pos() << "res:" << output->size()
+                                  << "pos:" << output->pos()
+                                  << "logical:" << output->logicalSize()
+                                  << "explicit:" << output->explicitLogicalSize()
+                                  << "res:" << output->size()
                                   << "modeId:" << output->currentModeId()
                                   << "scale:" << output->scale()
                                   << "clone:" << (output->clones().isEmpty() ? "no" : "yes")

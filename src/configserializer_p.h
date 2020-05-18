@@ -36,6 +36,7 @@ namespace ConfigSerializer
 
 DISMAN_EXPORT QJsonObject serializePoint(const QPoint &point);
 DISMAN_EXPORT QJsonObject serializeSize(const QSize &size);
+DISMAN_EXPORT QJsonObject serializeSizeF(const QSizeF &size);
 template<typename T>
 DISMAN_EXPORT  QJsonArray serializeList(const QList<T> &list)
 {
@@ -53,6 +54,7 @@ DISMAN_EXPORT QJsonObject serializeScreen(const Disman::ScreenPtr &screen);
 
 DISMAN_EXPORT QPoint deserializePoint(const QDBusArgument &map);
 DISMAN_EXPORT QSize deserializeSize(const QDBusArgument &map);
+DISMAN_EXPORT QSizeF deserializeSizeF(const QDBusArgument &map);
 template<typename T>
 DISMAN_EXPORT QList<T> deserializeList(const QDBusArgument &arg)
 {

@@ -49,6 +49,14 @@ QJsonObject ConfigSerializer::serializeSize(const QSize &size)
     return obj;
 }
 
+QJsonObject ConfigSerializer::serializeSizeF(const QSizeF &size)
+{
+    QJsonObject obj;
+    obj[QLatin1String("width")] = size.width();
+    obj[QLatin1String("height")] = size.height();
+    return obj;
+}
+
 QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr &config)
 {
     QJsonObject obj;
@@ -85,6 +93,7 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr &output)
     obj[QLatin1String("pos")] = serializePoint(output->pos());
     obj[QLatin1String("scale")] = output->scale();
     obj[QLatin1String("size")] = serializeSize(output->size());
+    obj[QLatin1String("logicalSize")] = serializeSizeF(output->logicalSize());
     obj[QLatin1String("rotation")] = static_cast<int>(output->rotation());
     obj[QLatin1String("currentModeId")] = output->currentModeId();
     obj[QLatin1String("preferredModes")] = serializeList(output->preferredModes());
@@ -178,6 +187,31 @@ QSize ConfigSerializer::deserializeSize(const QDBusArgument &arg)
     return QSize(w, h);
 }
 
+QSizeF ConfigSerializer::deserializeSizeF(const QDBusArgument &arg)
+{
+    double w = 0;
+    double h = 0;
+    arg.beginMap();
+    while (!arg.atEnd()) {
+        QString key;
+        QVariant value;
+        arg.beginMapEntry();
+        arg >> key >> value;
+        if (key == QLatin1String("width")) {
+            w = value.toDouble();
+        } else if (key == QLatin1String("height")) {
+            h = value.toDouble();
+        } else {
+            qCWarning(DISMAN) << "Invalid key in size struct: " << key;
+            return QSize();
+        }
+        arg.endMapEntry();
+    }
+    arg.endMap();
+
+    return QSizeF(w, h);
+}
+
 ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap &map)
 {
     ConfigPtr config(new Config);
@@ -246,6 +280,8 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument &arg)
             output->setScale(value.toDouble());
         } else if (key == QLatin1String("size")) {
             output->setSize(deserializeSize(value.value<QDBusArgument>()));
+        } else if (key == QLatin1String("logicalSize")) {
+            output->setLogicalSize(deserializeSizeF(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("rotation")) {
             output->setRotation(static_cast<Output::Rotation>(value.toInt()));
         } else if (key == QLatin1String("currentModeId")) {
