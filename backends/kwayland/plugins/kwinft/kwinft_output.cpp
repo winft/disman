@@ -98,8 +98,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr &output)
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->setName(name());
     output->setSizeMm(m_device->physicalSize());
-    output->setPos(m_device->geometry().topLeft().toPoint());
-    output->setLogicalSize(m_device->geometry().size());
+    output->setPosition(m_device->geometry().topLeft());
     output->setRotation(s_rotationMap[m_device->transform()]);
 
     ModeList modeList;
@@ -167,9 +166,9 @@ bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1 *wlConfig,
     }
 
     // position
-    if (m_device->geometry().topLeft() != output->pos()) {
+    if (m_device->geometry().topLeft() != output->position()) {
         changed = true;
-        wlConfig->setGeometry(m_device, QRectF(output->pos(), m_device->geometry().size()));
+        wlConfig->setGeometry(m_device, QRectF(output->position(), m_device->geometry().size()));
     }
 
     // rotation
@@ -191,13 +190,10 @@ bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1 *wlConfig,
     }
 
     // logical size
-    if (m_device->geometry().size() != output->logicalSize()) {
-        QSizeF size = output->explicitLogicalSize();
-        if (!size.isValid()) {
-            size = output->logicalSize();
-        }
+    if (m_device->geometry().size() != output->geometry().size()) {
+        QSizeF size = output->geometry().size();
         changed = true;
-        wlConfig->setGeometry(m_device, QRectF(output->pos(), size));
+        wlConfig->setGeometry(m_device, QRectF(output->position(), size));
     }
     return changed;
 }

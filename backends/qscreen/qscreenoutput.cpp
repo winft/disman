@@ -90,8 +90,7 @@ void QScreenOutput::updateDismanOutput(OutputPtr &output) const
     physicalHeight = m_qscreen->size().height() / (m_qscreen->physicalDotsPerInchY() / 25.4);
     mm.setHeight(qRound(physicalHeight));
     output->setSizeMm(mm);
-    output->setPos(m_qscreen->availableGeometry().topLeft());
-    output->setSize(m_qscreen->availableGeometry().size());
+    output->setPosition(m_qscreen->availableGeometry().topLeft());
 
     // Modes: we create a single default mode and go with that
     ModePtr mode(new Mode);

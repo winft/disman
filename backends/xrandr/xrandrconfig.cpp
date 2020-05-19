@@ -186,7 +186,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr &config)
             }
         }
 
-        if (dismanOutput->pos() != currentOutput->position()) {
+        if (dismanOutput->position() != currentOutput->position()) {
             if (!toChange.contains(outputId)) {
                 toChange.insert(outputId, dismanOutput);
             }
@@ -198,7 +198,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr &config)
             }
         }
 
-        if (dismanOutput->explicitLogicalSize() != currentOutput->logicalSize()) {
+        if (dismanOutput->geometry().size() != currentOutput->logicalSize()) {
             if (!toChange.contains(outputId)) {
                 toChange.insert(outputId, dismanOutput);
             }
@@ -222,7 +222,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr &config)
         }
 
         // When the output would not fit into new screen size, we need to disable and reposition it.
-        const QRect geom = dismanOutput->geometry();
+        const QRectF geom = dismanOutput->geometry();
         if (geom.right() > newScreenSize.width() || geom.bottom() > newScreenSize.height()) {
             if (!toDisable.contains(outputId)) {
                 qCDebug(DISMAN_XRANDR)
@@ -370,7 +370,7 @@ void XRandRConfig::printConfig(const ConfigPtr &config) const
         qCDebug(DISMAN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
                                 << "Primary: " << output->isPrimary() << "\n"
                                 << "Rotation: " << output->rotation() << "\n"
-                                << "Pos: " << output->pos() << "\n"
+                                << "Pos: " << output->position() << "\n"
                                 << "MMSize: " << output->sizeMm();
         if (output->currentMode()) {
             qCDebug(DISMAN_XRANDR) << "Size: " << output->currentMode()->size();
@@ -450,7 +450,7 @@ QSize XRandRConfig::screenSize(const Disman::ConfigPtr &config) const
             continue;
         }
 
-        const QRect outputGeom = output->geometry();
+        const QRect outputGeom = output->geometry().toRect();
         rect = rect.united(outputGeom);
     }
 
@@ -565,7 +565,7 @@ bool XRandRConfig::enableOutput(const OutputPtr &dismanOutput) const
                             << "\tOutput:" << dismanOutput->id() << "(" << dismanOutput->name()
                             << ")" << "\n"
                             << "\tNew CRTC:" << freeCrtc->crtc() << "\n"
-                            << "\tPos:" << dismanOutput->pos() << "\n"
+                            << "\tPos:" << dismanOutput->position() << "\n"
                             << "\tMode:" << dismanOutput->currentMode()
                             << "Preferred:" << dismanOutput->preferredModeId() << "\n"
                             << "\tRotation:" << dismanOutput->rotation();
@@ -598,7 +598,7 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr &dismanOutput) const
                             << "\tOutput:" << dismanOutput->id() << "(" << dismanOutput->name()
                             << ")" << "\n"
                             << "\tCRTC:" << xOutput->crtc()->crtc() << "\n"
-                            << "\tPos:" << dismanOutput->pos() << "\n"
+                            << "\tPos:" << dismanOutput->position() << "\n"
                             << "\tMode:" << modeId  << dismanOutput->currentMode() << "\n"
                             << "\tRotation:" << dismanOutput->rotation();
 
@@ -619,7 +619,8 @@ bool XRandRConfig::sendConfig(const Disman::OutputPtr &dismanOutput, XRandRCrtc 
 
     auto cookie = xcb_randr_set_crtc_config(XCB::connection(), crtc->crtc(),
                                             XCB_CURRENT_TIME, XCB_CURRENT_TIME,
-                                            dismanOutput->pos().rx(), dismanOutput->pos().ry(),
+                                            dismanOutput->position().rx(),
+                                            dismanOutput->position().ry(),
                                             modeId,
                                             dismanOutput->rotation(),
                                             1, outputs);

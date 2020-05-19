@@ -113,6 +113,12 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
 {
     OutputPtr output(new Output);
     output->setId(map[QStringLiteral("id")].toInt());
+    output->setName(map[QStringLiteral("name")].toString());
+    output->setEnabled(map[QStringLiteral("enabled")].toBool());
+    output->setConnected(map[QStringLiteral("connected")].toBool());
+    output->setPrimary(map[QStringLiteral("primary")].toBool());
+    output->setIcon(map[QStringLiteral("icon")].toString());
+    output->setRotation((Output::Rotation)map[QStringLiteral("rotation")].toInt());
 
     QStringList preferredModes;
     const QVariantList prefModes = map[QStringLiteral("preferredModes")].toList();
@@ -130,6 +136,8 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
     }
     output->setModes(modelist);
     map.remove(QStringLiteral("modes"));
+
+    output->setCurrentModeId(map[QStringLiteral("currentModeId")].toString());
 
     if(map.contains(QStringLiteral("clones"))) {
         QList<int> clones;
@@ -180,13 +188,8 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
     map.remove(QStringLiteral("type"));
 
     if (map.contains(QStringLiteral("pos"))) {
-        output->setPos(Parser::pointFromJson(map[QStringLiteral("pos")].toMap()));
+        output->setPosition(Parser::pointFromJson(map[QStringLiteral("pos")].toMap()));
         map.remove(QStringLiteral("pos"));
-    }
-
-    if (map.contains(QStringLiteral("size"))) {
-        output->setSize(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
-        map.remove(QStringLiteral("size"));
     }
 
     auto scale = QStringLiteral("scale");

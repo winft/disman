@@ -98,7 +98,7 @@ void KWaylandOutput::updateDismanOutput(OutputPtr &output)
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->setName(name());
     output->setSizeMm(m_device->physicalSize());
-    output->setPos(m_device->globalPosition());
+    output->setPosition(m_device->globalPosition());
     output->setRotation(s_rotationMap[m_device->transform()]);
 
     ModeList modeList;
@@ -166,9 +166,9 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration *wlConfig,
     }
 
     // position
-    if (m_device->globalPosition() != output->pos()) {
+    if (m_device->globalPosition() != output->position()) {
         changed = true;
-        wlConfig->setPosition(m_device, output->pos());
+        wlConfig->setPosition(m_device, output->position().toPoint());
     }
 
     // scale

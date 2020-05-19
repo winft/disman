@@ -33,7 +33,7 @@
 
 using namespace Disman;
 
-QJsonObject ConfigSerializer::serializePoint(const QPoint &point)
+QJsonObject ConfigSerializer::serializePoint(const QPointF &point)
 {
     QJsonObject obj;
     obj[QLatin1String("x")] = point.x();
@@ -90,10 +90,8 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr &output)
     obj[QLatin1String("name")] = output->name();
     obj[QLatin1String("type")] = static_cast<int>(output->type());
     obj[QLatin1String("icon")] = output->icon();
-    obj[QLatin1String("pos")] = serializePoint(output->pos());
+    obj[QLatin1String("position")] = serializePoint(output->position());
     obj[QLatin1String("scale")] = output->scale();
-    obj[QLatin1String("size")] = serializeSize(output->size());
-    obj[QLatin1String("logicalSize")] = serializeSizeF(output->logicalSize());
     obj[QLatin1String("rotation")] = static_cast<int>(output->rotation());
     obj[QLatin1String("currentModeId")] = output->currentModeId();
     obj[QLatin1String("preferredModes")] = serializeList(output->preferredModes());
@@ -140,27 +138,30 @@ QJsonObject ConfigSerializer::serializeScreen(const ScreenPtr &screen)
     return obj;
 }
 
-QPoint ConfigSerializer::deserializePoint(const QDBusArgument &arg)
+QPointF ConfigSerializer::deserializePoint(const QDBusArgument &arg)
 {
-    int x = 0, y = 0;
+    double x = 0;
+    double y = 0;
     arg.beginMap();
+
     while (!arg.atEnd()) {
         QString key;
         QVariant value;
         arg.beginMapEntry();
         arg >> key >> value;
         if (key == QLatin1Char('x')) {
-            x = value.toInt();
+            x = value.toDouble();
         } else if (key == QLatin1Char('y')) {
-            y = value.toInt();
+            y = value.toDouble();
         } else {
             qCWarning(DISMAN) << "Invalid key in Point map: " << key;
-            return QPoint();
+            return QPointF();
         }
         arg.endMapEntry();
     }
+
     arg.endMap();
-    return QPoint(x, y);
+    return QPointF(x, y);
 }
 
 QSize ConfigSerializer::deserializeSize(const QDBusArgument &arg)
@@ -274,14 +275,10 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument &arg)
             output->setType(static_cast<Output::Type>(value.toInt()));
         } else if (key == QLatin1String("icon")) {
             output->setIcon(value.toString());
-        } else if (key == QLatin1String("pos")) {
-            output->setPos(deserializePoint(value.value<QDBusArgument>()));
+        } else if (key == QLatin1String("position")) {
+            output->setPosition(deserializePoint(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("scale")) {
             output->setScale(value.toDouble());
-        } else if (key == QLatin1String("size")) {
-            output->setSize(deserializeSize(value.value<QDBusArgument>()));
-        } else if (key == QLatin1String("logicalSize")) {
-            output->setLogicalSize(deserializeSizeF(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("rotation")) {
             output->setRotation(static_cast<Output::Rotation>(value.toInt()));
         } else if (key == QLatin1String("currentModeId")) {
