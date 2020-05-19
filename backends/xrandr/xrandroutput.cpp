@@ -371,7 +371,7 @@ void XRandROutput::updateLogicalSize(const Disman::OutputPtr &output, XRandRCrtc
         //       that the additional argument is not necessary anymore.
         crtc = m_crtc;
     }
-    const QSizeF logicalSize = output->explicitLogicalSize();
+    auto const logicalSize = output->geometry().size();
     xcb_render_transform_t transform = unityTransform();
 
     Disman::ModePtr mode = output->currentMode() ? output->currentMode() : output->preferredMode();
@@ -437,8 +437,7 @@ Disman::OutputPtr XRandROutput::toDismanOutput() const
         }(m_clones));
         dismanOutput->setEnabled(isEnabled());
         if (isEnabled()) {
-            dismanOutput->setSize(size());
-            dismanOutput->setPos(position());
+            dismanOutput->setPosition(position());
             dismanOutput->setRotation(rotation());
             dismanOutput->setCurrentModeId(currentModeId());
         }

@@ -121,7 +121,7 @@ Disman::ConfigPtr XRandR11::config() const
     output->setConnected(true);
     output->setEnabled(true);
     output->setName(QStringLiteral("Default"));
-    output->setPos(QPoint(0,0));
+    output->setPosition(QPoint(0,0));
     output->setPrimary(true);
     output->setRotation((Disman::Output::Rotation) info->rotation);
     output->setSizeMm(QSize(xcbScreen->width_in_millimeters, xcbScreen->height_in_millimeters));
@@ -149,7 +149,6 @@ Disman::ConfigPtr XRandR11::config() const
 
             if (x == info->sizeID && rate == info->rate) {
                 output->setCurrentModeId(mode->id());
-                output->setSize(mode->size());
             }
             modes.insert(mode->id(), mode);
         }

@@ -178,8 +178,8 @@ void testQScreenBackend::commonUsagePattern()
         info[QStringLiteral("rotation")] = output->rotation();
 
         QVariantMap pos;
-        pos[QStringLiteral("x")] = output->pos().x();
-        pos[QStringLiteral("y")] = output->pos().y();
+        pos[QStringLiteral("x")] = output->position().x();
+        pos[QStringLiteral("y")] = output->position().y();
         info[QStringLiteral("pos")] = pos;
 
         if (output->isEnabled()) {

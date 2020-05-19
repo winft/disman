@@ -138,14 +138,14 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     if (!config) {
         return;
     }
-    int offsetX = INT_MAX;
-    int offsetY = INT_MAX;
+    double offsetX = INT_MAX;
+    double offsetY = INT_MAX;
     Q_FOREACH (const Disman::OutputPtr &output, config->outputs()) {
         if (!output->isPositionable()) {
             continue;
         }
-        offsetX = qMin(output->pos().x(), offsetX);
-        offsetY = qMin(output->pos().y(), offsetY);
+        offsetX = qMin(output->geometry().left(), offsetX);
+        offsetY = qMin(output->geometry().top(), offsetY);
     }
 
     if (!offsetX && !offsetY) {
@@ -156,9 +156,9 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
         if (!output->isConnected() || !output->isEnabled()) {
             continue;
         }
-        QPoint newPos = QPoint(output->pos().x() - offsetX, output->pos().y() - offsetY);
-        qCDebug(DISMAN) << "Moved output from" << output->pos() << "to" << newPos;
-        output->setPos(newPos);
+        auto newPos = QPointF(output->geometry().left() - offsetX, output->geometry().top() - offsetY);
+        qCDebug(DISMAN) << "Moved output from" << output->geometry().topLeft() << "to" << newPos;
+        output->setPosition(newPos);
     }
 }
 

@@ -147,8 +147,7 @@ private Q_SLOTS:
         output->setType(Disman::Output::Panel);
         output->setIcon(QString());
         output->setModes(modes);
-        output->setPos(QPoint(1280, 0));
-        output->setSize(mode->size());
+        output->setPosition(QPoint(1280, 0));
         output->setRotation(Disman::Output::None);
         output->setCurrentModeId(QStringLiteral("1"));
         output->setPreferredModes(QStringList() << QStringLiteral("1"));
@@ -168,12 +167,9 @@ private Q_SLOTS:
         const QJsonArray arr = obj[QLatin1String("modes")].toArray();
         QCOMPARE(arr.size(), output->modes().count());
 
-        QJsonObject pos = obj[QLatin1String("pos")].toObject();
-        QCOMPARE(pos[QLatin1String("x")].toInt(), output->pos().x());
-        QCOMPARE(pos[QLatin1String("y")].toInt(), output->pos().y());
-        const QJsonObject size = obj[QLatin1String("size")].toObject();
-        QCOMPARE(size[QLatin1String("width")].toInt(), output->size().width());
-        QCOMPARE(size[QLatin1String("height")].toInt(), output->size().height());
+        QJsonObject pos = obj[QLatin1String("position")].toObject();
+        QCOMPARE(pos[QLatin1String("x")].toInt(), output->position().x());
+        QCOMPARE(pos[QLatin1String("y")].toInt(), output->position().y());
 
         QCOMPARE(static_cast<Disman::Output::Rotation>(obj[QLatin1String("rotation")].toInt()), output->rotation());
         QCOMPARE(obj[QLatin1String("currentModeId")].toString(), output->currentModeId());
