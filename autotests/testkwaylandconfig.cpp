@@ -108,7 +108,7 @@ void TestKWaylandConfig::changeConfig()
     output->setCurrentModeId(QStringLiteral("76"));
 
     auto output2 = config->outputs()[2]; // is this id stable enough?
-    output2->setPos(QPoint(4000, 1080));
+    output2->setPosition(QPoint(4000, 1080));
     output2->setRotation(Disman::Output::Left);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
@@ -139,7 +139,7 @@ void TestKWaylandConfig::testPositionChange()
 
     auto output = config->outputs()[2]; // is this id stable enough?
     auto new_pos = QPoint(3840, 1080);
-    output->setPos(new_pos);
+    output->setPosition(new_pos);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     auto sop = new SetConfigOperation(config, this);
@@ -219,7 +219,7 @@ void TestKWaylandConfig::testScaleChange()
     QSignalSpy configSpy2(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     auto output2 = config2->outputs()[2]; // is this id stable enough?
-    QSignalSpy outputSpy(output2.data(), &Disman::Output::scaleChanged);
+    QSignalSpy outputSpy(output2.data(), &Disman::Output::geometryChanged);
     QCOMPARE(output2->scale(), 1.0);
 
     auto output = config->outputs()[2]; // is this id stable enough?

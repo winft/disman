@@ -40,7 +40,6 @@ class Q_DECL_HIDDEN Output::Private
         replicationSource(0),
         rotation(None),
         scale(1.0),
-        logicalSize(QSizeF()),
         connected(false),
         enabled(false),
         primary(false),
@@ -58,8 +57,7 @@ class Q_DECL_HIDDEN Output::Private
         preferredMode(other.preferredMode),
         preferredModes(other.preferredModes),
         sizeMm(other.sizeMm),
-        pos(other.pos),
-        size(other.size),
+        position(other.position),
         rotation(other.rotation),
         scale(other.scale),
         connected(other.connected),
@@ -89,11 +87,9 @@ class Q_DECL_HIDDEN Output::Private
     QString preferredMode;
     QStringList preferredModes;
     QSize sizeMm;
-    QPoint pos;
-    QSize size;
+    QPointF position;
     Rotation rotation;
     qreal scale;
-    QSizeF logicalSize;
     bool connected;
     bool enabled;
     bool primary;
@@ -364,36 +360,14 @@ ModePtr Output::preferredMode() const
     return d->modeList.value(preferredModeId());
 }
 
-QPoint Output::pos() const
+void Output::setPosition(const QPointF& position)
 {
-    return d->pos;
-}
-
-void Output::setPos(const QPoint& pos)
-{
-    if (d->pos == pos) {
+    if (d->position == position) {
         return;
     }
 
-    d->pos = pos;
-
-    Q_EMIT posChanged();
-}
-
-QSize Output::size() const
-{
-    return d->size;
-}
-
-void Output::setSize(const QSize& size)
-{
-    if (d->size == size) {
-        return;
-    }
-
-    d->size = size;
-
-    Q_EMIT sizeChanged();
+    d->position = position;
+    Q_EMIT geometryChanged();
 }
 
 // TODO KF6: make the Rotation enum an enum class and align values with Wayland transformation property
@@ -409,59 +383,42 @@ void Output::setRotation(Output::Rotation rotation)
     }
 
     d->rotation = rotation;
-
-    Q_EMIT rotationChanged();
+    Q_EMIT geometryChanged();
 }
 
-qreal Output::scale() const
+double Output::scale() const
 {
     return d->scale;
 }
 
-void Output::setScale(qreal factor)
+void Output::setScale(double scale)
 {
-    if (qFuzzyCompare(d->scale, factor)) {
+    if (qFuzzyCompare(d->scale, scale)) {
         return;
     }
-    d->scale = factor;
-    emit scaleChanged();
+    d->scale = scale;
+    Q_EMIT geometryChanged();
 }
 
-QSizeF Output::logicalSize() const
+QRectF Output::geometry() const
 {
-    if (d->logicalSize.isValid()) {
-        return d->logicalSize;
-    }
+    auto geo = QRectF(d->position, QSizeF());
 
-    QSizeF size = enforcedModeSize();
+    auto size = enforcedModeSize();
     if (!size.isValid()) {
-        return QSizeF();
+        return geo;
     }
-    size = size / d->scale;
-
-    // We can't use d->size, because d->size does not reflect the actual rotation() set by caller.
-    // It is only updated when we get update from Disman, but not when user changes mode or
-    // rotation manually.
-
     if (!isHorizontal()) {
         size = size.transposed();
     }
-    return size;
+
+    geo.setSize(size / d->scale);
+    return geo;
 }
 
-QSizeF Output::explicitLogicalSize() const
+QPointF Output::position() const
 {
-    return d->logicalSize;
-}
-
-void Output::setLogicalSize(const QSizeF &size)
-{
-    if (qFuzzyCompare(d->logicalSize.width(), size.width())
-                      && qFuzzyCompare(d->logicalSize.height(), size.height())) {
-        return;
-    }
-    d->logicalSize = size;
-    Q_EMIT logicalSizeChanged();
+    return d->position;
 }
 
 bool Output::isConnected() const
@@ -595,16 +552,6 @@ QSize Output::enforcedModeSize() const
     return QSize();
 }
 
-QRect Output::geometry() const
-{
-    QSize size = logicalSize().toSize();
-    if (!size.isValid()) {
-        return QRect();
-    }
-
-    return QRect(d->pos, size);
-}
-
 void Output::apply(const OutputPtr& other)
 {
     typedef void (Disman::Output::*ChangeSignal)();
@@ -627,16 +574,16 @@ void Output::apply(const OutputPtr& other)
         changes << &Output::outputChanged;
         setIcon(other->d->icon);
     }
-    if (d->pos != other->d->pos) {
-        changes << &Output::posChanged;
-        setPos(other->pos());
+    if (d->position != other->d->position) {
+        changes << &Output::geometryChanged;
+        setPosition(other->geometry().topLeft());
     }
     if (d->rotation != other->d->rotation) {
         changes << &Output::rotationChanged;
         setRotation(other->d->rotation);
     }
     if (!qFuzzyCompare(d->scale, other->d->scale)) {
-        changes << &Output::scaleChanged;
+        changes << &Output::geometryChanged;
         setScale(other->d->scale);
     }
     if (d->currentMode != other->d->currentMode) {
@@ -697,9 +644,9 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr &output)
                                   << (output->isConnected() ? "connected" : "disconnected")
                                   << (output->isEnabled() ? "enabled" : "disabled")
                                   << (output->isPrimary() ? "primary" : "")
-                                  << "pos:" << output->pos() << "res:" << output->size()
-                                  << "modeId:" << output->currentModeId()
+                                  << "geometry:" << output->geometry()
                                   << "scale:" << output->scale()
+                                  << "modeId:" << output->currentModeId()
                                   << "clone:" << (output->clones().isEmpty() ? "no" : "yes")
                                   << "followPreferredMode:" << output->followPreferredMode()
                                   << ")";

@@ -104,7 +104,7 @@ void testScreenConfig::singleOutput()
     QCOMPARE(output->name(), QLatin1String("LVDS1"));
     QCOMPARE(output->type(), Output::Panel);
     QCOMPARE(output->modes().count(), 3);
-    QCOMPARE(output->pos(), QPoint(0, 0));
+    QCOMPARE(output->position(), QPoint(0, 0));
     QCOMPARE(output->geometry(), QRect(0,0, 1280, 800));
     QCOMPARE(output->currentModeId(), QLatin1String("3"));
     QCOMPARE(output->preferredModeId(), QLatin1String("3"));
@@ -155,7 +155,7 @@ void testScreenConfig::multiOutput()
     QCOMPARE(output->name(), QStringLiteral("HDMI1"));
     QCOMPARE(output->type(), Output::HDMI);
     QCOMPARE(output->modes().count(), 4);
-    QCOMPARE(output->pos(), QPoint(1280, 0));
+    QCOMPARE(output->position(), QPoint(1280, 0));
     QCOMPARE(output->geometry(), QRect(1280, 0, 1920 / 1.4, 1080 / 1.4));
     QCOMPARE(output->currentModeId(), QLatin1String("4"));
     QCOMPARE(output->preferredModeId(), QLatin1String("4"));
@@ -290,26 +290,26 @@ void testScreenConfig::testOutputPositionNormalization()
     auto right = config->outputs().last();
     QVERIFY(!left.isNull());
     QVERIFY(!right.isNull());
-    left->setPos(QPoint(-5000, 700));
-    right->setPos(QPoint(-3720, 666));
-    QCOMPARE(left->pos(), QPoint(-5000, 700));
-    QCOMPARE(right->pos(), QPoint(-3720, 666));
+    left->setPosition(QPoint(-5000, 700));
+    right->setPosition(QPoint(-3720, 666));
+    QCOMPARE(left->position(), QPoint(-5000, 700));
+    QCOMPARE(right->position(), QPoint(-3720, 666));
 
     // start a set operation to fix up the positions
     {
         auto setop = new SetConfigOperation(config);
         setop->exec();
     }
-    QCOMPARE(left->pos(), QPoint(0, 34));
-    QCOMPARE(right->pos(), QPoint(1280, 0));
+    QCOMPARE(left->position(), QPoint(0, 34));
+    QCOMPARE(right->position(), QPoint(1280, 0));
 
     // make sure it doesn't touch a valid config
     {
         auto setop = new SetConfigOperation(config);
         setop->exec();
     }
-    QCOMPARE(left->pos(), QPoint(0, 34));
-    QCOMPARE(right->pos(), QPoint(1280, 0));
+    QCOMPARE(left->position(), QPoint(0, 34));
+    QCOMPARE(right->position(), QPoint(1280, 0));
 
     // positions of single outputs should be at 0, 0
     left->setEnabled(false);
@@ -317,7 +317,7 @@ void testScreenConfig::testOutputPositionNormalization()
         auto setop = new SetConfigOperation(config);
         setop->exec();
     }
-    QCOMPARE(right->pos(), QPoint());
+    QCOMPARE(right->position(), QPoint());
 }
 
 

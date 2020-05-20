@@ -130,7 +130,7 @@ void TestPnp::print()
         qDebug() << "Enabled: " << output->isEnabled();
         qDebug() << "Primary: " << output->isPrimary();
         qDebug() << "Rotation: " << output->rotation();
-        qDebug() << "Pos: " << output->pos();
+        qDebug() << "Pos: " << output->position();
         qDebug() << "MMSize: " << output->sizeMm();
         if (output->currentMode()) {
             qDebug() << "Size: " << output->currentMode()->size();

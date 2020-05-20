@@ -410,7 +410,7 @@ bool Doctor::setPosition(int id, const QPoint &pos)
     Q_FOREACH (const auto &output, m_config->outputs()) {
         if (output->id() == id) {
             qCDebug(DISMAN_DOCTOR) << "Set output position" << pos;
-            output->setPos(pos);
+            output->setPosition(pos);
             m_changed = true;
             return true;
         }

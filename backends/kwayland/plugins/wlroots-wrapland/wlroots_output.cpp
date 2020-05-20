@@ -123,7 +123,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr &output)
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->setName(name());
     output->setSizeMm(m_head->physicalSize());
-    output->setPos(m_head->position());
+    output->setPosition(m_head->position());
     output->setRotation(s_rotationMap[m_head->transform()]);
 
     ModeList modeList;
@@ -185,9 +185,9 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1 *wlConfig,
     wlConfig->setEnabled(m_head, output->isEnabled());
 
     // position
-    if (m_head->position() != output->pos()) {
+    if (m_head->position() != output->position()) {
         changed = true;
-        wlConfig->setPosition(m_head, output->pos());
+        wlConfig->setPosition(m_head, output->position().toPoint());
     }
 
     // scale

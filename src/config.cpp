@@ -149,25 +149,23 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
             return false;
         }
 
-        const ModePtr currentMode = output->currentMode();
+        auto const outputSize = output->currentMode()->size();
 
-        const QSize outputSize = currentMode->size();
-
-        if (output->pos().x() < rect.x()) {
-            rect.setX(output->pos().x());
+        if (output->position().x() < rect.x()) {
+            rect.setX(output->position().x());
         }
 
-        if (output->pos().y() < rect.y()) {
-            rect.setY(output->pos().y());
+        if (output->position().y() < rect.y()) {
+            rect.setY(output->position().y());
         }
 
         QPoint bottomRight;
         if (output->isHorizontal()) {
-            bottomRight = QPoint(output->pos().x() + outputSize.width(),
-                                    output->pos().y() + outputSize.height());
+            bottomRight = QPoint(output->position().x() + outputSize.width(),
+                                    output->position().y() + outputSize.height());
         } else {
-            bottomRight = QPoint(output->pos().x() + outputSize.height(),
-                                    output->pos().y() + outputSize.width());
+            bottomRight = QPoint(output->position().x() + outputSize.height(),
+                                    output->position().y() + outputSize.width());
         }
 
         if (bottomRight.x() > rect.width()) {
@@ -190,6 +188,8 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
         return false;
     }
 
+    // TODO: Why we do this again? Isn't the screen size determined by the outer rect of all
+    //       outputs? At least it's that way in the Wayland case.
     if (rect.width() > config->screen()->maxSize().width()) {
         qCDebug(DISMAN) << "canBeApplied: The configuration is too wide:" << rect.width();
         return false;
@@ -227,6 +227,7 @@ ConfigPtr Config::clone() const
     return newConfig;
 }
 
+// TODO: take Output::hashMd5() values
 QString Config::connectedOutputsHash() const
 {
     QStringList hashedOutputs;

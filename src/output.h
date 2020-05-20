@@ -42,29 +42,6 @@ class DISMAN_EXPORT Output : public QObject
     public:
         Q_ENUMS(Rotation)
         Q_ENUMS(Type)
-        Q_PROPERTY(int id READ id CONSTANT)
-        Q_PROPERTY(QString name READ name WRITE setName NOTIFY outputChanged)
-        Q_PROPERTY(Type type READ type WRITE setType NOTIFY outputChanged)
-        Q_PROPERTY(QString icon READ icon WRITE setIcon NOTIFY outputChanged)
-        Q_PROPERTY(ModeList modes READ modes NOTIFY modesChanged)
-        Q_PROPERTY(QPoint pos READ pos WRITE setPos NOTIFY posChanged)
-        Q_PROPERTY(QSize size READ size WRITE setSize NOTIFY sizeChanged)
-        Q_PROPERTY(Rotation rotation READ rotation WRITE setRotation NOTIFY rotationChanged)
-        Q_PROPERTY(QString currentModeId READ currentModeId WRITE setCurrentModeId NOTIFY currentModeIdChanged)
-        Q_PROPERTY(QString preferredModeId READ preferredModeId CONSTANT)
-        Q_PROPERTY(bool connected READ isConnected WRITE setConnected NOTIFY isConnectedChanged)
-        Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY isEnabledChanged)
-        Q_PROPERTY(bool primary READ isPrimary WRITE setPrimary NOTIFY isPrimaryChanged)
-        Q_PROPERTY(QList<int> clones READ clones WRITE setClones NOTIFY clonesChanged)
-        Q_PROPERTY(int replicationSource READ replicationSource
-                   WRITE setReplicationSource NOTIFY replicationSourceChanged)
-        Q_PROPERTY(Disman::Edid* edid READ edid CONSTANT)
-        Q_PROPERTY(QSize sizeMm READ sizeMm CONSTANT)
-        Q_PROPERTY(qreal scale READ scale WRITE setScale NOTIFY scaleChanged)
-        Q_PROPERTY(bool followPreferredMode READ followPreferredMode WRITE setFollowPreferredMode NOTIFY followPreferredModeChanged)
-        Q_PROPERTY(QSizeF logicalSize READ logicalSize WRITE setLogicalSize
-                   NOTIFY logicalSizeChanged)
-
 
         enum Type {
             Unknown,
@@ -150,30 +127,6 @@ class DISMAN_EXPORT Output : public QObject
          * Returns Disman::Mode associated with preferredModeId()
          */
         Q_INVOKABLE ModePtr preferredMode() const;
-
-        QPoint pos() const;
-        void setPos(const QPoint& pos);
-
-        /***
-         * Returns actual size being rendered in the output
-         *
-         * The returned valued is after transformations have been applied to
-         * the resolution of the current mode.
-         *
-         * For example if currentMode is 1280x800 but it is a vertical screen
-         * the returned size will be 800x1280.
-         *
-         * If that same resolution (1280x800) is transformed and scale x2, the
-         * value returned will be 2560x1600.
-         *
-         * This property reflects the currently active output configuration and
-         * is not affected by current mode or orientation change made by user
-         * until the config is applied.
-         *
-         * @since 5.4
-         */
-        QSize size() const;
-        void setSize(const QSize& size);
 
         /**
          * Returns either current mode size or if not available preferred one or if also not
@@ -270,69 +223,28 @@ class DISMAN_EXPORT Output : public QObject
          * Returns a rectangle containing the currently set output position and
          * size.
          *
-         * The geometry also reflects current orientation (i.e. if current mode
+         * The geometry reflects current orientation (i.e. if current mode
          * is 1920x1080 and orientation is @p Disman::Output::Left, then the
          * size of the returned rectangle will be 1080x1920.
          *
+         * The geometry also respects the set scale. But it is not influenced by a replication
+         * source.
+         *
          * This property contains the current settings stored in the particular
          * Output object, so it is updated even when user changes current mode
-         * or orientation without applying the whole config/
+         * or orientation without applying the whole config.
          */
-        QRect geometry() const;
+        QRectF geometry() const;
 
-        /**
-         * returns the scaling factor to use for this output
-         *
-         * @since 5.9
-         */
-        qreal scale() const;
+        QPointF position() const;
+        void setPosition(const QPointF &position);
 
-        /**
-         * Set the scaling factor for this output.
-         *
-         * @arg factor Scale factor to use for this output, the backend may or may not
-         * be able to deal with non-integer values, in that case, the factor gets rounded.
-         *
-         * @since 5.9
-         */
-        void setScale(qreal factor);
-
-        /**
-         * The logical size is the output's representation internal to the display server and its
-         * overall screen geometry.
-         *
-         * returns the logical size of this output
-         *
-         * @since 5.18
-         */
-        QSizeF logicalSize() const;
-
-        /**
-         * The logical size is the output's representation internal to the display server and its
-         * overall screen geometry.
-         *
-         * returns the explicitly set logical size of this output, is an invalid size if not set
-         *
-         * @since 5.18
-         */
-        QSizeF explicitLogicalSize() const;
-
-        /**
-         * Specifies explicitly the logical size of this output and by that overrides any other
-         * logical size calculation through mode and scale. To enable this instead again call this
-         * function with an invalid size as argument.
-         *
-         * @param size of this output in logical space
-         *
-         * @since 5.18
-         */
-        void setLogicalSize(const QSizeF &size);
+        double scale() const;
+        void setScale(double scale);
 
         /**
          * @returns whether the mode should be changed to the new preferred mode
          * once it changes
-         *
-         * @since 5.15
          */
         bool followPreferredMode() const;
 
@@ -346,8 +258,7 @@ class DISMAN_EXPORT Output : public QObject
         void apply(const OutputPtr &other);
     Q_SIGNALS:
         void outputChanged();
-        void posChanged();
-        void sizeChanged();
+        void geometryChanged();
         void currentModeIdChanged();
         void rotationChanged();
         void isConnectedChanged();
@@ -355,8 +266,6 @@ class DISMAN_EXPORT Output : public QObject
         void isPrimaryChanged();
         void clonesChanged();
         void replicationSourceChanged();
-        void scaleChanged();
-        void logicalSizeChanged();
         void followPreferredModeChanged(bool followPreferredMode);
 
         /** The mode list changed.
