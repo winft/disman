@@ -2,6 +2,7 @@ stages:
   - Compliance
   - Build
   - Test
+  - Integration
 
 variables:
   IMAGE_BASE: ${CI_REGISTRY}/kwinft/ci-images/archlinux/kwinft-base
@@ -96,3 +97,16 @@ Stable autotests:
       artifacts: true
   <<: *common-test
   <<: *common-stable
+
+
+Master image trigger:
+  stage: Integration
+  rules:
+    - if: '$CI_PROJECT_NAMESPACE == "kwinft" && $CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      when: on_success
+    - when: never
+  variables:
+    TARGET_ID: 17539846
+  script: curl --request POST --form token=${CI_JOB_TOKEN} --form ref=master
+            --form "variables[TRIGGER_TYPE]=wrapland_rebuild"
+            ${CI_API_V4_URL}/projects/${TARGET_ID}/trigger/pipeline
