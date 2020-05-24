@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(Disman)
-set(PROJECT_VERSION "0.518.90")
+set(PROJECT_VERSION "0.519.80")
 
 set(QT_MIN_VERSION "5.14.0")
 set(KF5_MIN_VERSION "5.66.0")
