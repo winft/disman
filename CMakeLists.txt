@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(Disman)
 set(PROJECT_VERSION "0.519.80")
+set(PROJECT_VERSION_MAJOR "0")
 
 set(QT_MIN_VERSION "5.14.0")
 set(KF5_MIN_VERSION "5.66.0")
@@ -46,7 +47,7 @@ add_feature_info(QCH ${BUILD_QCH} "API documentation in QCH format (for e.g. Qt 
 ecm_setup_version(${PROJECT_VERSION} VARIABLE_PREFIX Disman
                         VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
                         PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
-                        SOVERSION 0
+                        SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
 check_cxx_compiler_flag(-fvisibility=hidden _HAVE_VISIBILITY)

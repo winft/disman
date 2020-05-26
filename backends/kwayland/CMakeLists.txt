@@ -40,8 +40,8 @@ target_include_directories(DismanWayland PUBLIC
 target_link_libraries(DismanWayland PUBLIC ${wayland_LIBS})
 
 set_target_properties(DismanWayland PROPERTIES
-    VERSION "${DISMAN_VERSION_STRING}"
-    SOVERSION "${DISMAN_SOVERSION}"
+    VERSION "${PROJECT_VERSION}"
+    SOVERSION "${PROJECT_VERSION_MAJOR}"
     EXPORT_NAME DismanWayland
 )
 
