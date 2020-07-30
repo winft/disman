@@ -73,6 +73,7 @@ testWaylandBackend::testWaylandBackend(QObject *parent)
     : QObject(parent)
     , m_config(nullptr)
 {
+    qputenv("DISMAN_BACKEND_INPROCESS", "1");
     qputenv("DISMAN_LOGGING", "false");
     m_server = new WaylandTestServer(this);
     m_server->setConfig(QLatin1String(TEST_DATA) + QLatin1String("multipleoutput.json"));

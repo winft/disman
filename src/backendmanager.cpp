@@ -82,13 +82,11 @@ BackendManager::BackendManager()
             mMethod = OutOfProcess;
         }
     } else {
-        // For XRandR backends, use out of process
-        if (preferredBackend().fileName().startsWith(QLatin1String("randr"))) {
-            mMethod = OutOfProcess;
-        } else {
-            mMethod = InProcess;
-        }
+        mMethod = OutOfProcess;
     }
+
+    // TODO(romangg): fallback to in-process when dbus not available?
+
     initMethod();
 }
 
