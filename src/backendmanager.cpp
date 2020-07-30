@@ -88,9 +88,6 @@ BackendManager::BackendManager()
         } else {
             mMethod = InProcess;
         }
-
-        // TODO: Currently dbus service not working. Also do for randr in process.
-        mMethod = InProcess;
     }
     initMethod();
 }
