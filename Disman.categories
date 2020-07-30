@@ -1,7 +1,6 @@
 disman disman IDENTIFIER [DISMAN]
 disman.edid disman (edid) IDENTIFIER [DISMAN_EDID]
 disman.backendLauncher disman (backendlauncher) IDENTIFIER [DISMAN_BACKEND_LAUNCHER]
-disman.xcb.helper disman (xcb helper) IDENTIFIER [DISMAN_XCB_HELPER]
 disman.qscreen disman (qscreen backend) IDENTIFIER [DISMAN_QSCREEN]
 disman.kwayland disman (kwayland backend) IDENTIFIER [DISMAN_WAYLAND]
 disman.fake disman (fake backend) IDENTIFIER [DISMAN_FAKE]

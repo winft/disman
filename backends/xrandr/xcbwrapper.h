@@ -18,9 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
-
-#ifndef XCB_WRAPPER_H
-#define XCB_WRAPPER_H
+#pragma once
 
 #include <functional>
 #include <type_traits>
@@ -207,5 +205,3 @@ XCB_DECLARE_TYPE(AtomName, xcb_get_atom_name,
                  xcb_atom_t);
 
 }
-
-#endif

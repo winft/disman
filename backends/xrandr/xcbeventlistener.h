@@ -15,9 +15,7 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
-#ifndef XRANDRX11HELPER_H
-#define XRANDRX11HELPER_H
+#pragma once
 
 #include <QObject>
 #include <QLoggingCategory>
@@ -70,5 +68,4 @@ class XCBEventListener : public QObject,
         uint32_t m_window;
 };
 
-Q_DECLARE_LOGGING_CATEGORY(DISMAN_XCB_HELPER)
-#endif // XRANDRX11HELPER_H
+Q_DECLARE_LOGGING_CATEGORY(DISMAN_XRANDR)
