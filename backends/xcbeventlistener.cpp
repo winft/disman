@@ -164,7 +164,6 @@ void XCBEventListener::handleScreenChange(xcb_generic_event_t* e)
     qCDebug(DISMAN_XCB_HELPER) << "\tSizeMM: " << e2->mwidth << e2->mheight;
 
     Q_EMIT screenChanged((xcb_randr_rotation_t) e2->rotation, QSize(e2->width, e2->height), QSize(e2->mwidth, e2->mheight));
-    Q_EMIT outputsChanged();
 }
 
 void XCBEventListener::handleXRandRNotify(xcb_generic_event_t* e)

@@ -38,13 +38,10 @@ class XCBEventListener : public QObject,
         bool nativeEventFilter(const QByteArray& eventType, void* message, long int* result) override;
 
     Q_SIGNALS:
-        /* Emitted when only XRandR 1.1 or older is available */
         void screenChanged(xcb_randr_rotation_t rotation,
                            const QSize &sizePx,
                            const QSize &sizeMm);
-        void outputsChanged();
 
-        /* Emitted only when XRandR 1.2 or newer is available */
         void crtcChanged(xcb_randr_crtc_t crtc,
                          xcb_randr_mode_t mode,
                          xcb_randr_rotation_t rotation,
