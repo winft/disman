@@ -81,7 +81,7 @@ void TestBackendLoader::testEnv_data()
     QTest::newRow("all upper") << "WAYLAND" << "wayland";
     QTest::newRow("mixed") << "wAYlaND" << "wayland";
 
-    QTest::newRow("randr 1.1") << "randr11" << "randr11";
+    QTest::newRow("randr") << "randr" << "randr";
     QTest::newRow("qscreen") << "qscreen" << "qscreen";
     QTest::newRow("mixed") << "fake" << "fake";
 }
