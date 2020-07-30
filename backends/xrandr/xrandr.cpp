@@ -20,8 +20,8 @@
 
 #include "xrandrconfig.h"
 #include "xrandrscreen.h"
-#include "../xcbwrapper.h"
-#include "../xcbeventlistener.h"
+#include "xcbwrapper.h"
+#include "xcbeventlistener.h"
 
 #include "config.h"
 #include "edid.h"

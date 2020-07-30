@@ -21,7 +21,7 @@
 #include "config.h"
 #include "screen.h"
 #include "xrandrconfig.h"
-#include "../xcbwrapper.h"
+#include "xcbwrapper.h"
 
 #include <QX11Info>
 

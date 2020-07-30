@@ -23,7 +23,7 @@
 #include <QLoggingCategory>
 #include <QSize>
 
-#include "../xcbwrapper.h"
+#include "xcbwrapper.h"
 
 class QRect;
 class QTimer;

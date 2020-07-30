@@ -20,7 +20,7 @@
 #include "output.h"
 
 #include "xrandrmode.h"
-#include "../xcbwrapper.h"
+#include "xcbwrapper.h"
 
 #include <QObject>
 #include <QMap>

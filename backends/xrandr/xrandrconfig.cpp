@@ -26,7 +26,7 @@
 #include "output.h"
 #include "edid.h"
 
-#include "../xcbwrapper.h"
+#include "xcbwrapper.h"
 
 #include <QX11Info>
 #include <QRect>

@@ -9,8 +9,8 @@ set(xrandr_SRCS
     xrandroutput.cpp
     xrandrmode.cpp
     xrandrscreen.cpp
-    ../xcbwrapper.cpp
-    ../xcbeventlistener.cpp
+    xcbwrapper.cpp
+    xcbeventlistener.cpp
     ../utils.cpp
 )
 

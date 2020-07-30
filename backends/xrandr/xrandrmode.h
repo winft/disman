@@ -23,7 +23,7 @@
 #include <QSize>
 
 #include "types.h"
-#include "../xcbwrapper.h"
+#include "xcbwrapper.h"
 
 class XRandROutput;
 namespace Disman
