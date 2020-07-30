@@ -1,6 +1,6 @@
 add_subdirectory(fake)
 add_subdirectory(qscreen)
-add_subdirectory(kwayland)
+add_subdirectory(wayland)
 
 if(${XCB_RANDR_FOUND})
     message(STATUS "Will build xrandr backend.")
