@@ -20,25 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "wlroots_interface.h"
 #include "wlroots_logging.h"
 
-#include <disman/mode.h>
 #include <disman/edid.h>
+#include <disman/mode.h>
 
 #include <Wrapland/Client/wlr_output_configuration_v1.h>
 
 using namespace Disman;
 namespace Wl = Wrapland::Client;
 
-const QMap<Wl::WlrOutputHeadV1::Transform, Output::Rotation>
-s_rotationMap = {
-    {Wl::WlrOutputHeadV1::Transform::Normal, Output::None},
-    {Wl::WlrOutputHeadV1::Transform::Rotated90, Output::Right},
-    {Wl::WlrOutputHeadV1::Transform::Rotated180, Output::Inverted},
-    {Wl::WlrOutputHeadV1::Transform::Rotated270, Output::Left},
-    {Wl::WlrOutputHeadV1::Transform::Flipped, Output::None},
-    {Wl::WlrOutputHeadV1::Transform::Flipped90, Output::Right},
-    {Wl::WlrOutputHeadV1::Transform::Flipped180, Output::Inverted},
-    {Wl::WlrOutputHeadV1::Transform::Flipped270, Output::Left}
-};
+const QMap<Wl::WlrOutputHeadV1::Transform, Output::Rotation> s_rotationMap
+    = {{Wl::WlrOutputHeadV1::Transform::Normal, Output::None},
+       {Wl::WlrOutputHeadV1::Transform::Rotated90, Output::Right},
+       {Wl::WlrOutputHeadV1::Transform::Rotated180, Output::Inverted},
+       {Wl::WlrOutputHeadV1::Transform::Rotated270, Output::Left},
+       {Wl::WlrOutputHeadV1::Transform::Flipped, Output::None},
+       {Wl::WlrOutputHeadV1::Transform::Flipped90, Output::Right},
+       {Wl::WlrOutputHeadV1::Transform::Flipped180, Output::Inverted},
+       {Wl::WlrOutputHeadV1::Transform::Flipped270, Output::Left}};
 
 Output::Rotation toDismanRotation(const Wl::WlrOutputHeadV1::Transform transform)
 {
@@ -51,22 +49,20 @@ Wl::WlrOutputHeadV1::Transform toWraplandTransform(const Output::Rotation rotati
     return s_rotationMap.key(rotation);
 }
 
-WlrootsOutput::WlrootsOutput(quint32 id, Wrapland::Client::WlrOutputHeadV1 *head,
-                               WlrootsInterface *parent)
+WlrootsOutput::WlrootsOutput(quint32 id,
+                             Wrapland::Client::WlrOutputHeadV1* head,
+                             WlrootsInterface* parent)
     : WaylandOutput(id, parent)
     , m_head(head)
 {
     connect(m_head, &Wl::WlrOutputHeadV1::changed, this, &WlrootsOutput::changed);
     connect(m_head, &Wl::WlrOutputHeadV1::removed, this, &WlrootsOutput::removed);
 
-
     auto manager = parent->outputManager();
-    connect(manager, &Wl::WlrOutputManagerV1::done,
-        this, [this, manager]() {
-            disconnect(manager, &Wl::WlrOutputManagerV1::done, this, nullptr);
-            Q_EMIT dataReceived();
-        }
-    );
+    connect(manager, &Wl::WlrOutputManagerV1::done, this, [this, manager]() {
+        disconnect(manager, &Wl::WlrOutputManagerV1::done, this, nullptr);
+        Q_EMIT dataReceived();
+    });
 }
 
 bool WlrootsOutput::enabled() const
@@ -80,13 +76,13 @@ QByteArray WlrootsOutput::edid() const
     return QByteArray();
 }
 
-bool portraitMode(Wrapland::Client::WlrOutputHeadV1 *head)
+bool portraitMode(Wrapland::Client::WlrOutputHeadV1* head)
 {
     auto transform = head->transform();
     return transform == Wl::WlrOutputHeadV1::Transform::Rotated90
-            || transform == Wl::WlrOutputHeadV1::Transform::Rotated270
-            || transform == Wl::WlrOutputHeadV1::Transform::Flipped90
-            || transform == Wl::WlrOutputHeadV1::Transform::Flipped270;
+        || transform == Wl::WlrOutputHeadV1::Transform::Rotated270
+        || transform == Wl::WlrOutputHeadV1::Transform::Flipped90
+        || transform == Wl::WlrOutputHeadV1::Transform::Flipped270;
 }
 
 QRectF WlrootsOutput::geometry() const
@@ -103,19 +99,19 @@ QRectF WlrootsOutput::geometry() const
     return QRectF(m_head->position(), modeSize);
 }
 
-Wrapland::Client::WlrOutputHeadV1 *WlrootsOutput::outputHead() const
+Wrapland::Client::WlrOutputHeadV1* WlrootsOutput::outputHead() const
 {
     return m_head;
 }
 
-QString modeName(const Wl::WlrOutputModeV1 *mode)
+QString modeName(const Wl::WlrOutputModeV1* mode)
 {
-    return QString::number(mode->size().width()) + QLatin1Char('x') +
-           QString::number(mode->size().height()) + QLatin1Char('@') +
-           QString::number( qRound(mode->refresh() / 1000.0) );
+    return QString::number(mode->size().width()) + QLatin1Char('x')
+        + QString::number(mode->size().height()) + QLatin1Char('@')
+        + QString::number(qRound(mode->refresh() / 1000.0));
 }
 
-void WlrootsOutput::updateDismanOutput(OutputPtr &output)
+void WlrootsOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
     output->setEnabled(m_head->enabled());
@@ -171,8 +167,8 @@ void WlrootsOutput::updateDismanOutput(OutputPtr &output)
     output->setType(guessType(m_head->name(), m_head->name()));
 }
 
-bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1 *wlConfig,
-                                 const Disman::OutputPtr &output)
+bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
+                                const Disman::OutputPtr& output)
 {
     bool changed = false;
 
@@ -210,8 +206,8 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1 *wlConfig,
             wlConfig->setMode(m_head, newMode);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << output->currentModeId()
-                                   << "\n\n" << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << output->currentModeId() << "\n\n"
+                                  << m_modeIdMap;
     }
 
     return changed;
@@ -223,10 +219,11 @@ QString WlrootsOutput::name() const
     return m_head->description();
 }
 
-QDebug operator<<(QDebug dbg, const WlrootsOutput *output)
+QDebug operator<<(QDebug dbg, const WlrootsOutput* output)
 {
-    dbg << "WlrootsOutput(Id:" << output->id() <<", Name:" << \
-        QString(output->outputHead()->name() + QLatin1Char(' ') + \
-        output->outputHead()->description())  << ")";
+    dbg << "WlrootsOutput(Id:" << output->id() << ", Name:"
+        << QString(output->outputHead()->name() + QLatin1Char(' ')
+                   + output->outputHead()->description())
+        << ")";
     return dbg;
 }

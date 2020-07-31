@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using namespace Disman;
 
-WaylandOutput::WaylandOutput(quint32 id, QObject *parent)
+WaylandOutput::WaylandOutput(quint32 id, QObject* parent)
     : QObject(parent)
     , m_id(id)
 {
@@ -40,7 +40,7 @@ OutputPtr WaylandOutput::toDismanOutput()
     return output;
 }
 
-Disman::Output::Type WaylandOutput::guessType(const QString &type, const QString &name) const
+Disman::Output::Type WaylandOutput::guessType(const QString& type, const QString& name) const
 {
     return Utils::guessOutputType(type, name);
 }

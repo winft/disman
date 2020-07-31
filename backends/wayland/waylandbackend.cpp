@@ -38,8 +38,7 @@ WaylandBackend::WaylandBackend()
 {
     qCDebug(DISMAN_WAYLAND) << "Loading Wayland backend.";
 
-    connect(m_internalConfig, &WaylandConfig::configChanged,
-            this, [this]() {
+    connect(m_internalConfig, &WaylandConfig::configChanged, this, [this]() {
         Q_EMIT configChanged(m_internalConfig->currentConfig());
     });
 }
@@ -62,7 +61,7 @@ ConfigPtr WaylandBackend::config() const
     return m_internalConfig->currentConfig();
 }
 
-void WaylandBackend::setConfig(const Disman::ConfigPtr &newconfig)
+void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
 {
     if (!newconfig) {
         return;
@@ -72,7 +71,7 @@ void WaylandBackend::setConfig(const Disman::ConfigPtr &newconfig)
 
 QByteArray WaylandBackend::edid(int outputId) const
 {
-    WaylandOutput *output = m_internalConfig->outputMap().value(outputId);
+    WaylandOutput* output = m_internalConfig->outputMap().value(outputId);
     if (!output) {
         return QByteArray();
     }

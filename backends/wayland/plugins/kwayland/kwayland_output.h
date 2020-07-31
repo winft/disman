@@ -43,10 +43,10 @@ class KWaylandOutput : public WaylandOutput
     Q_OBJECT
 
 public:
-    explicit KWaylandOutput(quint32 id, QObject *parent = nullptr);
+    explicit KWaylandOutput(quint32 id, QObject* parent = nullptr);
     ~KWaylandOutput() override = default;
 
-    void updateDismanOutput(Disman::OutputPtr &output) override;
+    void updateDismanOutput(Disman::OutputPtr& output) override;
 
     QString name() const;
     QByteArray edid() const override;
@@ -54,17 +54,17 @@ public:
     QRectF geometry() const override;
 
     KWayland::Client::OutputDevice* outputDevice() const;
-    void createOutputDevice(KWayland::Client::Registry *registry, quint32 name, quint32 version);
+    void createOutputDevice(KWayland::Client::Registry* registry, quint32 name, quint32 version);
 
-    bool setWlConfig(KWayland::Client::OutputConfiguration *wlConfig,
-                   const Disman::OutputPtr &output);
+    bool setWlConfig(KWayland::Client::OutputConfiguration* wlConfig,
+                     const Disman::OutputPtr& output);
 
 private:
     void showOutput();
-    QString modeName(const KWayland::Client::OutputDevice::Mode &m) const;
+    QString modeName(const KWayland::Client::OutputDevice::Mode& m) const;
 
-    KWayland::Client::OutputDevice *m_device;
-    KWayland::Client::Registry *m_registry;
+    KWayland::Client::OutputDevice* m_device;
+    KWayland::Client::Registry* m_registry;
 
     // left-hand-side: Disman::Mode, right-hand-side: KWayland's mode.id
     QMap<QString, int> m_modeIdMap;

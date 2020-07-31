@@ -41,10 +41,10 @@ class KwinftOutput : public WaylandOutput
     Q_OBJECT
 
 public:
-    explicit KwinftOutput(quint32 id, QObject *parent = nullptr);
+    explicit KwinftOutput(quint32 id, QObject* parent = nullptr);
     ~KwinftOutput() override = default;
 
-    void updateDismanOutput(Disman::OutputPtr &output) override;
+    void updateDismanOutput(Disman::OutputPtr& output) override;
 
     QString name() const;
     QByteArray edid() const override;
@@ -52,17 +52,17 @@ public:
     QRectF geometry() const override;
 
     Wrapland::Client::OutputDeviceV1* outputDevice() const;
-    void createOutputDevice(Wrapland::Client::Registry *registry, quint32 name, quint32 version);
+    void createOutputDevice(Wrapland::Client::Registry* registry, quint32 name, quint32 version);
 
-    bool setWlConfig(Wrapland::Client::OutputConfigurationV1 *wlConfig,
-                     const Disman::OutputPtr &output);
+    bool setWlConfig(Wrapland::Client::OutputConfigurationV1* wlConfig,
+                     const Disman::OutputPtr& output);
 
 private:
     void showOutput();
-    QString modeName(const Wrapland::Client::OutputDeviceV1::Mode &m) const;
+    QString modeName(const Wrapland::Client::OutputDeviceV1::Mode& m) const;
 
-    Wrapland::Client::OutputDeviceV1 *m_device;
-    Wrapland::Client::Registry *m_registry;
+    Wrapland::Client::OutputDeviceV1* m_device;
+    Wrapland::Client::Registry* m_registry;
 
     // left-hand-side: Disman::Mode, right-hand-side: Wrapland's mode.id
     QMap<QString, int> m_modeIdMap;

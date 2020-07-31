@@ -34,14 +34,14 @@ class WaylandScreen : public QObject
     Q_OBJECT
 
 public:
-    explicit WaylandScreen(WaylandConfig *config);
+    explicit WaylandScreen(WaylandConfig* config);
     ~WaylandScreen() override = default;
 
-    Disman::ScreenPtr toDismanScreen(Disman::ConfigPtr &parent) const;
-    void updateDismanScreen(Disman::ScreenPtr &screen) const;
-    void setOutputs(const QList<WaylandOutput*> &outputs);
+    Disman::ScreenPtr toDismanScreen(Disman::ConfigPtr& parent) const;
+    void updateDismanScreen(Disman::ScreenPtr& screen) const;
+    void setOutputs(const QList<WaylandOutput*>& outputs);
 
-    void setSize(const QSize &size);
+    void setSize(const QSize& size);
     void setOutputCount(int count);
 
 private:

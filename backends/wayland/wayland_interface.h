@@ -40,26 +40,26 @@ class DISMAN_WAYLAND_EXPORT WaylandInterface : public QObject
 public:
     ~WaylandInterface() override;
 
-    virtual void initConnection(QThread *thread) = 0;
+    virtual void initConnection(QThread* thread) = 0;
     virtual bool isInitialized() const;
 
     // Compositor side names as keys
     virtual QMap<int, WaylandOutput*> outputMap() const = 0;
 
-    virtual void applyConfig(const Disman::ConfigPtr &newConfig);
-    virtual void updateConfig(Disman::ConfigPtr &config) = 0;
+    virtual void applyConfig(const Disman::ConfigPtr& newConfig);
+    virtual void updateConfig(Disman::ConfigPtr& config) = 0;
 
 Q_SIGNALS:
     void configChanged();
     void initialized();
-    void connectionFailed(const QString &socketName);
+    void connectionFailed(const QString& socketName);
     void outputsChanged();
 
 protected:
-    explicit WaylandInterface(QObject *parent = nullptr);
+    explicit WaylandInterface(QObject* parent = nullptr);
 
-    virtual void insertOutput(WaylandOutput *output) = 0;
-    virtual WaylandOutput* takeOutput(WaylandOutput *output) = 0;
+    virtual void insertOutput(WaylandOutput* output) = 0;
+    virtual WaylandOutput* takeOutput(WaylandOutput* output) = 0;
 
     bool signalsBlocked() const;
     void blockSignals();
@@ -67,17 +67,17 @@ protected:
 
     void checkInitialized();
 
-    void addOutput(WaylandOutput *output);
+    void addOutput(WaylandOutput* output);
     virtual void handleDisconnect();
 
 private:
-    void removeOutput(WaylandOutput *output);
+    void removeOutput(WaylandOutput* output);
 
     /**
      * Finalize: when the output is is initialized, we put it in the known outputs map,
      * remove it from the list of initializing outputs, and emit configChanged().
      */
-    virtual void initOutput(WaylandOutput *output);
+    virtual void initOutput(WaylandOutput* output);
 
     void tryPendingConfig();
 
@@ -87,17 +87,20 @@ private:
 
     bool m_blockSignals;
     Disman::ConfigPtr m_dismanConfig;
-    WaylandScreen *m_screen;
+    WaylandScreen* m_screen;
 };
 
 class DISMAN_EXPORT WaylandFactory : public QObject
 {
     Q_OBJECT
 public:
-    WaylandFactory(QObject *parent = nullptr) : QObject(parent) {}
+    WaylandFactory(QObject* parent = nullptr)
+        : QObject(parent)
+    {
+    }
     ~WaylandFactory() override = default;
 
-    virtual WaylandInterface* createInterface(QObject *parent = nullptr) = 0;
+    virtual WaylandInterface* createInterface(QObject* parent = nullptr) = 0;
 };
 
 }

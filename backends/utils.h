@@ -21,9 +21,10 @@
 
 #include <disman/output.h>
 
-namespace Utils {
+namespace Utils
+{
 
-Disman::Output::Type guessOutputType(const QString &type, const QString &name);
+Disman::Output::Type guessOutputType(const QString& type, const QString& name);
 
 }
 

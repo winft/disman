@@ -30,12 +30,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using namespace Disman;
 
-WaylandInterface* WlrootsFactory::createInterface(QObject *parent)
+WaylandInterface* WlrootsFactory::createInterface(QObject* parent)
 {
     return new WlrootsInterface(parent);
 }
 
-WlrootsInterface::WlrootsInterface(QObject *parent)
+WlrootsInterface::WlrootsInterface(QObject* parent)
     : WaylandInterface(parent)
     , m_outputManager(nullptr)
     , m_registryInitialized(false)
@@ -43,22 +43,26 @@ WlrootsInterface::WlrootsInterface(QObject *parent)
 {
 }
 
-void WlrootsInterface::initConnection(QThread *thread)
+void WlrootsInterface::initConnection(QThread* thread)
 {
     m_connection = new Wrapland::Client::ConnectionThread;
 
-    connect(m_connection, &Wrapland::Client::ConnectionThread::establishedChanged,
-            this, [this](bool established) {
+    connect(
+        m_connection,
+        &Wrapland::Client::ConnectionThread::establishedChanged,
+        this,
+        [this](bool established) {
             if (established) {
                 setupRegistry();
             } else {
                 handleDisconnect();
             }
-     }, Qt::QueuedConnection);
+        },
+        Qt::QueuedConnection);
 
     connect(m_connection, &Wrapland::Client::ConnectionThread::failed, this, [this] {
         qCWarning(DISMAN_WAYLAND) << "Failed to connect to Wayland server at socket:"
-                                   << m_connection->socketName();
+                                  << m_connection->socketName();
         Q_EMIT connectionFailed(m_connection->socketName());
     });
 
@@ -74,8 +78,7 @@ Wrapland::Client::WlrOutputManagerV1* WlrootsInterface::outputManager() const
 
 bool WlrootsInterface::isInitialized() const
 {
-    return m_registryInitialized && m_outputManager != nullptr
-            && WaylandInterface::isInitialized();
+    return m_registryInitialized && m_outputManager != nullptr && WaylandInterface::isInitialized();
 }
 
 void WlrootsInterface::handleDisconnect()
@@ -102,63 +105,65 @@ void WlrootsInterface::setupRegistry()
 
     m_registry = new Wrapland::Client::Registry(this);
 
-    connect(m_registry, &Wrapland::Client::Registry::wlrOutputManagerV1Announced,
-            this, [this](quint32 name, quint32 version) {
+    connect(m_registry,
+            &Wrapland::Client::Registry::wlrOutputManagerV1Announced,
+            this,
+            [this](quint32 name, quint32 version) {
                 m_outputManager = m_registry->createWlrOutputManagerV1(name, version, m_registry);
 
-                connect(m_outputManager, &Wrapland::Client::WlrOutputManagerV1::head,
-                        this, &WlrootsInterface::addHead);
+                connect(m_outputManager,
+                        &Wrapland::Client::WlrOutputManagerV1::head,
+                        this,
+                        &WlrootsInterface::addHead);
 
-                connect(m_outputManager, &Wrapland::Client::WlrOutputManagerV1::done,
-                        this, [this] {
+                connect(m_outputManager, &Wrapland::Client::WlrOutputManagerV1::done, this, [this] {
                     // We only need to process this once in the beginning.
                     disconnect(m_outputManager,
-                               &Wrapland::Client::WlrOutputManagerV1::done, this, nullptr);
+                               &Wrapland::Client::WlrOutputManagerV1::done,
+                               this,
+                               nullptr);
                     unblockSignals();
                     checkInitialized();
                 });
                 m_outputManager->setEventQueue(m_queue);
-            }
-    );
+            });
 
-    connect(m_registry, &Wrapland::Client::Registry::interfacesAnnounced,
-            this, [this] {
-                m_registryInitialized = true;
-                checkInitialized();
-            }
-    );
+    connect(m_registry, &Wrapland::Client::Registry::interfacesAnnounced, this, [this] {
+        m_registryInitialized = true;
+        checkInitialized();
+    });
 
     m_registry->setEventQueue(m_queue);
     m_registry->create(m_connection);
     m_registry->setup();
 }
 
-void WlrootsInterface::addHead(Wrapland::Client::WlrOutputHeadV1 *head)
+void WlrootsInterface::addHead(Wrapland::Client::WlrOutputHeadV1* head)
 {
     auto output = new WlrootsOutput(++m_outputId, head, this);
     addOutput(output);
 }
 
-void WlrootsInterface::insertOutput(WaylandOutput *output)
+void WlrootsInterface::insertOutput(WaylandOutput* output)
 {
-    auto *out = static_cast<WlrootsOutput*>(output);
+    auto* out = static_cast<WlrootsOutput*>(output);
     m_outputMap.insert(out->id(), out);
 }
 
-WaylandOutput* WlrootsInterface::takeOutput(WaylandOutput *output)
+WaylandOutput* WlrootsInterface::takeOutput(WaylandOutput* output)
 {
-    auto *out = static_cast<WlrootsOutput*>(output);
+    auto* out = static_cast<WlrootsOutput*>(output);
     return m_outputMap.take(out->id());
 }
 
-void WlrootsInterface::updateConfig(Disman::ConfigPtr &config)
+void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
 {
     config->setSupportedFeatures(Config::Feature::Writable | Config::Feature::PerOutputScaling);
     config->setValid(m_connection->display());
 
-    //Removing removed outputs
+    // Removing removed outputs
     const Disman::OutputList outputs = config->outputs();
-    for (const auto &output : outputs) {
+    for (const auto& output : outputs) {
         if (!m_outputMap.contains(output->id())) {
             config->removeOutput(output->id());
         }
@@ -166,7 +171,7 @@ void WlrootsInterface::updateConfig(Disman::ConfigPtr &config)
 
     // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
     Disman::OutputList dismanOutputs = config->outputs();
-    for (const auto &output : m_outputMap) {
+    for (const auto& output : m_outputMap) {
         Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
         if (!dismanOutput) {
             dismanOutput = output->toDismanOutput();
@@ -204,12 +209,12 @@ void WlrootsInterface::tryPendingConfig()
     m_dismanPendingConfig = nullptr;
 }
 
-void WlrootsInterface::applyConfig(const Disman::ConfigPtr &newConfig)
+void WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
     using namespace Wrapland::Client;
 
     // Create a new configuration object
-    auto *wlConfig = m_outputManager->createConfiguration();
+    auto* wlConfig = m_outputManager->createConfiguration();
     wlConfig->setEventQueue(m_queue);
 
     bool changed = false;
@@ -220,7 +225,7 @@ void WlrootsInterface::applyConfig(const Disman::ConfigPtr &newConfig)
         return;
     }
 
-    for (const auto &output : newConfig->outputs()) {
+    for (const auto& output : newConfig->outputs()) {
         changed |= m_outputMap[output->id()]->setWlConfig(wlConfig, output);
     }
 

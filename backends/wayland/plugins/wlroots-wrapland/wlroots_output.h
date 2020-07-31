@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "output.h"
 #include "waylandoutput.h"
 
-#include <Wrapland/Client/wlr_output_manager_v1.h>
 #include <Wrapland/Client/registry.h>
+#include <Wrapland/Client/wlr_output_manager_v1.h>
 
 #include <QRectF>
 
@@ -44,11 +44,12 @@ class WlrootsOutput : public WaylandOutput
     Q_OBJECT
 
 public:
-    explicit WlrootsOutput(quint32 id, Wrapland::Client::WlrOutputHeadV1 *head,
-                            WlrootsInterface *parent);
+    explicit WlrootsOutput(quint32 id,
+                           Wrapland::Client::WlrOutputHeadV1* head,
+                           WlrootsInterface* parent);
     ~WlrootsOutput() override = default;
 
-    void updateDismanOutput(Disman::OutputPtr &output) override;
+    void updateDismanOutput(Disman::OutputPtr& output) override;
 
     QString name() const;
     QByteArray edid() const override;
@@ -57,14 +58,14 @@ public:
 
     Wrapland::Client::WlrOutputHeadV1* outputHead() const;
 
-    bool setWlConfig(Wrapland::Client::WlrOutputConfigurationV1 *wlConfig,
-                     const Disman::OutputPtr &output);
+    bool setWlConfig(Wrapland::Client::WlrOutputConfigurationV1* wlConfig,
+                     const Disman::OutputPtr& output);
 
 private:
     void showOutput();
 
-    Wrapland::Client::WlrOutputHeadV1 *m_head;
-    Wrapland::Client::Registry *m_registry;
+    Wrapland::Client::WlrOutputHeadV1* m_head;
+    Wrapland::Client::Registry* m_registry;
 
     // left-hand-side: Disman::Mode, right-hand-side: Wrapland's WlrOutputModeV1
     QMap<QString, Wrapland::Client::WlrOutputModeV1*> m_modeIdMap;

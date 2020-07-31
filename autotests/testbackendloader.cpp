@@ -16,9 +16,9 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 #include <QCoreApplication>
-#include <QtTest>
 #include <QObject>
 #include <QSignalSpy>
+#include <QtTest>
 
 #include "../src/backendmanager_p.h"
 
@@ -31,7 +31,7 @@ class TestBackendLoader : public QObject
     Q_OBJECT
 
 public:
-    explicit TestBackendLoader(QObject *parent = nullptr);
+    explicit TestBackendLoader(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void initTestCase();
@@ -43,7 +43,7 @@ private Q_SLOTS:
     void testFallback();
 };
 
-TestBackendLoader::TestBackendLoader(QObject *parent)
+TestBackendLoader::TestBackendLoader(QObject* parent)
     : QObject(parent)
 {
     qputenv("DISMAN_LOGGING", "false");
@@ -76,14 +76,21 @@ void TestBackendLoader::testEnv_data()
     QTest::addColumn<QString>("var");
     QTest::addColumn<QString>("backend");
 
-    QTest::newRow("all lower") << "wayland" << "wayland";
-    QTest::newRow("camel case") << "Wayland" << "wayland";
-    QTest::newRow("all upper") << "WAYLAND" << "wayland";
-    QTest::newRow("mixed") << "wAYlaND" << "wayland";
+    QTest::newRow("all lower") << "wayland"
+                               << "wayland";
+    QTest::newRow("camel case") << "Wayland"
+                                << "wayland";
+    QTest::newRow("all upper") << "WAYLAND"
+                               << "wayland";
+    QTest::newRow("mixed") << "wAYlaND"
+                           << "wayland";
 
-    QTest::newRow("randr") << "randr" << "randr";
-    QTest::newRow("qscreen") << "qscreen" << "qscreen";
-    QTest::newRow("mixed") << "fake" << "fake";
+    QTest::newRow("randr") << "randr"
+                           << "randr";
+    QTest::newRow("qscreen") << "qscreen"
+                             << "qscreen";
+    QTest::newRow("mixed") << "fake"
+                           << "fake";
 }
 
 void TestBackendLoader::testEnv()

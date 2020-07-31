@@ -16,22 +16,22 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "mode.h"
 
 using namespace Disman;
 class Q_DECL_HIDDEN Mode::Private
 {
-  public:
-    Private():
-      rate(0)
-    { }
+public:
+    Private()
+        : rate(0)
+    {
+    }
 
-    Private(const Private &other):
-        id(other.id),
-        name(other.name),
-        size(other.size),
-        rate(other.rate)
+    Private(const Private& other)
+        : id(other.id)
+        , name(other.name)
+        , size(other.size)
+        , rate(other.rate)
     {
     }
 
@@ -42,15 +42,14 @@ class Q_DECL_HIDDEN Mode::Private
 };
 
 Mode::Mode()
-  : QObject(nullptr)
-  , d(new Private())
+    : QObject(nullptr)
+    , d(new Private())
 {
-
 }
 
-Mode::Mode(Mode::Private *dd)
-  : QObject()
-  , d(dd)
+Mode::Mode(Mode::Private* dd)
+    : QObject()
+    , d(dd)
 {
 }
 
@@ -96,7 +95,6 @@ void Mode::setName(const QString& name)
     Q_EMIT modeChanged();
 }
 
-
 QSize Mode::size() const
 {
     return d->size;
@@ -129,11 +127,12 @@ void Mode::setRefreshRate(float refresh)
     Q_EMIT modeChanged();
 }
 
-QDebug operator<<(QDebug dbg, const Disman::ModePtr &mode)
+QDebug operator<<(QDebug dbg, const Disman::ModePtr& mode)
 {
     if (mode) {
-        dbg << "Disman::Mode(Id:" << mode->id() << ", Size:" << mode->size() << "@" << mode->refreshRate() << ")";
-    }  else {
+        dbg << "Disman::Mode(Id:" << mode->id() << ", Size:" << mode->size() << "@"
+            << mode->refreshRate() << ")";
+    } else {
         dbg << "Disman::Mode(NULL)";
     }
     return dbg;

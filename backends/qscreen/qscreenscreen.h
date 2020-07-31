@@ -15,33 +15,33 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef QSCREEN_SCREEN_H
 #define QSCREEN_SCREEN_H
 
 #include "config.h"
 #include "screen.h"
 
+#include <QLoggingCategory>
 #include <QScreen>
 #include <QSize>
-#include <QLoggingCategory>
 
 namespace Disman
 {
 class Output;
+class QScreenConfig;
 
 class QScreenScreen : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit QScreenScreen(QScreenConfig *config);
+    explicit QScreenScreen(QScreenConfig* config);
     ~QScreenScreen() override;
 
     Disman::ScreenPtr toDismanScreen() const;
-    void updateDismanScreen(Disman::ScreenPtr &screen) const;
+    void updateDismanScreen(Disman::ScreenPtr& screen) const;
 };
 
-} // namespace
+}
 
-#endif // QSCREEN_SCREEN_H
+#endif

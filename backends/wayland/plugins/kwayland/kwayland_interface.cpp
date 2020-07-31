@@ -19,29 +19,28 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "kwayland_interface.h"
 
-#include "waylandbackend.h"
 #include "kwayland_output.h"
+#include "waylandbackend.h"
 #include "waylandscreen.h"
 
 #include "kwayland_logging.h"
 
 #include <KWayland/Client/connection_thread.h>
 #include <KWayland/Client/event_queue.h>
-#include <KWayland/Client/registry.h>
 #include <KWayland/Client/outputconfiguration.h>
 #include <KWayland/Client/outputmanagement.h>
+#include <KWayland/Client/registry.h>
 
 #include <QThread>
 
 using namespace Disman;
 
-
-WaylandInterface* KWaylandFactory::createInterface(QObject *parent)
+WaylandInterface* KWaylandFactory::createInterface(QObject* parent)
 {
     return new KWaylandInterface(parent);
 }
 
-KWaylandInterface::KWaylandInterface(QObject *parent)
+KWaylandInterface::KWaylandInterface(QObject* parent)
     : WaylandInterface(parent)
     , m_outputManagement(nullptr)
     , m_registryInitialized(false)
@@ -49,19 +48,25 @@ KWaylandInterface::KWaylandInterface(QObject *parent)
 {
 }
 
-void KWaylandInterface::initConnection(QThread *thread)
+void KWaylandInterface::initConnection(QThread* thread)
 {
     m_connection = new KWayland::Client::ConnectionThread;
 
-    connect(m_connection, &KWayland::Client::ConnectionThread::connected,
-            this, &KWaylandInterface::setupRegistry, Qt::QueuedConnection);
+    connect(m_connection,
+            &KWayland::Client::ConnectionThread::connected,
+            this,
+            &KWaylandInterface::setupRegistry,
+            Qt::QueuedConnection);
 
-    connect(m_connection, &KWayland::Client::ConnectionThread::connectionDied,
-            this, &KWaylandInterface::handleDisconnect, Qt::QueuedConnection);
+    connect(m_connection,
+            &KWayland::Client::ConnectionThread::connectionDied,
+            this,
+            &KWaylandInterface::handleDisconnect,
+            Qt::QueuedConnection);
 
     connect(m_connection, &KWayland::Client::ConnectionThread::failed, this, [this] {
         qCWarning(DISMAN_WAYLAND) << "Failed to connect to Wayland server at socket:"
-                                   << m_connection->socketName();
+                                  << m_connection->socketName();
         Q_EMIT connectionFailed(m_connection->socketName());
     });
 
@@ -73,7 +78,7 @@ void KWaylandInterface::initConnection(QThread *thread)
 bool KWaylandInterface::isInitialized() const
 {
     return m_registryInitialized && m_outputManagement != nullptr
-            && WaylandInterface::isInitialized();
+        && WaylandInterface::isInitialized();
 }
 
 void KWaylandInterface::handleDisconnect()
@@ -100,22 +105,23 @@ void KWaylandInterface::setupRegistry()
 
     m_registry = new KWayland::Client::Registry(this);
 
-    connect(m_registry, &KWayland::Client::Registry::outputDeviceAnnounced,
-            this, &KWaylandInterface::addOutputDevice);
+    connect(m_registry,
+            &KWayland::Client::Registry::outputDeviceAnnounced,
+            this,
+            &KWaylandInterface::addOutputDevice);
 
-    connect(m_registry, &KWayland::Client::Registry::outputManagementAnnounced,
-            this, [this](quint32 name, quint32 version) {
+    connect(m_registry,
+            &KWayland::Client::Registry::outputManagementAnnounced,
+            this,
+            [this](quint32 name, quint32 version) {
                 m_outputManagement = m_registry->createOutputManagement(name, version, m_registry);
-            }
-    );
+            });
 
-    connect(m_registry, &KWayland::Client::Registry::interfacesAnnounced,
-            this, [this] {
-                m_registryInitialized = true;
-                unblockSignals();
-                checkInitialized();
-            }
-    );
+    connect(m_registry, &KWayland::Client::Registry::interfacesAnnounced, this, [this] {
+        m_registryInitialized = true;
+        unblockSignals();
+        checkInitialized();
+    });
 
     m_registry->create(m_connection);
     m_registry->setEventQueue(m_queue);
@@ -126,32 +132,32 @@ int s_outputId = 0;
 
 void KWaylandInterface::addOutputDevice(quint32 name, quint32 version)
 {
-    KWaylandOutput *output = new KWaylandOutput(++s_outputId, this);
+    KWaylandOutput* output = new KWaylandOutput(++s_outputId, this);
     output->createOutputDevice(m_registry, name, version);
     addOutput(output);
 }
 
-void KWaylandInterface::insertOutput(WaylandOutput *output)
+void KWaylandInterface::insertOutput(WaylandOutput* output)
 {
-    auto *out = static_cast<KWaylandOutput*>(output);
+    auto* out = static_cast<KWaylandOutput*>(output);
     m_outputMap.insert(out->id(), out);
 }
 
-WaylandOutput* KWaylandInterface::takeOutput(WaylandOutput *output)
+WaylandOutput* KWaylandInterface::takeOutput(WaylandOutput* output)
 {
-    auto *out = static_cast<KWaylandOutput*>(output);
+    auto* out = static_cast<KWaylandOutput*>(output);
     return m_outputMap.take(out->id());
 }
 
-void KWaylandInterface::updateConfig(Disman::ConfigPtr &config)
+void KWaylandInterface::updateConfig(Disman::ConfigPtr& config)
 {
     config->setSupportedFeatures(Config::Feature::Writable | Config::Feature::PerOutputScaling
                                  | Config::Feature::AutoRotation | Config::Feature::TabletMode);
     config->setValid(m_connection->display());
 
-    //Removing removed outputs
+    // Removing removed outputs
     const Disman::OutputList outputs = config->outputs();
-    for (const auto &output : outputs) {
+    for (const auto& output : outputs) {
         if (!m_outputMap.contains(output->id())) {
             config->removeOutput(output->id());
         }
@@ -159,7 +165,7 @@ void KWaylandInterface::updateConfig(Disman::ConfigPtr &config)
 
     // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
     Disman::OutputList dismanOutputs = config->outputs();
-    for (const auto &output : m_outputMap) {
+    for (const auto& output : m_outputMap) {
         Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
         if (!dismanOutput) {
             dismanOutput = output->toDismanOutput();
@@ -196,7 +202,7 @@ void KWaylandInterface::tryPendingConfig()
     m_dismanPendingConfig = nullptr;
 }
 
-void KWaylandInterface::applyConfig(const Disman::ConfigPtr &newConfig)
+void KWaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
     using namespace KWayland::Client;
 
@@ -210,7 +216,7 @@ void KWaylandInterface::applyConfig(const Disman::ConfigPtr &newConfig)
         return;
     }
 
-    for (const auto &output : newConfig->outputs()) {
+    for (const auto& output : newConfig->outputs()) {
         changed |= m_outputMap[output->id()]->setWlConfig(wlConfig, output);
     }
 

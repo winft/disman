@@ -15,21 +15,20 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include <QCoreApplication>
-#include <QtTest>
+#include <QDBusConnectionInterface>
 #include <QObject>
 #include <QSignalSpy>
-#include <QDBusConnectionInterface>
+#include <QtTest>
 
 #include "../src/backendmanager_p.h"
-#include "../src/getconfigoperation.h"
-#include "../src/setconfigoperation.h"
 #include "../src/config.h"
 #include "../src/configmonitor.h"
-#include "../src/output.h"
-#include "../src/mode.h"
 #include "../src/edid.h"
+#include "../src/getconfigoperation.h"
+#include "../src/mode.h"
+#include "../src/output.h"
+#include "../src/setconfigoperation.h"
 
 Q_LOGGING_CATEGORY(DISMAN, "disman")
 
@@ -40,7 +39,7 @@ class TestInProcess : public QObject
     Q_OBJECT
 
 public:
-    explicit TestInProcess(QObject *parent = nullptr);
+    explicit TestInProcess(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void initTestCase();
@@ -58,13 +57,11 @@ private Q_SLOTS:
     void testConfigMonitor();
 
 private:
-
     ConfigPtr m_config;
     bool m_backendServiceInstalled = false;
-
 };
 
-TestInProcess::TestInProcess(QObject *parent)
+TestInProcess::TestInProcess(QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
 {
@@ -75,7 +72,7 @@ void TestInProcess::initTestCase()
     m_backendServiceInstalled = true;
 
     const QString dismanServiceName = QStringLiteral("Disman");
-    QDBusConnectionInterface *bus = QDBusConnection::sessionBus().interface();
+    QDBusConnectionInterface* bus = QDBusConnection::sessionBus().interface();
     if (!bus->isServiceRegistered(dismanServiceName)) {
         auto reply = bus->startService(dismanServiceName);
         if (!reply.isValid()) {
@@ -107,7 +104,7 @@ void TestInProcess::loadConfig()
     qputenv("DISMAN_BACKEND_INPROCESS", "1");
     BackendManager::instance()->setMethod(BackendManager::InProcess);
 
-    auto *op = new GetConfigOperation();
+    auto* op = new GetConfigOperation();
     QVERIFY(op->exec());
     m_config = op->config();
     QVERIFY(m_config);
@@ -196,7 +193,7 @@ void TestInProcess::testBackendCaching()
         QVERIFY(cc->outputs().count());
     }
     {
-        //Disman::BackendManager::instance()->shutdownBackend();
+        // Disman::BackendManager::instance()->shutdownBackend();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
         t.start();
         auto cp = new GetConfigOperation();
@@ -220,7 +217,7 @@ void TestInProcess::testBackendCaching()
     Disman::BackendManager::instance()->shutdownBackend();
 
     if (m_backendServiceInstalled) {
-        //qputenv("DISMAN_BACKEND", "QScreen");
+        // qputenv("DISMAN_BACKEND", "QScreen");
         qputenv("DISMAN_BACKEND_INPROCESS", "0");
         BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
@@ -293,12 +290,12 @@ void TestInProcess::testConfigApply()
     auto op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
-//     qDebug() << "op:" << config->outputs().count();
+    //     qDebug() << "op:" << config->outputs().count();
     auto output = config->outputs().first();
-//     qDebug() << "res:" << output->geometry();
-//     qDebug() << "modes:" << output->modes();
+    //     qDebug() << "res:" << output->geometry();
+    //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().first();
-    //qDebug() << "m0:" << m0->id() << m0;
+    // qDebug() << "m0:" << m0->id() << m0;
     output->setCurrentModeId(m0->id());
     QVERIFY(Config::canBeApplied(config));
 
@@ -324,7 +321,7 @@ void TestInProcess::testConfigMonitor()
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().first();
-    //qDebug() << "m0:" << m0->id() << m0;
+    // qDebug() << "m0:" << m0->id() << m0;
     output->setCurrentModeId(m0->id());
     QVERIFY(Config::canBeApplied(config));
 
@@ -337,7 +334,6 @@ void TestInProcess::testConfigMonitor()
     // do not cal setop->exec(), this must not block as the signalspy already blocks
     QVERIFY(monitorSpy.wait(500));
 }
-
 
 QTEST_GUILESS_MAIN(TestInProcess)
 

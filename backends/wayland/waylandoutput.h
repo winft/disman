@@ -33,18 +33,18 @@ class DISMAN_WAYLAND_EXPORT WaylandOutput : public QObject
     Q_OBJECT
 
 public:
-    explicit WaylandOutput(quint32 id, QObject *parent = nullptr);
+    explicit WaylandOutput(quint32 id, QObject* parent = nullptr);
     ~WaylandOutput() override = default;
 
     Disman::OutputPtr toDismanOutput();
-    virtual void updateDismanOutput(Disman::OutputPtr &output) = 0;
+    virtual void updateDismanOutput(Disman::OutputPtr& output) = 0;
 
     virtual quint32 id() const;
     virtual QByteArray edid() const = 0;
     virtual bool enabled() const = 0;
     virtual QRectF geometry() const = 0;
 
-    Disman::Output::Type guessType(const QString &type, const QString &name) const;
+    Disman::Output::Type guessType(const QString& type, const QString& name) const;
 
 Q_SIGNALS:
     void dataReceived();

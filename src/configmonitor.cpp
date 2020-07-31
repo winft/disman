@@ -15,54 +15,53 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "configmonitor.h"
-#include "backendmanager_p.h"
-#include "backendinterface.h"
 #include "abstractbackend.h"
+#include "backendinterface.h"
+#include "backendmanager_p.h"
 #include "configserializer_p.h"
-#include "getconfigoperation.h"
 #include "disman_debug.h"
+#include "getconfigoperation.h"
 #include "output.h"
 
 #include <QDBusPendingCallWatcher>
 
 using namespace Disman;
 
-
 class Q_DECL_HIDDEN ConfigMonitor::Private : public QObject
 {
-      Q_OBJECT
+    Q_OBJECT
 
 public:
-    Private(ConfigMonitor *q);
+    Private(ConfigMonitor* q);
 
     void updateConfigs();
-    void onBackendReady(org::kwinft::disman::backend *backend);
-    void backendConfigChanged(const QVariantMap &configMap);
+    void onBackendReady(org::kwinft::disman::backend* backend);
+    void backendConfigChanged(const QVariantMap& configMap);
     void configDestroyed(QObject* removedConfig);
-    void getConfigFinished(ConfigOperation *op);
-    void updateConfigs(const Disman::ConfigPtr &newConfig);
-    void edidReady(QDBusPendingCallWatcher *watcher);
+    void getConfigFinished(ConfigOperation* op);
+    void updateConfigs(const Disman::ConfigPtr& newConfig);
+    void edidReady(QDBusPendingCallWatcher* watcher);
 
-    QList<QWeakPointer<Disman::Config>>  watchedConfigs;
+    QList<QWeakPointer<Disman::Config>> watchedConfigs;
 
     QPointer<org::kwinft::disman::backend> mBackend;
     bool mFirstBackend;
 
     QMap<Disman::ConfigPtr, QList<int>> mPendingEDIDRequests;
+
 private:
-    ConfigMonitor *q;
+    ConfigMonitor* q;
 };
 
-ConfigMonitor::Private::Private(ConfigMonitor *q)
+ConfigMonitor::Private::Private(ConfigMonitor* q)
     : QObject(q)
     , mFirstBackend(true)
     , q(q)
 {
 }
 
-void ConfigMonitor::Private::onBackendReady(org::kwinft::disman::backend *backend)
+void ConfigMonitor::Private::onBackendReady(org::kwinft::disman::backend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     if (backend == mBackend) {
@@ -70,8 +69,10 @@ void ConfigMonitor::Private::onBackendReady(org::kwinft::disman::backend *backen
     }
 
     if (mBackend) {
-        disconnect(mBackend.data(), &org::kwinft::disman::backend::configChanged,
-                   this, &ConfigMonitor::Private::backendConfigChanged);
+        disconnect(mBackend.data(),
+                   &org::kwinft::disman::backend::configChanged,
+                   this,
+                   &ConfigMonitor::Private::backendConfigChanged);
     }
 
     mBackend = QPointer<org::kwinft::disman::backend>(backend);
@@ -84,14 +85,17 @@ void ConfigMonitor::Private::onBackendReady(org::kwinft::disman::backend *backen
     // the result will be invalid. This can happen when Disman KDED launches and
     // detects changes need to be done.
     if (!mFirstBackend && !watchedConfigs.isEmpty()) {
-        connect(new GetConfigOperation(), &GetConfigOperation::finished,
-                this, &Private::getConfigFinished);
+        connect(new GetConfigOperation(),
+                &GetConfigOperation::finished,
+                this,
+                &Private::getConfigFinished);
     }
     mFirstBackend = false;
 
-    connect(mBackend.data(), &org::kwinft::disman::backend::configChanged,
-            this, &ConfigMonitor::Private::backendConfigChanged);
-
+    connect(mBackend.data(),
+            &org::kwinft::disman::backend::configChanged,
+            this,
+            &ConfigMonitor::Private::backendConfigChanged);
 }
 
 void ConfigMonitor::Private::getConfigFinished(ConfigOperation* op)
@@ -106,7 +110,7 @@ void ConfigMonitor::Private::getConfigFinished(ConfigOperation* op)
     updateConfigs(config);
 }
 
-void ConfigMonitor::Private::backendConfigChanged(const QVariantMap &configMap)
+void ConfigMonitor::Private::backendConfigChanged(const QVariantMap& configMap)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     ConfigPtr newConfig = ConfigSerializer::deserializeConfig(configMap);
@@ -119,11 +123,13 @@ void ConfigMonitor::Private::backendConfigChanged(const QVariantMap &configMap)
         if (!output->edid() && output->isConnected()) {
             QDBusPendingReply<QByteArray> reply = mBackend->getEdid(output->id());
             mPendingEDIDRequests[newConfig].append(output->id());
-            QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply);
+            QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(reply);
             watcher->setProperty("outputId", output->id());
             watcher->setProperty("config", QVariant::fromValue(newConfig));
-            connect(watcher, &QDBusPendingCallWatcher::finished,
-                    this, &ConfigMonitor::Private::edidReady);
+            connect(watcher,
+                    &QDBusPendingCallWatcher::finished,
+                    this,
+                    &ConfigMonitor::Private::edidReady);
         }
     }
 
@@ -164,8 +170,7 @@ void ConfigMonitor::Private::edidReady(QDBusPendingCallWatcher* watcher)
     }
 }
 
-
-void ConfigMonitor::Private::updateConfigs(const Disman::ConfigPtr &newConfig)
+void ConfigMonitor::Private::updateConfigs(const Disman::ConfigPtr& newConfig)
 {
     QMutableListIterator<QWeakPointer<Config>> iter(watchedConfigs);
     while (iter.hasNext()) {
@@ -182,7 +187,7 @@ void ConfigMonitor::Private::updateConfigs(const Disman::ConfigPtr &newConfig)
     Q_EMIT q->configurationChanged();
 }
 
-void ConfigMonitor::Private::configDestroyed(QObject *removedConfig)
+void ConfigMonitor::Private::configDestroyed(QObject* removedConfig)
 {
     for (auto iter = watchedConfigs.begin(); iter != watchedConfigs.end(); ++iter) {
         if (iter->toStrongRef() == removedConfig) {
@@ -192,9 +197,9 @@ void ConfigMonitor::Private::configDestroyed(QObject *removedConfig)
     }
 }
 
-ConfigMonitor *ConfigMonitor::instance()
+ConfigMonitor* ConfigMonitor::instance()
 {
-    static ConfigMonitor *s_instance = nullptr;
+    static ConfigMonitor* s_instance = nullptr;
 
     if (s_instance == nullptr) {
         s_instance = new ConfigMonitor();
@@ -203,13 +208,15 @@ ConfigMonitor *ConfigMonitor::instance()
     return s_instance;
 }
 
-ConfigMonitor::ConfigMonitor():
-    QObject(),
-    d(new Private(this))
+ConfigMonitor::ConfigMonitor()
+    : QObject()
+    , d(new Private(this))
 {
     if (BackendManager::instance()->method() == BackendManager::OutOfProcess) {
-        connect(BackendManager::instance(), &BackendManager::backendReady,
-                d, &ConfigMonitor::Private::onBackendReady);
+        connect(BackendManager::instance(),
+                &BackendManager::backendReady,
+                d,
+                &ConfigMonitor::Private::onBackendReady);
         BackendManager::instance()->requestBackend();
     }
 }
@@ -219,22 +226,21 @@ ConfigMonitor::~ConfigMonitor()
     delete d;
 }
 
-void ConfigMonitor::addConfig(const ConfigPtr &config)
+void ConfigMonitor::addConfig(const ConfigPtr& config)
 {
     const QWeakPointer<Config> weakConfig = config.toWeakRef();
     if (!d->watchedConfigs.contains(weakConfig)) {
-        connect(weakConfig.toStrongRef().data(), &QObject::destroyed,
-                d, &Private::configDestroyed);
+        connect(weakConfig.toStrongRef().data(), &QObject::destroyed, d, &Private::configDestroyed);
         d->watchedConfigs << weakConfig;
     }
 }
 
-void ConfigMonitor::removeConfig(const ConfigPtr &config)
+void ConfigMonitor::removeConfig(const ConfigPtr& config)
 {
     const QWeakPointer<Config> weakConfig = config.toWeakRef();
     if (d->watchedConfigs.contains(config)) {
-        disconnect(weakConfig.toStrongRef().data(), &QObject::destroyed,
-                   d, &Private::configDestroyed);
+        disconnect(
+            weakConfig.toStrongRef().data(), &QObject::destroyed, d, &Private::configDestroyed);
         d->watchedConfigs.removeAll(config);
     }
 }
@@ -250,6 +256,5 @@ void ConfigMonitor::connectInProcessBackend(Disman::AbstractBackend* backend)
         d->updateConfigs(config);
     });
 }
-
 
 #include "configmonitor.moc"

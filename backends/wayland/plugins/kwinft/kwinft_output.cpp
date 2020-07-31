@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "kwinft_output.h"
 
-#include <disman/mode.h>
 #include <disman/edid.h>
+#include <disman/mode.h>
 
 #include "kwinft_logging.h"
 
@@ -28,17 +28,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace Disman;
 namespace Wl = Wrapland::Client;
 
-const QMap<Wl::OutputDeviceV1::Transform, Output::Rotation>
-s_rotationMap = {
-    {Wl::OutputDeviceV1::Transform::Normal, Output::None},
-    {Wl::OutputDeviceV1::Transform::Rotated90, Output::Right},
-    {Wl::OutputDeviceV1::Transform::Rotated180, Output::Inverted},
-    {Wl::OutputDeviceV1::Transform::Rotated270, Output::Left},
-    {Wl::OutputDeviceV1::Transform::Flipped, Output::None},
-    {Wl::OutputDeviceV1::Transform::Flipped90, Output::Right},
-    {Wl::OutputDeviceV1::Transform::Flipped180, Output::Inverted},
-    {Wl::OutputDeviceV1::Transform::Flipped270, Output::Left}
-};
+const QMap<Wl::OutputDeviceV1::Transform, Output::Rotation> s_rotationMap
+    = {{Wl::OutputDeviceV1::Transform::Normal, Output::None},
+       {Wl::OutputDeviceV1::Transform::Rotated90, Output::Right},
+       {Wl::OutputDeviceV1::Transform::Rotated180, Output::Inverted},
+       {Wl::OutputDeviceV1::Transform::Rotated270, Output::Left},
+       {Wl::OutputDeviceV1::Transform::Flipped, Output::None},
+       {Wl::OutputDeviceV1::Transform::Flipped90, Output::Right},
+       {Wl::OutputDeviceV1::Transform::Flipped180, Output::Inverted},
+       {Wl::OutputDeviceV1::Transform::Flipped270, Output::Left}};
 
 Output::Rotation toDismanRotation(const Wl::OutputDeviceV1::Transform transform)
 {
@@ -51,7 +49,7 @@ Wl::OutputDeviceV1::Transform toWraplandTransform(const Output::Rotation rotatio
     return s_rotationMap.key(rotation);
 }
 
-KwinftOutput::KwinftOutput(quint32 id, QObject *parent)
+KwinftOutput::KwinftOutput(quint32 id, QObject* parent)
     : WaylandOutput(id, parent)
     , m_device(nullptr)
 {
@@ -72,25 +70,25 @@ QRectF KwinftOutput::geometry() const
     return m_device->geometry();
 }
 
-Wrapland::Client::OutputDeviceV1 *KwinftOutput::outputDevice() const
+Wrapland::Client::OutputDeviceV1* KwinftOutput::outputDevice() const
 {
     return m_device;
 }
 
-void KwinftOutput::createOutputDevice(Wl::Registry *registry, quint32 name, quint32 version)
+void KwinftOutput::createOutputDevice(Wl::Registry* registry, quint32 name, quint32 version)
 {
     Q_ASSERT(!m_device);
     m_device = registry->createOutputDeviceV1(name, version);
 
     connect(m_device, &Wl::OutputDeviceV1::removed, this, &KwinftOutput::removed);
     connect(m_device, &Wl::OutputDeviceV1::done, this, [this]() {
-                disconnect(m_device, &Wl::OutputDeviceV1::done, this, nullptr);
-                connect(m_device, &Wl::OutputDeviceV1::changed, this, &KwinftOutput::changed);
-                Q_EMIT dataReceived();
+        disconnect(m_device, &Wl::OutputDeviceV1::done, this, nullptr);
+        connect(m_device, &Wl::OutputDeviceV1::changed, this, &KwinftOutput::changed);
+        Q_EMIT dataReceived();
     });
 }
 
-void KwinftOutput::updateDismanOutput(OutputPtr &output)
+void KwinftOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
     output->setEnabled(m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled);
@@ -106,14 +104,14 @@ void KwinftOutput::updateDismanOutput(OutputPtr &output)
     m_modeIdMap.clear();
     QString currentModeId = QStringLiteral("-1");
 
-    for (const Wl::OutputDeviceV1::Mode &wlMode : m_device->modes()) {
+    for (const Wl::OutputDeviceV1::Mode& wlMode : m_device->modes()) {
         ModePtr mode(new Mode());
         const QString name = modeName(wlMode);
 
         QString modeId = QString::number(wlMode.id);
         if (modeId.isEmpty()) {
-            qCDebug(DISMAN_WAYLAND) << "Could not create mode id from"
-                                     << wlMode.id << ", using" << name << "instead.";
+            qCDebug(DISMAN_WAYLAND)
+                << "Could not create mode id from" << wlMode.id << ", using" << name << "instead.";
             modeId = name;
         }
 
@@ -151,17 +149,15 @@ void KwinftOutput::updateDismanOutput(OutputPtr &output)
     output->setType(guessType(m_device->model(), m_device->model()));
 }
 
-bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1 *wlConfig,
-                                const Disman::OutputPtr &output)
+bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1* wlConfig, const Disman::OutputPtr& output)
 {
     bool changed = false;
 
     // enabled?
-    if ((m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled)
-            != output->isEnabled()) {
+    if ((m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled) != output->isEnabled()) {
         changed = true;
-        const auto enablement = output->isEnabled() ? Wl::OutputDeviceV1::Enablement::Enabled :
-                                                      Wl::OutputDeviceV1::Enablement::Disabled;
+        const auto enablement = output->isEnabled() ? Wl::OutputDeviceV1::Enablement::Enabled
+                                                    : Wl::OutputDeviceV1::Enablement::Disabled;
         wlConfig->setEnabled(m_device, enablement);
     }
 
@@ -185,8 +181,8 @@ bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1 *wlConfig,
             wlConfig->setMode(m_device, newModeId);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << output->currentModeId()
-                                   << "\n\n" << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << output->currentModeId() << "\n\n"
+                                  << m_modeIdMap;
     }
 
     // logical size
@@ -198,11 +194,10 @@ bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1 *wlConfig,
     return changed;
 }
 
-QString KwinftOutput::modeName(const Wl::OutputDeviceV1::Mode &m) const
+QString KwinftOutput::modeName(const Wl::OutputDeviceV1::Mode& m) const
 {
-    return QString::number(m.size.width()) + QLatin1Char('x') +
-           QString::number(m.size.height()) + QLatin1Char('@') +
-           QString::number(qRound(m.refreshRate/1000.0));
+    return QString::number(m.size.width()) + QLatin1Char('x') + QString::number(m.size.height())
+        + QLatin1Char('@') + QString::number(qRound(m.refreshRate / 1000.0));
 }
 
 QString KwinftOutput::name() const
@@ -211,10 +206,11 @@ QString KwinftOutput::name() const
     return QStringLiteral("%1 %2").arg(m_device->manufacturer(), m_device->model());
 }
 
-QDebug operator<<(QDebug dbg, const KwinftOutput *output)
+QDebug operator<<(QDebug dbg, const KwinftOutput* output)
 {
-    dbg << "KwinftOutput(Id:" << output->id() <<", Name:" << \
-        QString(output->outputDevice()->manufacturer() + QLatin1Char(' ') + \
-        output->outputDevice()->model())  << ")";
+    dbg << "KwinftOutput(Id:" << output->id() << ", Name:"
+        << QString(output->outputDevice()->manufacturer() + QLatin1Char(' ')
+                   + output->outputDevice()->model())
+        << ")";
     return dbg;
 }

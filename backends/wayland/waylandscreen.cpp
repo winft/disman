@@ -26,13 +26,13 @@
 
 using namespace Disman;
 
-WaylandScreen::WaylandScreen(WaylandConfig *config)
+WaylandScreen::WaylandScreen(WaylandConfig* config)
     : QObject(config)
     , m_outputCount(0)
 {
 }
 
-ScreenPtr WaylandScreen::toDismanScreen(Disman::ConfigPtr &parent) const
+ScreenPtr WaylandScreen::toDismanScreen(Disman::ConfigPtr& parent) const
 {
     Q_UNUSED(parent);
 
@@ -41,12 +41,12 @@ ScreenPtr WaylandScreen::toDismanScreen(Disman::ConfigPtr &parent) const
     return dismanScreen;
 }
 
-void WaylandScreen::setOutputs(const QList<WaylandOutput*> &outputs)
+void WaylandScreen::setOutputs(const QList<WaylandOutput*>& outputs)
 {
     m_outputCount = outputs.count();
 
     QRect r;
-    for (const auto *out : outputs) {
+    for (const auto* out : outputs) {
         if (out->enabled()) {
             r |= out->geometry().toRect();
         }
@@ -54,7 +54,7 @@ void WaylandScreen::setOutputs(const QList<WaylandOutput*> &outputs)
     m_size = r.size();
 }
 
-void WaylandScreen::updateDismanScreen(Disman::ScreenPtr &screen) const
+void WaylandScreen::updateDismanScreen(Disman::ScreenPtr& screen) const
 {
     screen->setMinSize(QSize(0, 0));
 
@@ -64,4 +64,3 @@ void WaylandScreen::updateDismanScreen(Disman::ScreenPtr &screen) const
     screen->setCurrentSize(m_size);
     screen->setMaxActiveOutputsCount(m_outputCount);
 }
-

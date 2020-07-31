@@ -17,7 +17,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #ifndef DISMAN_CONFIGOPERATION_H
 #define DISMAN_CONFIGOPERATION_H
 
@@ -26,7 +25,8 @@
 #include "disman_export.h"
 #include "types.h"
 
-namespace Disman {
+namespace Disman
+{
 
 class ConfigOperationPrivate;
 
@@ -37,7 +37,7 @@ class DISMAN_EXPORT ConfigOperation : public QObject
 public:
     enum Option {
         NoOptions,
-        NoEDID
+        NoEDID,
     };
     Q_DECLARE_FLAGS(Options, Option)
 
@@ -51,21 +51,21 @@ public:
     bool exec();
 
 Q_SIGNALS:
-    void finished(ConfigOperation *operation);
+    void finished(ConfigOperation* operation);
 
 protected:
-    explicit ConfigOperation(ConfigOperationPrivate *dd, QObject *parent = nullptr);
+    explicit ConfigOperation(ConfigOperationPrivate* dd, QObject* parent = nullptr);
 
-    void setError(const QString &error);
+    void setError(const QString& error);
     void emitResult();
 
 protected Q_SLOTS:
     virtual void start() = 0;
 
 protected:
-    ConfigOperationPrivate * const d_ptr;
+    ConfigOperationPrivate* const d_ptr;
     Q_DECLARE_PRIVATE(ConfigOperation)
 };
 }
 
-#endif // DISMAN_CONFIGOPERATION_H
+#endif

@@ -15,14 +15,13 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef FAKE_BACKEND_H
 #define FAKE_BACKEND_H
 
 #include "abstractbackend.h"
 
-#include <QObject>
 #include <QLoggingCategory>
+#include <QObject>
 
 class Fake : public Disman::AbstractBackend
 {
@@ -33,30 +32,30 @@ public:
     explicit Fake();
     ~Fake() override;
 
-    void init(const QVariantMap &arguments) override;
+    void init(const QVariantMap& arguments) override;
 
     QString name() const override;
     QString serviceName() const override;
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr &config) override;
+    void setConfig(const Disman::ConfigPtr& config) override;
     QByteArray edid(int outputId) const override;
     bool isValid() const override;
 
     void setConnected(int outputId, bool connected);
     void setEnabled(int outputId, bool enabled);
     void setPrimary(int outputId, bool primary);
-    void setCurrentModeId(int outputId, const QString &modeId);
+    void setCurrentModeId(int outputId, const QString& modeId);
     void setRotation(int outputId, int rotation);
-    void addOutput(int outputId, const QString &name);
+    void addOutput(int outputId, const QString& name);
     void removeOutput(int outputId);
 
 private Q_SLOTS:
     void delayedInit();
-
 
 private:
     QString mConfigFile;
     mutable Disman::ConfigPtr mConfig;
 };
 Q_DECLARE_LOGGING_CATEGORY(DISMAN_FAKE)
-#endif //FAKE_BACKEND_H
+
+#endif

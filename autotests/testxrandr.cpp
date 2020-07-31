@@ -15,16 +15,15 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #define QT_GUI_LIB
 
-#include <QtTest>
 #include <QObject>
+#include <QtTest>
 
 #include "../src/config.h"
-#include "../src/output.h"
-#include "../src/mode.h"
 #include "../src/getconfigoperation.h"
+#include "../src/mode.h"
+#include "../src/output.h"
 
 using namespace Disman;
 
@@ -48,7 +47,7 @@ void testXRandR::singleOutput()
 {
     qputenv("DISMAN_BACKEND", "XRandR");
 
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     QVERIFY(op->exec());
 
     const ConfigPtr config = op->config();

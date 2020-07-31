@@ -15,17 +15,17 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef DISMAN_LOG_H
 #define DISMAN_LOG_H
 
 #include "disman_export.h"
 #include "types.h"
 
-#include <QObject>
 #include <QLoggingCategory>
+#include <QObject>
 
-namespace Disman {
+namespace Disman
+{
 
 void log(const QString& msg);
 
@@ -55,63 +55,62 @@ void log(const QString& msg);
  */
 class DISMAN_EXPORT Log
 {
-    public:
-        virtual ~Log();
+public:
+    virtual ~Log();
 
-        static Log* instance();
+    static Log* instance();
 
-        /** Log a message to a file
-         *
-         * Call this static method to add a new line to the log.
-         *
-         * @arg msg The log message to write.
-         */
-        static void log(const QString &msg, const QString &category = QString());
+    /** Log a message to a file
+     *
+     * Call this static method to add a new line to the log.
+     *
+     * @arg msg The log message to write.
+     */
+    static void log(const QString& msg, const QString& category = QString());
 
-        /** Context for the logs.
-         *
-         * The context can be used to indicate what is going on overall, it is used to be able
-         * to group log entries into subsequential operations. For example the context can be
-         * "handling resume", which is then added to the log messages.
-         *
-         * @arg msg The log message to write to the file.
-         *
-         * @see ontext()
-         */
-        QString context() const;
+    /** Context for the logs.
+     *
+     * The context can be used to indicate what is going on overall, it is used to be able
+     * to group log entries into subsequential operations. For example the context can be
+     * "handling resume", which is then added to the log messages.
+     *
+     * @arg msg The log message to write to the file.
+     *
+     * @see ontext()
+     */
+    QString context() const;
 
-        /** Set the context for the logs.
-         *
-         * @see context()
-         */
-        void setContext(const QString &context);
+    /** Set the context for the logs.
+     *
+     * @see context()
+     */
+    void setContext(const QString& context);
 
-        /** Logging to file is enabled by environmental var, is it?
-         *
-         * @arg msg The log message to write to the file.
-         * @return Whether logging is enabled.
-         */
-        bool enabled() const;
+    /** Logging to file is enabled by environmental var, is it?
+     *
+     * @arg msg The log message to write to the file.
+     * @return Whether logging is enabled.
+     */
+    bool enabled() const;
 
-        /** Path to the log file
-         *
-         * This is usually ~/.local/share/disman/disman.log, but can be changed by setting
-         * DISMAN_LOGFILE in the environment.
-         *
-         * @return The path to the log file.
-         */
-        QString logFile() const;
+    /** Path to the log file
+     *
+     * This is usually ~/.local/share/disman/disman.log, but can be changed by setting
+     * DISMAN_LOGFILE in the environment.
+     *
+     * @return The path to the log file.
+     */
+    QString logFile() const;
 
-    private:
-        explicit Log();
-        class Private;
-        Private * const d;
+private:
+    explicit Log();
+    class Private;
+    Private* const d;
 
-        static Log* sInstance;
-        explicit Log(Private *dd);
+    static Log* sInstance;
+    explicit Log(Private* dd);
 };
 
-} //Disman namespace
+}
 
-
-#endif //DISMAN_LOG_H
+#endif

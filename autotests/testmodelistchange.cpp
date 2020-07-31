@@ -15,20 +15,18 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
-#include <QtTest>
 #include <QObject>
+#include <QtTest>
 
+#include "../src/backendmanager_p.h"
 #include "../src/config.h"
 #include "../src/configmonitor.h"
-#include "../src/output.h"
-#include "../src/mode.h"
 #include "../src/getconfigoperation.h"
+#include "../src/mode.h"
+#include "../src/output.h"
 #include "../src/setconfigoperation.h"
-#include "../src/backendmanager_p.h"
 
 using namespace Disman;
-
 
 class TestModeListChange : public QObject
 {
@@ -37,7 +35,7 @@ class TestModeListChange : public QObject
 private:
     Disman::ConfigPtr getConfig();
     Disman::ModeList createModeList();
-    bool compareModeList(Disman::ModeList before, Disman::ModeList &after);
+    bool compareModeList(Disman::ModeList before, Disman::ModeList& after);
 
     QSize s0 = QSize(1920, 1080);
     QSize s1 = QSize(1600, 1200);
@@ -56,7 +54,7 @@ private Q_SLOTS:
 ConfigPtr TestModeListChange::getConfig()
 {
     qputenv("DISMAN_BACKEND_INPROCESS", "1");
-    auto *op = new GetConfigOperation();
+    auto* op = new GetConfigOperation();
     if (!op->exec()) {
         qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
         BackendManager::instance()->shutdownBackend();
@@ -102,7 +100,6 @@ Disman::ModeList TestModeListChange::createModeList()
     return newmodes;
 }
 
-
 void TestModeListChange::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
@@ -116,7 +113,7 @@ void TestModeListChange::cleanupTestCase()
 
 void TestModeListChange::modeListChange()
 {
-    //json file for the fake backend
+    // json file for the fake backend
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
     const ConfigPtr config = getConfig();
@@ -172,7 +169,6 @@ void TestModeListChange::modeListChange()
     QCOMPARE(modesChangedSpy.count(), 3);
     QCOMPARE(outputChangedSpy.count(), modesChangedSpy.count());
 }
-
 
 QTEST_MAIN(TestModeListChange)
 

@@ -17,7 +17,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef QSCREEN_BACKEND_H
 #define QSCREEN_BACKEND_H
 
@@ -41,15 +40,16 @@ public:
     QString name() const override;
     QString serviceName() const override;
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr &config) override;
+    void setConfig(const Disman::ConfigPtr& config) override;
     bool isValid() const override;
 
 private:
     bool m_isValid;
-    static Disman::QScreenConfig *s_internalConfig;
+    static QScreenConfig* s_internalConfig;
 };
-} // namespace
+
+}
 
 Q_DECLARE_LOGGING_CATEGORY(DISMAN_QSCREEN)
 
-#endif //QSCREEN_BACKEND_H
+#endif

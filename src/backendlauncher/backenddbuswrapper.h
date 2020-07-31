@@ -36,30 +36,31 @@ class BackendDBusWrapper : public QObject
     Q_CLASSINFO("D-Bus Interface", "org.kwinft.disman.backend")
 
 public:
-    explicit BackendDBusWrapper(Disman::AbstractBackend *backend);
+    explicit BackendDBusWrapper(Disman::AbstractBackend* backend);
     ~BackendDBusWrapper() override;
 
     bool init();
 
     QVariantMap getConfig() const;
-    QVariantMap setConfig(const QVariantMap &config);
+    QVariantMap setConfig(const QVariantMap& config);
     QByteArray getEdid(int output) const;
 
-    inline Disman::AbstractBackend *backend() const { return mBackend; }
+    inline Disman::AbstractBackend* backend() const
+    {
+        return mBackend;
+    }
 
 Q_SIGNALS:
-    void configChanged(const QVariantMap &config);
+    void configChanged(const QVariantMap& config);
 
 private Q_SLOTS:
-    void backendConfigChanged(const Disman::ConfigPtr &config);
+    void backendConfigChanged(const Disman::ConfigPtr& config);
     void doEmitConfigChanged();
 
-
 private:
-    Disman::AbstractBackend *mBackend = nullptr;
+    Disman::AbstractBackend* mBackend = nullptr;
     QTimer mChangeCollector;
     Disman::ConfigPtr mCurrentConfig;
-
 };
 
 #endif // BACKENDDBUSWRAPPER_H

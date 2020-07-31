@@ -17,24 +17,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
-
 #include "backendmanager_p.h"
 
 #include "abstractbackend.h"
+#include "backendinterface.h"
 #include "config.h"
 #include "configmonitor.h"
-#include "backendinterface.h"
+#include "configserializer_p.h"
 #include "disman_debug.h"
 #include "getconfigoperation.h"
-#include "configserializer_p.h"
 #include "log.h"
 
 #include <QDBusConnection>
+#include <QDBusConnectionInterface>
 #include <QDBusPendingCall>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
-#include <QDBusConnectionInterface>
 #include <QGuiApplication>
 #include <QStandardPaths>
 #include <QThread>
@@ -42,16 +40,15 @@
 
 #include <memory>
 
-
 using namespace Disman;
 
 Q_DECLARE_METATYPE(org::kwinft::disman::backend*)
 
 const int BackendManager::sMaxCrashCount = 4;
 
-BackendManager *BackendManager::sInstance = nullptr;
+BackendManager* BackendManager::sInstance = nullptr;
 
-BackendManager *BackendManager::instance()
+BackendManager* BackendManager::instance()
 {
     if (!sInstance) {
         sInstance = new BackendManager();
@@ -96,15 +93,14 @@ void BackendManager::initMethod()
         qRegisterMetaType<org::kwinft::disman::backend*>("OrgKwinftDismanBackendInterface");
 
         mServiceWatcher.setConnection(QDBusConnection::sessionBus());
-        connect(&mServiceWatcher, &QDBusServiceWatcher::serviceUnregistered,
-                this, &BackendManager::backendServiceUnregistered);
+        connect(&mServiceWatcher,
+                &QDBusServiceWatcher::serviceUnregistered,
+                this,
+                &BackendManager::backendServiceUnregistered);
 
         mResetCrashCountTimer.setSingleShot(true);
         mResetCrashCountTimer.setInterval(60000);
-        connect(&mResetCrashCountTimer, &QTimer::timeout,
-                this, [=]() {
-                    mCrashCount = 0;
-                });
+        connect(&mResetCrashCountTimer, &QTimer::timeout, this, [=]() { mCrashCount = 0; });
     }
 }
 
@@ -130,7 +126,7 @@ BackendManager::~BackendManager()
     }
 }
 
-QFileInfo BackendManager::preferredBackend(const QString &backend)
+QFileInfo BackendManager::preferredBackend(const QString& backend)
 {
     /** this is the logic to pick a backend, in order of priority
      *
@@ -159,7 +155,7 @@ QFileInfo BackendManager::preferredBackend(const QString &backend)
     }
 
     QFileInfo fallback;
-    Q_FOREACH (const QFileInfo &f, listBackends()) {
+    Q_FOREACH (const QFileInfo& f, listBackends()) {
         // Here's the part where we do the match case-insensitive
         if (f.baseName().toLower() == QStringLiteral("%1").arg(backendFilter.toLower())) {
             return f;
@@ -168,8 +164,8 @@ QFileInfo BackendManager::preferredBackend(const QString &backend)
             fallback = f;
         }
     }
-//     qCWarning(DISMAN) << "No preferred backend found. DISMAN_BACKEND is set to " << env_disman_backend;
-//     qCWarning(DISMAN) << "falling back to " << fallback.fileName();
+    //     qCWarning(DISMAN) << "No preferred backend found. DISMAN_BACKEND is set to " <<
+    //     env_disman_backend; qCWarning(DISMAN) << "falling back to " << fallback.fileName();
     return fallback;
 }
 
@@ -179,7 +175,7 @@ QFileInfoList BackendManager::listBackends()
     const QStringList paths = QCoreApplication::libraryPaths();
 
     QFileInfoList finfos;
-    for (const QString &path : paths) {
+    for (const QString& path : paths) {
         const QDir dir(path + QLatin1String("/disman/"),
                        QString(),
                        QDir::SortFlags(QDir::QDir::Name),
@@ -189,12 +185,13 @@ QFileInfoList BackendManager::listBackends()
     return finfos;
 }
 
-Disman::AbstractBackend *BackendManager::loadBackendPlugin(QPluginLoader *loader, const QString &name,
-                                                     const QVariantMap &arguments)
+Disman::AbstractBackend* BackendManager::loadBackendPlugin(QPluginLoader* loader,
+                                                           const QString& name,
+                                                           const QVariantMap& arguments)
 {
     const auto finfo = preferredBackend(name);
     loader->setFileName(finfo.filePath());
-    QObject *instance = loader->instance();
+    QObject* instance = loader->instance();
     if (!instance) {
         qCDebug(DISMAN) << loader->errorString();
         return nullptr;
@@ -208,7 +205,7 @@ Disman::AbstractBackend *BackendManager::loadBackendPlugin(QPluginLoader *loader
             delete backend;
             return nullptr;
         }
-        //qCDebug(DISMAN) << "Loaded" << backend->name() << "backend";
+        // qCDebug(DISMAN) << "Loaded" << backend->name() << "backend";
         return backend;
     } else {
         qCDebug(DISMAN) << finfo.fileName() << "does not provide valid Disman backend";
@@ -217,14 +214,17 @@ Disman::AbstractBackend *BackendManager::loadBackendPlugin(QPluginLoader *loader
     return nullptr;
 }
 
-Disman::AbstractBackend *BackendManager::loadBackendInProcess(const QString &name)
+Disman::AbstractBackend* BackendManager::loadBackendInProcess(const QString& name)
 {
     Q_ASSERT(mMethod == InProcess);
     if (mMethod == OutOfProcess) {
-        qCWarning(DISMAN) << "You are trying to load a backend in process, while the BackendManager is set to use OutOfProcess communication. Use loadBackendPlugin() instead.";
+        qCWarning(DISMAN)
+            << "You are trying to load a backend in process, while the BackendManager is set to "
+               "use OutOfProcess communication. Use loadBackendPlugin() instead.";
         return nullptr;
     }
-    if (m_inProcessBackend.first != nullptr && (name.isEmpty() || m_inProcessBackend.first->name() == name)) {
+    if (m_inProcessBackend.first != nullptr
+        && (name.isEmpty() || m_inProcessBackend.first->name() == name)) {
         return m_inProcessBackend.first;
     } else if (m_inProcessBackend.first != nullptr && m_inProcessBackend.first->name() != name) {
         shutdownBackend();
@@ -243,7 +243,7 @@ Disman::AbstractBackend *BackendManager::loadBackendInProcess(const QString &nam
     if (!backend) {
         return nullptr;
     }
-    //qCDebug(DISMAN) << "Connecting ConfigMonitor to backend.";
+    // qCDebug(DISMAN) << "Connecting ConfigMonitor to backend.";
     ConfigMonitor::instance()->connectInProcessBackend(backend);
     m_inProcessBackend = qMakePair<Disman::AbstractBackend*, QVariantMap>(backend, arguments);
     setConfig(backend->config());
@@ -269,7 +269,7 @@ void BackendManager::requestBackend()
     QVariantMap arguments;
     if (!args.isEmpty()) {
         QList<QByteArray> arglist = args.split(';');
-        Q_FOREACH (const QByteArray &arg, arglist) {
+        Q_FOREACH (const QByteArray& arg, arglist) {
             const int pos = arg.indexOf('=');
             if (pos == -1) {
                 continue;
@@ -291,7 +291,7 @@ void BackendManager::emitBackendReady()
     }
 }
 
-void BackendManager::startBackend(const QString &backend, const QVariantMap &arguments)
+void BackendManager::startBackend(const QString& backend, const QVariantMap& arguments)
 {
     // This will autostart the launcher if it's not running already, calling
     // requestBackend(backend) will:
@@ -303,14 +303,14 @@ void BackendManager::startBackend(const QString &backend, const QVariantMap &arg
                                                        QStringLiteral("/"),
                                                        QStringLiteral("org.kwinft.disman"),
                                                        QStringLiteral("requestBackend"));
-    call.setArguments({ backend, arguments });
+    call.setArguments({backend, arguments});
     QDBusPendingCall pending = conn.asyncCall(call);
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(pending);
-    connect(watcher, &QDBusPendingCallWatcher::finished,
-            this, &BackendManager::onBackendRequestDone);
+    QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(pending);
+    connect(
+        watcher, &QDBusPendingCallWatcher::finished, this, &BackendManager::onBackendRequestDone);
 }
 
-void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
+void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher* watcher)
 {
     Q_ASSERT(mMethod == OutOfProcess);
     watcher->deleteLater();
@@ -318,7 +318,8 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
     // Most probably we requested an explicit backend that is different than the
     // one already loaded in the launcher
     if (reply.isError()) {
-        qCWarning(DISMAN) << "Failed to request backend:" << reply.error().name() << ":" << reply.error().message();
+        qCWarning(DISMAN) << "Failed to request backend:" << reply.error().name() << ":"
+                          << reply.error().message();
         invalidateInterface();
         emitBackendReady();
         return;
@@ -340,10 +341,11 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
         invalidateInterface();
     }
     mInterface = new org::kwinft::disman::backend(QStringLiteral("org.kwinft.disman"),
-                                                QStringLiteral("/backend"),
-                                                QDBusConnection::sessionBus());
+                                                  QStringLiteral("/backend"),
+                                                  QDBusConnection::sessionBus());
     if (!mInterface->isValid()) {
-        qCWarning(DISMAN) << "Backend successfully requested, but we failed to obtain a valid DBus interface for it";
+        qCWarning(DISMAN) << "Backend successfully requested, but we failed to obtain a valid DBus "
+                             "interface for it";
         invalidateInterface();
         emitBackendReady();
         return;
@@ -354,19 +356,21 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher *watcher)
     mServiceWatcher.addWatchedService(mBackendService);
 
     // Immediatelly request config
-    connect(new GetConfigOperation(GetConfigOperation::NoEDID), &GetConfigOperation::finished,
-            [&](ConfigOperation *op) {
+    connect(new GetConfigOperation(GetConfigOperation::NoEDID),
+            &GetConfigOperation::finished,
+            [&](ConfigOperation* op) {
                 mConfig = qobject_cast<GetConfigOperation*>(op)->config();
                 emitBackendReady();
             });
     // And listen for its change.
-    connect(mInterface, &org::kwinft::disman::backend::configChanged,
-            [&](const QVariantMap &newConfig) {
+    connect(mInterface,
+            &org::kwinft::disman::backend::configChanged,
+            [&](const QVariantMap& newConfig) {
                 mConfig = Disman::ConfigSerializer::deserializeConfig(newConfig);
             });
 }
 
-void BackendManager::backendServiceUnregistered(const QString &serviceName)
+void BackendManager::backendServiceUnregistered(const QString& serviceName)
 {
     Q_ASSERT(mMethod == OutOfProcess);
     mServiceWatcher.removeWatchedService(serviceName);
@@ -390,7 +394,7 @@ ConfigPtr BackendManager::config() const
 
 void BackendManager::setConfig(ConfigPtr c)
 {
-    //qCDebug(DISMAN) << "BackendManager::setConfig, outputs:" << c->outputs().count();
+    // qCDebug(DISMAN) << "BackendManager::setConfig, outputs:" << c->outputs().count();
     mConfig = c;
 }
 
@@ -418,14 +422,15 @@ void BackendManager::shutdownBackend()
         mShuttingDown = true;
 
         QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.kwinft.disman"),
-                                                        QStringLiteral("/"),
-                                                        QStringLiteral("org.kwinft.disman"),
-                                                        QStringLiteral("quit"));
+                                                           QStringLiteral("/"),
+                                                           QStringLiteral("org.kwinft.disman"),
+                                                           QStringLiteral("quit"));
         // Call synchronously
         QDBusConnection::sessionBus().call(call);
         invalidateInterface();
 
-        while (QDBusConnection::sessionBus().interface()->isServiceRegistered(QStringLiteral("org.kwinft.disman"))) {
+        while (QDBusConnection::sessionBus().interface()->isServiceRegistered(
+            QStringLiteral("org.kwinft.disman"))) {
             QThread::msleep(100);
         }
     }

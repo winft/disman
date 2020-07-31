@@ -16,17 +16,16 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "config.h"
-#include "output.h"
-#include "backendmanager_p.h"
 #include "abstractbackend.h"
+#include "backendmanager_p.h"
 #include "disman_debug.h"
+#include "output.h"
 
+#include <QCryptographicHash>
 #include <QDebug>
 #include <QRect>
 #include <QStringList>
-#include <QCryptographicHash>
 
 using namespace Disman;
 
@@ -34,27 +33,28 @@ class Q_DECL_HIDDEN Config::Private : public QObject
 {
     Q_OBJECT
 public:
-    Private(Config *parent)
+    Private(Config* parent)
         : QObject(parent)
         , valid(true)
         , supportedFeatures(Config::Feature::None)
         , tabletModeAvailable(false)
         , tabletModeEngaged(false)
         , q(parent)
-    { }
+    {
+    }
 
     Disman::OutputPtr findPrimaryOutput() const
     {
-        auto iter = std::find_if(outputs.constBegin(), outputs.constEnd(),
-                                 [](const Disman::OutputPtr &output) -> bool {
-                                    return output->isPrimary();
-                                 });
+        auto iter = std::find_if(
+            outputs.constBegin(), outputs.constEnd(), [](const Disman::OutputPtr& output) -> bool {
+                return output->isPrimary();
+            });
         return iter == outputs.constEnd() ? Disman::OutputPtr() : iter.value();
     }
 
     void onPrimaryOutputChanged()
     {
-        const Disman::OutputPtr output(qobject_cast<Disman::Output*>(sender()), [](void *) {});
+        const Disman::OutputPtr output(qobject_cast<Disman::Output*>(sender()), [](void*) {});
         Q_ASSERT(output);
         if (output->isPrimary()) {
             q->setPrimaryOutput(output);
@@ -96,15 +96,15 @@ public:
     bool tabletModeEngaged;
 
 private:
-    Config *q;
+    Config* q;
 };
 
-bool Config::canBeApplied(const ConfigPtr &config)
+bool Config::canBeApplied(const ConfigPtr& config)
 {
     return canBeApplied(config, ValidityFlag::None);
 }
 
-bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
+bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
 {
     if (!config) {
         qCDebug(DISMAN) << "canBeApplied: Config not available, returning false";
@@ -120,7 +120,7 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
     OutputPtr currentOutput;
     const OutputList outputs = config->outputs();
     int enabledOutputsCount = 0;
-    Q_FOREACH(const OutputPtr &output, outputs) {
+    Q_FOREACH (const OutputPtr& output, outputs) {
         if (!output->isEnabled()) {
             continue;
         }
@@ -128,24 +128,26 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
         ++enabledOutputsCount;
 
         currentOutput = currentConfig->output(output->id());
-        //If there is no such output
+        // If there is no such output
         if (!currentOutput) {
             qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "does not exists";
             return false;
         }
-        //If the output is not connected
+        // If the output is not connected
         if (!currentOutput->isConnected()) {
             qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "is not connected";
             return false;
         }
-        //if there is no currentMode
+        // if there is no currentMode
         if (output->currentModeId().isEmpty()) {
-            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "has no currentModeId";
+            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
+                            << "has no currentModeId";
             return false;
         }
-        //If the mode is not found in the current output
+        // If the mode is not found in the current output
         if (!currentOutput->mode(output->currentModeId())) {
-            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "has no mode:" << output->currentModeId();
+            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
+                            << "has no mode:" << output->currentModeId();
             return false;
         }
 
@@ -162,10 +164,10 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
         QPoint bottomRight;
         if (output->isHorizontal()) {
             bottomRight = QPoint(output->position().x() + outputSize.width(),
-                                    output->position().y() + outputSize.height());
+                                 output->position().y() + outputSize.height());
         } else {
             bottomRight = QPoint(output->position().x() + outputSize.height(),
-                                    output->position().y() + outputSize.width());
+                                 output->position().y() + outputSize.width());
         }
 
         if (bottomRight.x() > rect.width()) {
@@ -184,7 +186,8 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
 
     const int maxEnabledOutputsCount = config->screen()->maxActiveOutputsCount();
     if (enabledOutputsCount > maxEnabledOutputsCount) {
-        qCDebug(DISMAN) << "canBeApplied: Too many active screens. Requested: " << enabledOutputsCount << ", Max: " << maxEnabledOutputsCount;
+        qCDebug(DISMAN) << "canBeApplied: Too many active screens. Requested: "
+                        << enabledOutputsCount << ", Max: " << maxEnabledOutputsCount;
         return false;
     }
 
@@ -203,8 +206,8 @@ bool Config::canBeApplied(const ConfigPtr &config, ValidityFlags flags)
 }
 
 Config::Config()
- : QObject(nullptr)
- , d(new Private(this))
+    : QObject(nullptr)
+    , d(new Private(this))
 {
 }
 
@@ -217,7 +220,7 @@ ConfigPtr Config::clone() const
 {
     ConfigPtr newConfig(new Config());
     newConfig->d->screen = d->screen->clone();
-    for (const OutputPtr &ourOutput : d->outputs) {
+    for (const OutputPtr& ourOutput : d->outputs) {
         newConfig->addOutput(ourOutput->clone());
     }
     newConfig->d->primaryOutput = newConfig->d->findPrimaryOutput();
@@ -233,7 +236,7 @@ QString Config::connectedOutputsHash() const
     QStringList hashedOutputs;
 
     const auto outputs = connectedOutputs();
-    for (const OutputPtr &output : outputs) {
+    for (const OutputPtr& output : outputs) {
         hashedOutputs << output->hash();
     }
     std::sort(hashedOutputs.begin(), hashedOutputs.end());
@@ -247,7 +250,7 @@ ScreenPtr Config::screen() const
     return d->screen;
 }
 
-void Config::setScreen(const ScreenPtr &screen)
+void Config::setScreen(const ScreenPtr& screen)
 {
     d->screen = screen;
 }
@@ -262,7 +265,7 @@ Config::Features Config::supportedFeatures() const
     return d->supportedFeatures;
 }
 
-void Config::setSupportedFeatures(const Config::Features &features)
+void Config::setSupportedFeatures(const Config::Features& features)
 {
     d->supportedFeatures = features;
 }
@@ -295,7 +298,7 @@ OutputList Config::outputs() const
 OutputList Config::connectedOutputs() const
 {
     OutputList outputs;
-    Q_FOREACH(const OutputPtr &output, d->outputs) {
+    Q_FOREACH (const OutputPtr& output, d->outputs) {
         if (!output->isConnected()) {
             continue;
         }
@@ -315,7 +318,7 @@ OutputPtr Config::primaryOutput() const
     return d->primaryOutput;
 }
 
-void Config::setPrimaryOutput(const OutputPtr &newPrimary)
+void Config::setPrimaryOutput(const OutputPtr& newPrimary)
 {
     // Don't call primaryOutput(): at this point d->primaryOutput is either
     // initialized, or we need to look for the primary anyway
@@ -323,27 +326,35 @@ void Config::setPrimaryOutput(const OutputPtr &newPrimary)
         return;
     }
 
-//     qCDebug(DISMAN) << "Primary output changed from" << primaryOutput()
-//                      << "(" << (primaryOutput().isNull() ? "none" : primaryOutput()->name()) << ") to"
-//                      << newPrimary << "(" << (newPrimary.isNull() ? "none" : newPrimary->name()) << ")";
+    //     qCDebug(DISMAN) << "Primary output changed from" << primaryOutput()
+    //                      << "(" << (primaryOutput().isNull() ? "none" : primaryOutput()->name())
+    //                      << ") to"
+    //                      << newPrimary << "(" << (newPrimary.isNull() ? "none" :
+    //                      newPrimary->name()) << ")";
 
-    for (OutputPtr &output : d->outputs) {
-        disconnect(output.data(), &Disman::Output::isPrimaryChanged,
-                d, &Disman::Config::Private::onPrimaryOutputChanged);
+    for (OutputPtr& output : d->outputs) {
+        disconnect(output.data(),
+                   &Disman::Output::isPrimaryChanged,
+                   d,
+                   &Disman::Config::Private::onPrimaryOutputChanged);
         output->setPrimary(output == newPrimary);
-        connect(output.data(), &Disman::Output::isPrimaryChanged,
-                d, &Disman::Config::Private::onPrimaryOutputChanged);
+        connect(output.data(),
+                &Disman::Output::isPrimaryChanged,
+                d,
+                &Disman::Config::Private::onPrimaryOutputChanged);
     }
 
     d->primaryOutput = newPrimary;
     Q_EMIT primaryOutputChanged(newPrimary);
 }
 
-void Config::addOutput(const OutputPtr &output)
+void Config::addOutput(const OutputPtr& output)
 {
     d->outputs.insert(output->id(), output);
-    connect(output.data(), &Disman::Output::isPrimaryChanged,
-            d, &Disman::Config::Private::onPrimaryOutputChanged);
+    connect(output.data(),
+            &Disman::Output::isPrimaryChanged,
+            d,
+            &Disman::Config::Private::onPrimaryOutputChanged);
 
     Q_EMIT outputAdded(output);
 
@@ -357,14 +368,14 @@ void Config::removeOutput(int outputId)
     d->removeOutput(d->outputs.find(outputId));
 }
 
-void Config::setOutputs(const OutputList &outputs)
+void Config::setOutputs(const OutputList& outputs)
 {
-    for (auto iter = d->outputs.begin(), end = d->outputs.end(); iter != end; ) {
+    for (auto iter = d->outputs.begin(), end = d->outputs.end(); iter != end;) {
         iter = d->removeOutput(iter);
         end = d->outputs.end();
     }
 
-    for (const OutputPtr &output : outputs) {
+    for (const OutputPtr& output : outputs) {
         addOutput(output);
     }
 }
@@ -384,13 +395,13 @@ void Config::apply(const ConfigPtr& other)
     d->screen->apply(other->screen());
 
     // Remove removed outputs
-    Q_FOREACH (const OutputPtr &output, d->outputs) {
+    Q_FOREACH (const OutputPtr& output, d->outputs) {
         if (!other->d->outputs.contains(output->id())) {
             removeOutput(output->id());
         }
     }
 
-    Q_FOREACH (const OutputPtr &otherOutput, other->d->outputs) {
+    Q_FOREACH (const OutputPtr& otherOutput, other->d->outputs) {
         // Add new outputs
         if (!d->outputs.contains(otherOutput->id())) {
             addOutput(otherOutput->clone());
@@ -404,13 +415,12 @@ void Config::apply(const ConfigPtr& other)
     setValid(other->isValid());
 }
 
-
-QDebug operator<<(QDebug dbg, const Disman::ConfigPtr &config)
+QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
 {
     if (config) {
         dbg << "Disman::Config(";
         const auto outputs = config->outputs();
-        for (const auto &output : outputs) {
+        for (const auto& output : outputs) {
             if (output->isConnected()) {
                 dbg << endl << output;
             }
@@ -421,6 +431,5 @@ QDebug operator<<(QDebug dbg, const Disman::ConfigPtr &config)
     }
     return dbg;
 }
-
 
 #include "config.moc"

@@ -16,24 +16,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include "configserializer_p.h"
 
 #include "config.h"
+#include "disman_debug.h"
+#include "edid.h"
 #include "mode.h"
 #include "output.h"
 #include "screen.h"
-#include "edid.h"
-#include "disman_debug.h"
 
 #include <QDBusArgument>
-#include <QJsonDocument>
 #include <QFile>
+#include <QJsonDocument>
 #include <QRect>
 
 using namespace Disman;
 
-QJsonObject ConfigSerializer::serializePoint(const QPointF &point)
+QJsonObject ConfigSerializer::serializePoint(const QPointF& point)
 {
     QJsonObject obj;
     obj[QLatin1String("x")] = point.x();
@@ -41,7 +40,7 @@ QJsonObject ConfigSerializer::serializePoint(const QPointF &point)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeSize(const QSize &size)
+QJsonObject ConfigSerializer::serializeSize(const QSize& size)
 {
     QJsonObject obj;
     obj[QLatin1String("width")] = size.width();
@@ -49,7 +48,7 @@ QJsonObject ConfigSerializer::serializeSize(const QSize &size)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeSizeF(const QSizeF &size)
+QJsonObject ConfigSerializer::serializeSizeF(const QSizeF& size)
 {
     QJsonObject obj;
     obj[QLatin1String("width")] = size.width();
@@ -57,7 +56,7 @@ QJsonObject ConfigSerializer::serializeSizeF(const QSizeF &size)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr &config)
+QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr& config)
 {
     QJsonObject obj;
 
@@ -68,7 +67,7 @@ QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr &config)
     obj[QLatin1String("features")] = static_cast<int>(config->supportedFeatures());
 
     QJsonArray outputs;
-    Q_FOREACH (const OutputPtr &output, config->outputs()) {
+    Q_FOREACH (const OutputPtr& output, config->outputs()) {
         outputs.append(serializeOutput(output));
     }
     obj[QLatin1String("outputs")] = outputs;
@@ -82,7 +81,7 @@ QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr &config)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeOutput(const OutputPtr &output)
+QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
 {
     QJsonObject obj;
 
@@ -100,12 +99,12 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr &output)
     obj[QLatin1String("enabled")] = output->isEnabled();
     obj[QLatin1String("primary")] = output->isPrimary();
     obj[QLatin1String("clones")] = serializeList(output->clones());
-    //obj[QLatin1String("edid")] = output->edid()->raw();
+    // obj[QLatin1String("edid")] = output->edid()->raw();
     obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
     obj[QLatin1String("replicationSource")] = output->replicationSource();
 
     QJsonArray modes;
-    Q_FOREACH (const ModePtr &mode, output->modes()) {
+    Q_FOREACH (const ModePtr& mode, output->modes()) {
         modes.append(serializeMode(mode));
     }
     obj[QLatin1String("modes")] = modes;
@@ -113,7 +112,7 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr &output)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeMode(const ModePtr &mode)
+QJsonObject ConfigSerializer::serializeMode(const ModePtr& mode)
 {
     QJsonObject obj;
 
@@ -125,7 +124,7 @@ QJsonObject ConfigSerializer::serializeMode(const ModePtr &mode)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeScreen(const ScreenPtr &screen)
+QJsonObject ConfigSerializer::serializeScreen(const ScreenPtr& screen)
 {
     QJsonObject obj;
 
@@ -138,7 +137,7 @@ QJsonObject ConfigSerializer::serializeScreen(const ScreenPtr &screen)
     return obj;
 }
 
-QPointF ConfigSerializer::deserializePoint(const QDBusArgument &arg)
+QPointF ConfigSerializer::deserializePoint(const QDBusArgument& arg)
 {
     double x = 0;
     double y = 0;
@@ -164,7 +163,7 @@ QPointF ConfigSerializer::deserializePoint(const QDBusArgument &arg)
     return QPointF(x, y);
 }
 
-QSize ConfigSerializer::deserializeSize(const QDBusArgument &arg)
+QSize ConfigSerializer::deserializeSize(const QDBusArgument& arg)
 {
     int w = 0, h = 0;
     arg.beginMap();
@@ -188,7 +187,7 @@ QSize ConfigSerializer::deserializeSize(const QDBusArgument &arg)
     return QSize(w, h);
 }
 
-QSizeF ConfigSerializer::deserializeSizeF(const QDBusArgument &arg)
+QSizeF ConfigSerializer::deserializeSizeF(const QDBusArgument& arg)
 {
     double w = 0;
     double h = 0;
@@ -213,12 +212,13 @@ QSizeF ConfigSerializer::deserializeSizeF(const QDBusArgument &arg)
     return QSizeF(w, h);
 }
 
-ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap &map)
+ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap& map)
 {
     ConfigPtr config(new Config);
 
     if (map.contains(QLatin1String("features"))) {
-        config->setSupportedFeatures(static_cast<Config::Features>(map[QStringLiteral("features")].toInt()));
+        config->setSupportedFeatures(
+            static_cast<Config::Features>(map[QStringLiteral("features")].toInt()));
     }
 
     if (map.contains(QLatin1String("tabletModeAvailable"))) {
@@ -229,7 +229,7 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap &map)
     }
 
     if (map.contains(QLatin1String("outputs"))) {
-        const QDBusArgument &outputsArg = map[QStringLiteral("outputs")].value<QDBusArgument>();
+        const QDBusArgument& outputsArg = map[QStringLiteral("outputs")].value<QDBusArgument>();
         outputsArg.beginArray();
         OutputList outputs;
         while (!outputsArg.atEnd()) {
@@ -246,7 +246,7 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap &map)
     }
 
     if (map.contains(QLatin1String("screen"))) {
-        const QDBusArgument &screenArg = map[QStringLiteral("screen")].value<QDBusArgument>();
+        const QDBusArgument& screenArg = map[QStringLiteral("screen")].value<QDBusArgument>();
         const Disman::ScreenPtr screen = deserializeScreen(screenArg);
         if (!screen) {
             return ConfigPtr();
@@ -257,7 +257,7 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap &map)
     return config;
 }
 
-OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument &arg)
+OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
 {
     OutputPtr output(new Output);
 
@@ -324,7 +324,7 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument &arg)
     return output;
 }
 
-ModePtr ConfigSerializer::deserializeMode(const QDBusArgument &arg)
+ModePtr ConfigSerializer::deserializeMode(const QDBusArgument& arg)
 {
     ModePtr mode(new Mode);
 
@@ -353,7 +353,7 @@ ModePtr ConfigSerializer::deserializeMode(const QDBusArgument &arg)
     return mode;
 }
 
-ScreenPtr ConfigSerializer::deserializeScreen(const QDBusArgument &arg)
+ScreenPtr ConfigSerializer::deserializeScreen(const QDBusArgument& arg)
 {
     ScreenPtr screen(new Screen);
 

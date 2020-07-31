@@ -18,8 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #pragma once
 
-#include "wayland_interface.h"
 #include "config.h"
+#include "wayland_interface.h"
 
 namespace KWayland
 {
@@ -45,7 +45,7 @@ class KWaylandFactory : public WaylandFactory
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.waylandinterface" FILE "kwayland.json")
 
 public:
-    WaylandInterface* createInterface(QObject *parent = nullptr) override;
+    WaylandInterface* createInterface(QObject* parent = nullptr) override;
 };
 
 class KWaylandInterface : public WaylandInterface
@@ -53,19 +53,19 @@ class KWaylandInterface : public WaylandInterface
     Q_OBJECT
 
 public:
-    explicit KWaylandInterface(QObject *parent = nullptr);
+    explicit KWaylandInterface(QObject* parent = nullptr);
     ~KWaylandInterface() override = default;
     bool isInitialized() const override;
 
     QMap<int, WaylandOutput*> outputMap() const override;
 
-    void applyConfig(const Disman::ConfigPtr &newConfig) override;
-    void updateConfig(Disman::ConfigPtr &config) override;
+    void applyConfig(const Disman::ConfigPtr& newConfig) override;
+    void updateConfig(Disman::ConfigPtr& config) override;
 
 protected:
-    void initConnection(QThread *thread) override;
-    void insertOutput(WaylandOutput *output) override;
-    WaylandOutput* takeOutput(WaylandOutput *output) override;
+    void initConnection(QThread* thread) override;
+    void insertOutput(WaylandOutput* output) override;
+    WaylandOutput* takeOutput(WaylandOutput* output) override;
     void handleDisconnect() override;
 
 private:
@@ -73,11 +73,11 @@ private:
     void addOutputDevice(quint32 name, quint32 version);
     void tryPendingConfig();
 
-    KWayland::Client::ConnectionThread *m_connection;
-    KWayland::Client::EventQueue *m_queue;
+    KWayland::Client::ConnectionThread* m_connection;
+    KWayland::Client::EventQueue* m_queue;
 
-    KWayland::Client::Registry *m_registry;
-    KWayland::Client::OutputManagement *m_outputManagement;
+    KWayland::Client::Registry* m_registry;
+    KWayland::Client::OutputManagement* m_outputManagement;
 
     // KWayland names as keys
     QMap<int, KWaylandOutput*> m_outputMap;

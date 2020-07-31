@@ -16,15 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include "backenddbuswrapper.h"
-#include "backendloader.h"
 #include "backendadaptor.h"
+#include "backendloader.h"
 #include "disman_backend_launcher_debug.h"
 
-#include "src/configserializer_p.h"
-#include "src/config.h"
 #include "src/abstractbackend.h"
+#include "src/config.h"
+#include "src/configserializer_p.h"
 
 #include <QDBusConnection>
 #include <QDBusError>
@@ -33,14 +32,15 @@ BackendDBusWrapper::BackendDBusWrapper(Disman::AbstractBackend* backend)
     : QObject()
     , mBackend(backend)
 {
-    connect(mBackend, &Disman::AbstractBackend::configChanged,
-            this, &BackendDBusWrapper::backendConfigChanged);
+    connect(mBackend,
+            &Disman::AbstractBackend::configChanged,
+            this,
+            &BackendDBusWrapper::backendConfigChanged);
 
     mChangeCollector.setSingleShot(true);
     mChangeCollector.setInterval(200); // wait for 200 msecs without any change
                                        // before actually emitting configChanged
-    connect(&mChangeCollector, &QTimer::timeout,
-            this, &BackendDBusWrapper::doEmitConfigChanged);
+    connect(&mChangeCollector, &QTimer::timeout, this, &BackendDBusWrapper::doEmitConfigChanged);
 }
 
 BackendDBusWrapper::~BackendDBusWrapper()
@@ -52,7 +52,8 @@ bool BackendDBusWrapper::init()
     QDBusConnection dbus = QDBusConnection::sessionBus();
     new BackendAdaptor(this);
     if (!dbus.registerObject(QStringLiteral("/backend"), this, QDBusConnection::ExportAdaptors)) {
-        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Failed to export backend to DBus: another launcher already running?";
+        qCWarning(DISMAN_BACKEND_LAUNCHER)
+            << "Failed to export backend to DBus: another launcher already running?";
         qCWarning(DISMAN_BACKEND_LAUNCHER) << dbus.lastError().message();
         return false;
     }
@@ -74,7 +75,7 @@ QVariantMap BackendDBusWrapper::getConfig() const
     return obj.toVariantMap();
 }
 
-QVariantMap BackendDBusWrapper::setConfig(const QVariantMap &configMap)
+QVariantMap BackendDBusWrapper::setConfig(const QVariantMap& configMap)
 {
     if (configMap.isEmpty()) {
         qCWarning(DISMAN_BACKEND_LAUNCHER) << "Received an empty config map";
@@ -95,7 +96,7 @@ QVariantMap BackendDBusWrapper::setConfig(const QVariantMap &configMap)
 
 QByteArray BackendDBusWrapper::getEdid(int output) const
 {
-    const QByteArray edidData =  mBackend->edid(output);
+    const QByteArray edidData = mBackend->edid(output);
     if (edidData.isEmpty()) {
         return QByteArray();
     }
@@ -103,7 +104,7 @@ QByteArray BackendDBusWrapper::getEdid(int output) const
     return edidData;
 }
 
-void BackendDBusWrapper::backendConfigChanged(const Disman::ConfigPtr &config)
+void BackendDBusWrapper::backendConfigChanged(const Disman::ConfigPtr& config)
 {
     Q_ASSERT(!config.isNull());
     if (!config) {
@@ -128,4 +129,3 @@ void BackendDBusWrapper::doEmitConfigChanged()
     mCurrentConfig.clear();
     mChangeCollector.stop();
 }
-

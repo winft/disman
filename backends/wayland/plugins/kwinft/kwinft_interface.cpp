@@ -22,20 +22,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <Wrapland/Client/connection_thread.h>
 #include <Wrapland/Client/event_queue.h>
-#include <Wrapland/Client/registry.h>
 #include <Wrapland/Client/output_configuration_v1.h>
 #include <Wrapland/Client/output_management_v1.h>
+#include <Wrapland/Client/registry.h>
 
 #include <QThread>
 
 using namespace Disman;
 
-WaylandInterface* KwinftFactory::createInterface(QObject *parent)
+WaylandInterface* KwinftFactory::createInterface(QObject* parent)
 {
     return new KwinftInterface(parent);
 }
 
-KwinftInterface::KwinftInterface(QObject *parent)
+KwinftInterface::KwinftInterface(QObject* parent)
     : WaylandInterface(parent)
     , m_outputManagement(nullptr)
     , m_registryInitialized(false)
@@ -43,22 +43,26 @@ KwinftInterface::KwinftInterface(QObject *parent)
 {
 }
 
-void KwinftInterface::initConnection(QThread *thread)
+void KwinftInterface::initConnection(QThread* thread)
 {
     m_connection = new Wrapland::Client::ConnectionThread;
 
-    connect(m_connection, &Wrapland::Client::ConnectionThread::establishedChanged,
-            this, [this](bool established) {
+    connect(
+        m_connection,
+        &Wrapland::Client::ConnectionThread::establishedChanged,
+        this,
+        [this](bool established) {
             if (established) {
                 setupRegistry();
             } else {
                 handleDisconnect();
             }
-     }, Qt::QueuedConnection);
+        },
+        Qt::QueuedConnection);
 
     connect(m_connection, &Wrapland::Client::ConnectionThread::failed, this, [this] {
         qCWarning(DISMAN_WAYLAND) << "Failed to connect to Wayland server at socket:"
-                                   << m_connection->socketName();
+                                  << m_connection->socketName();
         Q_EMIT connectionFailed(m_connection->socketName());
     });
 
@@ -70,7 +74,7 @@ void KwinftInterface::initConnection(QThread *thread)
 bool KwinftInterface::isInitialized() const
 {
     return m_registryInitialized && m_outputManagement != nullptr
-            && WaylandInterface::isInitialized();
+        && WaylandInterface::isInitialized();
 }
 
 void KwinftInterface::handleDisconnect()
@@ -97,24 +101,25 @@ void KwinftInterface::setupRegistry()
 
     m_registry = new Wrapland::Client::Registry(this);
 
-    connect(m_registry, &Wrapland::Client::Registry::outputDeviceV1Announced,
-            this, &KwinftInterface::addOutputDevice);
+    connect(m_registry,
+            &Wrapland::Client::Registry::outputDeviceV1Announced,
+            this,
+            &KwinftInterface::addOutputDevice);
 
-    connect(m_registry, &Wrapland::Client::Registry::outputManagementV1Announced,
-            this, [this](quint32 name, quint32 version) {
-                m_outputManagement = m_registry->createOutputManagementV1(name, version,
-                                                                          m_registry);
+    connect(m_registry,
+            &Wrapland::Client::Registry::outputManagementV1Announced,
+            this,
+            [this](quint32 name, quint32 version) {
+                m_outputManagement
+                    = m_registry->createOutputManagementV1(name, version, m_registry);
                 m_outputManagement->setEventQueue(m_queue);
-            }
-    );
+            });
 
-    connect(m_registry, &Wrapland::Client::Registry::interfacesAnnounced,
-            this, [this] {
-                m_registryInitialized = true;
-                unblockSignals();
-                checkInitialized();
-            }
-    );
+    connect(m_registry, &Wrapland::Client::Registry::interfacesAnnounced, this, [this] {
+        m_registryInitialized = true;
+        unblockSignals();
+        checkInitialized();
+    });
 
     m_registry->create(m_connection);
     m_registry->setEventQueue(m_queue);
@@ -128,28 +133,28 @@ void KwinftInterface::addOutputDevice(quint32 name, quint32 version)
     addOutput(output);
 }
 
-void KwinftInterface::insertOutput(WaylandOutput *output)
+void KwinftInterface::insertOutput(WaylandOutput* output)
 {
-    auto *out = static_cast<KwinftOutput*>(output);
+    auto* out = static_cast<KwinftOutput*>(output);
     m_outputMap.insert(out->id(), out);
 }
 
-WaylandOutput* KwinftInterface::takeOutput(WaylandOutput *output)
+WaylandOutput* KwinftInterface::takeOutput(WaylandOutput* output)
 {
-    auto *out = static_cast<KwinftOutput*>(output);
+    auto* out = static_cast<KwinftOutput*>(output);
     return m_outputMap.take(out->id());
 }
 
-void KwinftInterface::updateConfig(Disman::ConfigPtr &config)
+void KwinftInterface::updateConfig(Disman::ConfigPtr& config)
 {
     config->setSupportedFeatures(Config::Feature::Writable | Config::Feature::PerOutputScaling
                                  | Config::Feature::OutputReplication
                                  | Config::Feature::AutoRotation | Config::Feature::TabletMode);
     config->setValid(m_connection->display());
 
-    //Removing removed outputs
+    // Removing removed outputs
     const Disman::OutputList outputs = config->outputs();
-    for (const auto &output : outputs) {
+    for (const auto& output : outputs) {
         if (!m_outputMap.contains(output->id())) {
             config->removeOutput(output->id());
         }
@@ -157,7 +162,7 @@ void KwinftInterface::updateConfig(Disman::ConfigPtr &config)
 
     // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
     Disman::OutputList dismanOutputs = config->outputs();
-    for (const auto &output : m_outputMap) {
+    for (const auto& output : m_outputMap) {
         Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
         if (!dismanOutput) {
             dismanOutput = output->toDismanOutput();
@@ -194,12 +199,12 @@ void KwinftInterface::tryPendingConfig()
     m_dismanPendingConfig = nullptr;
 }
 
-void KwinftInterface::applyConfig(const Disman::ConfigPtr &newConfig)
+void KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
     using namespace Wrapland::Client;
 
     // Create a new configuration object
-    auto *wlConfig = m_outputManagement->createConfiguration();
+    auto* wlConfig = m_outputManagement->createConfiguration();
     wlConfig->setEventQueue(m_queue);
 
     bool changed = false;
@@ -210,7 +215,7 @@ void KwinftInterface::applyConfig(const Disman::ConfigPtr &newConfig)
         return;
     }
 
-    for (const auto &output : newConfig->outputs()) {
+    for (const auto& output : newConfig->outputs()) {
         changed |= m_outputMap[output->id()]->setWlConfig(wlConfig, output);
     }
 

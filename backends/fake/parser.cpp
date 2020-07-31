@@ -15,7 +15,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "parser.h"
 #include "fake.h"
 
@@ -23,12 +22,12 @@
 #include "output.h"
 
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QLoggingCategory>
 #include <QMetaObject>
 #include <QMetaProperty>
-#include <QLoggingCategory>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
 
 using namespace Disman;
 
@@ -38,7 +37,8 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
 
     const QJsonObject json = QJsonDocument::fromJson(data).object();
 
-    ScreenPtr screen = Parser::screenFromJson(json[QStringLiteral("screen")].toObject().toVariantMap());
+    ScreenPtr screen
+        = Parser::screenFromJson(json[QStringLiteral("screen")].toObject().toVariantMap());
     config->setScreen(screen);
 
     const QVariantList outputs = json[QStringLiteral("outputs")].toArray().toVariantList();
@@ -47,7 +47,7 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
     }
 
     OutputList outputList;
-    Q_FOREACH(const QVariant &value, outputs) {
+    Q_FOREACH (const QVariant& value, outputs) {
         const OutputPtr output = Parser::outputFromJson(value.toMap());
         outputList.insert(output->id(), output);
     }
@@ -68,7 +68,7 @@ ConfigPtr Parser::fromJson(const QString& path)
     return Parser::fromJson(file.readAll());
 }
 
-ScreenPtr Parser::screenFromJson(const QVariantMap &data)
+ScreenPtr Parser::screenFromJson(const QVariantMap& data)
 {
     ScreenPtr screen(new Screen);
     screen->setId(data[QStringLiteral("id")].toInt());
@@ -80,18 +80,18 @@ ScreenPtr Parser::screenFromJson(const QVariantMap &data)
     return screen;
 }
 
-void Parser::qvariant2qobject(const QVariantMap &variant, QObject *object)
+void Parser::qvariant2qobject(const QVariantMap& variant, QObject* object)
 {
-    const QMetaObject *metaObject = object->metaObject();
+    const QMetaObject* metaObject = object->metaObject();
     for (QVariantMap::const_iterator iter = variant.begin(); iter != variant.end(); ++iter) {
         const int propertyIndex = metaObject->indexOfProperty(qPrintable(iter.key()));
         if (propertyIndex == -1) {
-            //qWarning() << "Skipping non-existent property" << iter.key();
+            // qWarning() << "Skipping non-existent property" << iter.key();
             continue;
         }
         const QMetaProperty metaProperty = metaObject->property(propertyIndex);
         if (!metaProperty.isWritable()) {
-            //qWarning() << "Skipping read-only property" << iter.key();
+            // qWarning() << "Skipping read-only property" << iter.key();
             continue;
         }
 
@@ -109,7 +109,7 @@ void Parser::qvariant2qobject(const QVariantMap &variant, QObject *object)
     }
 }
 
-OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
+OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map)
 {
     OutputPtr output(new Output);
     output->setId(map[QStringLiteral("id")].toInt());
@@ -122,7 +122,7 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
 
     QStringList preferredModes;
     const QVariantList prefModes = map[QStringLiteral("preferredModes")].toList();
-    Q_FOREACH(const QVariant &mode, prefModes) {
+    Q_FOREACH (const QVariant& mode, prefModes) {
         preferredModes.append(mode.toString());
     }
     output->setPreferredModes(preferredModes);
@@ -130,7 +130,7 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
 
     ModeList modelist;
     const QVariantList modes = map[QStringLiteral("modes")].toList();
-    Q_FOREACH(const QVariant &modeValue, modes) {
+    Q_FOREACH (const QVariant& modeValue, modes) {
         const ModePtr mode = Parser::modeFromJson(modeValue);
         modelist.insert(mode->id(), mode);
     }
@@ -139,9 +139,9 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
 
     output->setCurrentModeId(map[QStringLiteral("currentModeId")].toString());
 
-    if(map.contains(QStringLiteral("clones"))) {
+    if (map.contains(QStringLiteral("clones"))) {
         QList<int> clones;
-        Q_FOREACH(const QVariant &id, map[QStringLiteral("clones")].toList()) {
+        Q_FOREACH (const QVariant& id, map[QStringLiteral("clones")].toList()) {
             clones.append(id.toInt());
         }
 
@@ -150,7 +150,8 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
     }
 
     const QByteArray type = map[QStringLiteral("type")].toByteArray().toUpper();
-    if (type.contains("LVDS") || type.contains("EDP") || type.contains("IDP") || type.contains("7")) {
+    if (type.contains("LVDS") || type.contains("EDP") || type.contains("IDP")
+        || type.contains("7")) {
         output->setType(Output::Panel);
     } else if (type.contains("VGA")) {
         output->setType(Output::VGA);
@@ -199,7 +200,7 @@ OutputPtr Parser::outputFromJson(QMap< QString, QVariant > map)
         map.remove(scale);
     }
 
-    //Remove some extra properties that we do not want or need special treatment
+    // Remove some extra properties that we do not want or need special treatment
     map.remove(QStringLiteral("edid"));
 
     Parser::qvariant2qobject(map, output.data());

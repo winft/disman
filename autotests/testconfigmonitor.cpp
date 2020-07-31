@@ -16,19 +16,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include <QObject>
-#include <QtTest>
 #include <QSignalSpy>
+#include <QtTest>
 
 #include "../src/backendmanager_p.h"
 #include "../src/config.h"
-#include "../src/output.h"
 #include "../src/configmonitor.h"
 #include "../src/configoperation.h"
 #include "../src/getconfigoperation.h"
+#include "../src/output.h"
 #include "../src/setconfigoperation.h"
-#include "../src/backendmanager_p.h"
 #include <QSignalSpy>
 
 #include "fakebackendinterface.h"
@@ -72,11 +70,11 @@ private Q_SLOTS:
         qputenv("DISMAN_BACKEND_INPROCESS", "1");
         Disman::BackendManager::instance()->shutdownBackend();
         Disman::BackendManager::instance()->setMethod(Disman::BackendManager::InProcess);
-        //json file for the fake backend
+        // json file for the fake backend
         qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
         // Prepare monitor
-        Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+        Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
         QSignalSpy spy(monitor, SIGNAL(configurationChanged()));
 
         // Get config and monitor it for changes
@@ -103,7 +101,6 @@ private Q_SLOTS:
         QTRY_VERIFY(!spy.isEmpty());
         QCOMPARE(spy.size(), 2);
     }
-
 };
 
 QTEST_MAIN(TestConfigMonitor)

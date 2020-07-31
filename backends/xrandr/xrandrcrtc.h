@@ -36,8 +36,7 @@ class XRandRCrtc : public QObject
 public:
     typedef QMap<xcb_randr_crtc_t, XRandRCrtc*> Map;
 
-
-    XRandRCrtc(xcb_randr_crtc_t crtc, XRandRConfig *config);
+    XRandRCrtc(xcb_randr_crtc_t crtc, XRandRConfig* config);
 
     xcb_randr_crtc_t crtc() const;
     xcb_randr_mode_t mode() const;
@@ -54,7 +53,7 @@ public:
     bool isFree() const;
 
     void update();
-    void update(xcb_randr_crtc_t mode, xcb_randr_rotation_t rotation, const QRect &geom);
+    void update(xcb_randr_crtc_t mode, xcb_randr_rotation_t rotation, const QRect& geom);
 
 private:
     xcb_randr_crtc_t m_crtc;

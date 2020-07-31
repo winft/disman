@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using namespace Disman;
 
-WaylandInterface::WaylandInterface(QObject *parent)
+WaylandInterface::WaylandInterface(QObject* parent)
     : QObject(parent)
     , m_blockSignals(true)
     , m_dismanConfig(new Config)
@@ -63,17 +63,15 @@ void WaylandInterface::handleDisconnect()
     Q_EMIT configChanged();
 }
 
-void WaylandInterface::addOutput(WaylandOutput *output)
+void WaylandInterface::addOutput(WaylandOutput* output)
 {
     m_initializingOutputs << output;
 
-    connect(output, &WaylandOutput::removed,
-            this, [this, output]() { removeOutput(output); });
-    connect(output, &WaylandOutput::dataReceived,
-            this, [this, output]() { initOutput(output); });
+    connect(output, &WaylandOutput::removed, this, [this, output]() { removeOutput(output); });
+    connect(output, &WaylandOutput::dataReceived, this, [this, output]() { initOutput(output); });
 }
 
-void WaylandInterface::initOutput(WaylandOutput *output)
+void WaylandInterface::initOutput(WaylandOutput* output)
 {
     insertOutput(output);
     m_initializingOutputs.removeOne(output);
@@ -91,7 +89,7 @@ void WaylandInterface::initOutput(WaylandOutput *output)
     });
 }
 
-void WaylandInterface::removeOutput(WaylandOutput *output)
+void WaylandInterface::removeOutput(WaylandOutput* output)
 {
     if (m_initializingOutputs.removeOne(output)) {
         // Output was not yet fully initialized, just remove here and return.
@@ -101,7 +99,8 @@ void WaylandInterface::removeOutput(WaylandOutput *output)
 
     // remove the output from output mapping
     const auto removedOutput = takeOutput(output);
-    Q_ASSERT(removedOutput == output); Q_UNUSED(removedOutput);
+    Q_ASSERT(removedOutput == output);
+    Q_UNUSED(removedOutput);
     Q_EMIT outputsChanged();
     delete output;
 
@@ -122,7 +121,7 @@ bool WaylandInterface::isInitialized() const
     return !m_blockSignals && m_initializingOutputs.isEmpty();
 }
 
-void WaylandInterface::applyConfig(const Disman::ConfigPtr &newConfig)
+void WaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
     Q_UNUSED(newConfig)
 }

@@ -16,19 +16,19 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef MODE_CONFIG_H
 #define MODE_CONFIG_H
 
 #include "disman_export.h"
 #include "types.h"
 
+#include <QDebug>
+#include <QMetaType>
 #include <QObject>
 #include <QSize>
-#include <QMetaType>
-#include <QDebug>
 
-namespace Disman {
+namespace Disman
+{
 
 class DISMAN_EXPORT Mode : public QObject
 {
@@ -38,40 +38,40 @@ class DISMAN_EXPORT Mode : public QObject
     Q_PROPERTY(QSize size READ size WRITE setSize NOTIFY modeChanged)
     Q_PROPERTY(float refreshRate READ refreshRate WRITE setRefreshRate NOTIFY modeChanged)
 
-    public:
-        explicit Mode();
-        ~Mode() override;
+public:
+    explicit Mode();
+    ~Mode() override;
 
-        ModePtr clone() const;
+    ModePtr clone() const;
 
-        const QString id() const;
-        void setId(const QString &id);
+    const QString id() const;
+    void setId(const QString& id);
 
-        QString name() const;
-        void setName(const QString& name);
+    QString name() const;
+    void setName(const QString& name);
 
-        QSize size() const;
-        void setSize(const QSize& size);
+    QSize size() const;
+    void setSize(const QSize& size);
 
-        float refreshRate() const;
-        void setRefreshRate(float refresh);
+    float refreshRate() const;
+    void setRefreshRate(float refresh);
 
-    Q_SIGNALS:
-        void modeChanged();
+Q_SIGNALS:
+    void modeChanged();
 
-    private:
-        Q_DISABLE_COPY(Mode)
+private:
+    Q_DISABLE_COPY(Mode)
 
-        class Private;
-        Private * const d;
+    class Private;
+    Private* const d;
 
-        Mode(Private *dd);
+    Mode(Private* dd);
 };
 
-} //Disman namespace
+}
 
-DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::ModePtr &mode);
+DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::ModePtr& mode);
 
 Q_DECLARE_METATYPE(Disman::ModeList)
 
-#endif //MODE_H
+#endif

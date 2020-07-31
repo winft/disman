@@ -44,7 +44,7 @@ class KwinftFactory : public WaylandFactory
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.waylandinterface" FILE "kwinft.json")
 
 public:
-    WaylandInterface* createInterface(QObject *parent = nullptr) override;
+    WaylandInterface* createInterface(QObject* parent = nullptr) override;
 };
 
 class KwinftInterface : public WaylandInterface
@@ -52,20 +52,20 @@ class KwinftInterface : public WaylandInterface
     Q_OBJECT
 
 public:
-    explicit KwinftInterface(QObject *parent = nullptr);
+    explicit KwinftInterface(QObject* parent = nullptr);
     ~KwinftInterface() override = default;
 
-    void initConnection(QThread *thread) override;
+    void initConnection(QThread* thread) override;
     bool isInitialized() const override;
 
     QMap<int, WaylandOutput*> outputMap() const override;
 
-    void applyConfig(const Disman::ConfigPtr &newConfig) override;
-    void updateConfig(Disman::ConfigPtr &config) override;
+    void applyConfig(const Disman::ConfigPtr& newConfig) override;
+    void updateConfig(Disman::ConfigPtr& config) override;
 
 protected:
-    void insertOutput(WaylandOutput *output) override;
-    WaylandOutput* takeOutput(WaylandOutput *output) override;
+    void insertOutput(WaylandOutput* output) override;
+    WaylandOutput* takeOutput(WaylandOutput* output) override;
     void handleDisconnect() override;
 
 private:
@@ -73,11 +73,11 @@ private:
     void addOutputDevice(quint32 name, quint32 version);
     void tryPendingConfig();
 
-    Wrapland::Client::ConnectionThread *m_connection;
-    Wrapland::Client::EventQueue *m_queue;
+    Wrapland::Client::ConnectionThread* m_connection;
+    Wrapland::Client::EventQueue* m_queue;
 
-    Wrapland::Client::Registry *m_registry;
-    Wrapland::Client::OutputManagementV1 *m_outputManagement;
+    Wrapland::Client::Registry* m_registry;
+    Wrapland::Client::OutputManagementV1* m_outputManagement;
 
     // Wrapland names as keys
     QMap<int, KwinftOutput*> m_outputMap;

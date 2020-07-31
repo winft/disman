@@ -15,11 +15,9 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
-
 #include "abstractbackend.h"
 
-void Disman::AbstractBackend::init(const QVariantMap &arguments)
+void Disman::AbstractBackend::init(const QVariantMap& arguments)
 {
     Q_UNUSED(arguments);
 }

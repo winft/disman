@@ -15,7 +15,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef DISMAN_CONFIGMONITOR_H
 #define DISMAN_CONFIGMONITOR_H
 
@@ -38,8 +37,8 @@ class DISMAN_EXPORT ConfigMonitor : public QObject
 public:
     static ConfigMonitor* instance();
 
-    void addConfig(const Disman::ConfigPtr &config);
-    void removeConfig(const Disman::ConfigPtr &config);
+    void addConfig(const Disman::ConfigPtr& config);
+    void removeConfig(const Disman::ConfigPtr& config);
 
 Q_SIGNALS:
     void configurationChanged();
@@ -51,13 +50,12 @@ private:
     Q_DISABLE_COPY(ConfigMonitor)
 
     friend BackendManager;
-    void connectInProcessBackend(Disman::AbstractBackend *backend);
+    void connectInProcessBackend(Disman::AbstractBackend* backend);
 
     class Private;
-    Private * const d;
-
+    Private* const d;
 };
 
-} /* namespace Disman */
+}
 
-#endif // DISMAN_CONFIGMONITOR_H
+#endif

@@ -16,10 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include "backendloader.h"
-#include "backendloaderadaptor.h"
 #include "backenddbuswrapper.h"
+#include "backendloaderadaptor.h"
 #include "disman_backend_launcher_debug.h"
 #include "src/abstractbackend.h"
 #include "src/backendmanager_p.h"
@@ -35,7 +34,7 @@
 #include <QDBusConnection>
 #include <QDBusInterface>
 
-void pluginDeleter(QPluginLoader *p)
+void pluginDeleter(QPluginLoader* p)
 {
     if (p) {
         qCDebug(DISMAN_BACKEND_LAUNCHER) << "Unloading" << p->fileName();
@@ -64,7 +63,8 @@ bool BackendLoader::init()
     QDBusConnection dbus = QDBusConnection::sessionBus();
     new BackendLoaderAdaptor(this);
     if (!dbus.registerObject(QStringLiteral("/"), this, QDBusConnection::ExportAdaptors)) {
-        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Failed to export backend to DBus: another launcher already running?";
+        qCWarning(DISMAN_BACKEND_LAUNCHER)
+            << "Failed to export backend to DBus: another launcher already running?";
         qCWarning(DISMAN_BACKEND_LAUNCHER) << dbus.lastError().message();
         return false;
     }
@@ -81,7 +81,7 @@ QString BackendLoader::backend() const
     return QString();
 }
 
-bool BackendLoader::requestBackend(const QString &backendName, const QVariantMap &arguments)
+bool BackendLoader::requestBackend(const QString& backendName, const QVariantMap& arguments)
 {
     if (mBackend) {
         // If an backend is already loaded, but it's not the same as the one
@@ -96,7 +96,7 @@ bool BackendLoader::requestBackend(const QString &backendName, const QVariantMap
         }
     }
 
-    Disman::AbstractBackend *backend = loadBackend(backendName, arguments);
+    Disman::AbstractBackend* backend = loadBackend(backendName, arguments);
     if (!backend) {
         return false;
     }
@@ -112,11 +112,12 @@ bool BackendLoader::requestBackend(const QString &backendName, const QVariantMap
     return true;
 }
 
-Disman::AbstractBackend *BackendLoader::loadBackend(const QString &name,
-                                                     const QVariantMap &arguments)
+Disman::AbstractBackend* BackendLoader::loadBackend(const QString& name,
+                                                    const QVariantMap& arguments)
 {
     if (mLoader == nullptr) {
-        std::unique_ptr<QPluginLoader, void(*)(QPluginLoader *)> loader(new QPluginLoader(), pluginDeleter);
+        std::unique_ptr<QPluginLoader, void (*)(QPluginLoader*)> loader(new QPluginLoader(),
+                                                                        pluginDeleter);
         mLoader = loader.release();
     }
     return Disman::BackendManager::loadBackendPlugin(mLoader, name, arguments);

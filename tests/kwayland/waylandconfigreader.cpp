@@ -15,15 +15,14 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "waylandconfigreader.h"
 
 #include <QDebug>
 
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QFile>
 #include <QUuid>
 
 #include "edid.h"
@@ -32,8 +31,10 @@ using namespace Disman;
 
 static QList<int> s_outputIds;
 
-void WaylandConfigReader::outputsFromConfig(const QString& configfile, KWayland::Server::Display* display,
-                                            QList< KWayland::Server::OutputDeviceInterface* >& outputs)
+void WaylandConfigReader::outputsFromConfig(
+    const QString& configfile,
+    KWayland::Server::Display* display,
+    QList<KWayland::Server::OutputDeviceInterface*>& outputs)
 {
     qDebug() << "Loading server from" << configfile;
     QFile file(configfile);
@@ -43,42 +44,43 @@ void WaylandConfigReader::outputsFromConfig(const QString& configfile, KWayland:
     QJsonObject json = jsonDoc.object();
 
     QJsonArray omap = json[QStringLiteral("outputs")].toArray();
-    Q_FOREACH(const QJsonValue &value, omap) {
-        const QVariantMap &output = value.toObject().toVariantMap();
+    Q_FOREACH (const QJsonValue& value, omap) {
+        const QVariantMap& output = value.toObject().toVariantMap();
         if (output[QStringLiteral("connected")].toBool()) {
             outputs << createOutputDevice(output, display);
-            //qDebug() << "new Output created: " << output["name"].toString();
+            // qDebug() << "new Output created: " << output["name"].toString();
         } else {
-            //qDebug() << "disconnected Output" << output["name"].toString();
+            // qDebug() << "disconnected Output" << output["name"].toString();
         }
     }
     auto outpus = WaylandConfigReader::createOutputs(display, outputs);
     s_outputIds.clear();
 }
 
-OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap& outputConfig, KWayland::Server::Display *display)
+OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap& outputConfig,
+                                                               KWayland::Server::Display* display)
 {
-    KWayland::Server::OutputDeviceInterface *outputdevice = display->createOutputDevice(display);
+    KWayland::Server::OutputDeviceInterface* outputdevice = display->createOutputDevice(display);
 
     QByteArray data = QByteArray::fromBase64(outputConfig[QStringLiteral("edid")].toByteArray());
     outputdevice->setEdid(data);
     Edid edid(data, display);
 
-//     qDebug() << "EDID Info: ";
+    // qDebug() << "EDID Info: ";
     if (edid.isValid()) {
-//         qDebug() << "\tDevice ID: " << edid.deviceId();
-//         qDebug() << "\tName: " << edid.name();
-//         qDebug() << "\tVendor: " << edid.vendor();
-//         qDebug() << "\tSerial: " << edid.serial();
-//         qDebug() << "\tEISA ID: " << edid.eisaId();
-//         qDebug() << "\tHash: " << edid.hash();
-//         qDebug() << "\tWidth (mm): " << edid.width();
-//         qDebug() << "\tHeight (mm): " << edid.height();
-//         qDebug() << "\tGamma: " << edid.gamma();
-//         qDebug() << "\tRed: " << edid.red();
-//         qDebug() << "\tGreen: " << edid.green();
-//         qDebug() << "\tBlue: " << edid.blue();
-//         qDebug() << "\tWhite: " << edid.white();
+        // qDebug() << "\tDevice ID: " << edid.deviceId();
+        // qDebug() << "\tName: " << edid.name();
+        // qDebug() << "\tVendor: " << edid.vendor();
+        // qDebug() << "\tSerial: " << edid.serial();
+        // qDebug() << "\tEISA ID: " << edid.eisaId();
+        // qDebug() << "\tHash: " << edid.hash();
+        // qDebug() << "\tWidth (mm): " << edid.width();
+        // qDebug() << "\tHeight (mm): " << edid.height();
+        // qDebug() << "\tGamma: " << edid.gamma();
+        // qDebug() << "\tRed: " << edid.red();
+        // qDebug() << "\tGreen: " << edid.green();
+        // qDebug() << "\tBlue: " << edid.blue();
+        // qDebug() << "\tWhite: " << edid.white();
         outputdevice->setPhysicalSize(QSize(edid.width() * 10, edid.height() * 10));
         outputdevice->setManufacturer(edid.vendor());
         outputdevice->setModel(edid.name());
@@ -94,22 +96,21 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
     }
     outputdevice->setUuid(uuid);
 
-    const QMap <int, KWayland::Server::OutputDeviceInterface::Transform> transformMap = {
-        {0, KWayland::Server::OutputDeviceInterface::Transform::Normal},
-        {1, KWayland::Server::OutputDeviceInterface::Transform::Normal},
-        {2, KWayland::Server::OutputDeviceInterface::Transform::Rotated270},
-        {3, KWayland::Server::OutputDeviceInterface::Transform::Rotated180},
-        {4, KWayland::Server::OutputDeviceInterface::Transform::Rotated90}
-    };
+    const QMap<int, KWayland::Server::OutputDeviceInterface::Transform> transformMap
+        = {{0, KWayland::Server::OutputDeviceInterface::Transform::Normal},
+           {1, KWayland::Server::OutputDeviceInterface::Transform::Normal},
+           {2, KWayland::Server::OutputDeviceInterface::Transform::Rotated270},
+           {3, KWayland::Server::OutputDeviceInterface::Transform::Rotated180},
+           {4, KWayland::Server::OutputDeviceInterface::Transform::Rotated90}};
 
     outputdevice->setTransform(transformMap[outputConfig[QStringLiteral("rotation")].toInt()]);
     int currentModeId = outputConfig[QStringLiteral("currentModeId")].toInt();
     QVariantList preferredModes = outputConfig[QStringLiteral("preferredModes")].toList();
 
     int mode_id = 0;
-    Q_FOREACH (const QVariant &_mode, outputConfig[QStringLiteral("modes")].toList()) {
+    Q_FOREACH (const QVariant& _mode, outputConfig[QStringLiteral("modes")].toList()) {
         mode_id++;
-        const QVariantMap &mode = _mode.toMap();
+        const QVariantMap& mode = _mode.toMap();
         OutputDeviceInterface::Mode m0;
         const QSize _size = sizeFromJson(mode[QStringLiteral("size")]);
 
@@ -122,7 +123,8 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
 
         OutputDeviceInterface::ModeFlags flags;
         if (isCurrent && isPreferred) {
-            flags = OutputDeviceInterface::ModeFlags(OutputDeviceInterface::ModeFlag::Current | OutputDeviceInterface::ModeFlag::Preferred);
+            flags = OutputDeviceInterface::ModeFlags(OutputDeviceInterface::ModeFlag::Current
+                                                     | OutputDeviceInterface::ModeFlag::Preferred);
         } else if (isCurrent) {
             flags = OutputDeviceInterface::ModeFlags(OutputDeviceInterface::ModeFlag::Current);
         } else if (isPreferred) {
@@ -145,38 +147,40 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
     }
 
     outputdevice->setGlobalPosition(pointFromJson(outputConfig[QStringLiteral("pos")]));
-    outputdevice->setEnabled(outputConfig[QStringLiteral("enabled")].toBool() ? OutputDeviceInterface::Enablement::Enabled : OutputDeviceInterface::Enablement::Disabled);
+    outputdevice->setEnabled(outputConfig[QStringLiteral("enabled")].toBool()
+                                 ? OutputDeviceInterface::Enablement::Enabled
+                                 : OutputDeviceInterface::Enablement::Disabled);
     outputdevice->create();
 
     return outputdevice;
 }
 
-QList<KWayland::Server::OutputInterface *> Disman::WaylandConfigReader::createOutputs(KWayland::Server::Display* display, QList<KWayland::Server::OutputDeviceInterface *>& outputdevices)
+QList<KWayland::Server::OutputInterface*> Disman::WaylandConfigReader::createOutputs(
+    KWayland::Server::Display* display,
+    QList<KWayland::Server::OutputDeviceInterface*>& outputdevices)
 {
-    const QMap <KWayland::Server::OutputDeviceInterface::Transform,
-                      KWayland::Server::OutputInterface::Transform> transformMap = {
-                            {KWayland::Server::OutputDeviceInterface::Transform::Normal,
-                                KWayland::Server::OutputInterface::Transform::Normal},
-                            {KWayland::Server::OutputDeviceInterface::Transform::Rotated270,
-                                KWayland::Server::OutputInterface::Transform::Rotated270},
-                            {KWayland::Server::OutputDeviceInterface::Transform::Rotated180,
-                                KWayland::Server::OutputInterface::Transform::Rotated180},
-                            {KWayland::Server::OutputDeviceInterface::Transform::Rotated90,
-                                KWayland::Server::OutputInterface::Transform::Rotated90},
-    };
+    const QMap<KWayland::Server::OutputDeviceInterface::Transform,
+               KWayland::Server::OutputInterface::Transform>
+        transformMap = {
+            {KWayland::Server::OutputDeviceInterface::Transform::Normal,
+             KWayland::Server::OutputInterface::Transform::Normal},
+            {KWayland::Server::OutputDeviceInterface::Transform::Rotated270,
+             KWayland::Server::OutputInterface::Transform::Rotated270},
+            {KWayland::Server::OutputDeviceInterface::Transform::Rotated180,
+             KWayland::Server::OutputInterface::Transform::Rotated180},
+            {KWayland::Server::OutputDeviceInterface::Transform::Rotated90,
+             KWayland::Server::OutputInterface::Transform::Rotated90},
+        };
 
-
-
-    QList<KWayland::Server::OutputInterface *> outputs;
+    QList<KWayland::Server::OutputInterface*> outputs;
     Q_FOREACH (const auto outputdevice, outputdevices) {
         qDebug() << "New Output!";
-        KWayland::Server::OutputInterface *output = display->createOutput(display);
+        KWayland::Server::OutputInterface* output = display->createOutput(display);
 
         // Sync properties from outputdevice to the newly created output interface
         output->setManufacturer(outputdevice->manufacturer());
         output->setModel(outputdevice->model());
-        //output->setUuid(outputdevice->uuid());
-
+        // output->setUuid(outputdevice->uuid());
 
         Q_FOREACH (const auto mode, outputdevice->modes()) {
 
@@ -184,7 +188,8 @@ QList<KWayland::Server::OutputInterface *> Disman::WaylandConfigReader::createOu
             bool isPreferred = mode.flags.testFlag(OutputDeviceInterface::ModeFlag::Current);
             OutputInterface::ModeFlags flags;
             if (isPreferred && isCurrent) {
-                flags = OutputInterface::ModeFlags(OutputInterface::ModeFlag::Current | OutputInterface::ModeFlag::Preferred);
+                flags = OutputInterface::ModeFlags(OutputInterface::ModeFlag::Current
+                                                   | OutputInterface::ModeFlag::Preferred);
             } else if (isCurrent) {
                 flags = OutputInterface::ModeFlags(OutputInterface::ModeFlag::Current);
             } else if (isPreferred) {
@@ -199,7 +204,7 @@ QList<KWayland::Server::OutputInterface *> Disman::WaylandConfigReader::createOu
             if (isCurrent) {
                 output->setCurrentMode(m0.size, m0.refreshRate);
             }
-            //qDebug() << "mode added:" << m0.size << m0.refreshRate << isCurrent;
+            // qDebug() << "mode added:" << m0.size << m0.refreshRate << isCurrent;
         }
 
         output->setGlobalPosition(outputdevice->globalPosition());
@@ -208,19 +213,18 @@ QList<KWayland::Server::OutputInterface *> Disman::WaylandConfigReader::createOu
 
         output->setDpmsSupported(true);
         output->setDpmsMode(OutputInterface::DpmsMode::On);
-        QObject::connect(output, &OutputInterface::dpmsModeRequested,
-                [] (KWayland::Server::OutputInterface::DpmsMode requestedMode) {
-                    Q_UNUSED(requestedMode);
-                    // FIXME: make sure this happens in the scope of an object!
-                    qDebug() << "DPMS Mode change requested";
-
-                });
+        QObject::connect(output,
+                         &OutputInterface::dpmsModeRequested,
+                         [](KWayland::Server::OutputInterface::DpmsMode requestedMode) {
+                             Q_UNUSED(requestedMode);
+                             // FIXME: make sure this happens in the scope of an object!
+                             qDebug() << "DPMS Mode change requested";
+                         });
         output->create();
         outputs << output;
     }
     return outputs;
 }
-
 
 QSize WaylandConfigReader::sizeFromJson(const QVariant& data)
 {
@@ -252,4 +256,3 @@ QRect WaylandConfigReader::rectFromJson(const QVariant& data)
 
     return rect;
 }
-

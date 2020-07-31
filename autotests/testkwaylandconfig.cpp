@@ -15,20 +15,19 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include <QCoreApplication>
-#include <QtTest>
 #include <QObject>
 #include <QSignalSpy>
+#include <QtTest>
 
 #include "backendmanager_p.h"
-#include "getconfigoperation.h"
-#include "setconfigoperation.h"
 #include "config.h"
 #include "configmonitor.h"
-#include "output.h"
-#include "mode.h"
 #include "edid.h"
+#include "getconfigoperation.h"
+#include "mode.h"
+#include "output.h"
+#include "setconfigoperation.h"
 
 #include "waylandtestserver.h"
 
@@ -41,7 +40,7 @@ class TestKWaylandConfig : public QObject
     Q_OBJECT
 
 public:
-    explicit TestKWaylandConfig(QObject *parent = nullptr);
+    explicit TestKWaylandConfig(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void initTestCase();
@@ -56,12 +55,10 @@ private Q_SLOTS:
     void testApplyOnPending();
 
 private:
-
-    WaylandTestServer *m_server;
-
+    WaylandTestServer* m_server;
 };
 
-TestKWaylandConfig::TestKWaylandConfig(QObject *parent)
+TestKWaylandConfig::TestKWaylandConfig(QObject* parent)
     : QObject(parent)
     , m_server(nullptr)
 {
@@ -97,10 +94,9 @@ void TestKWaylandConfig::changeConfig()
     QVERIFY(config);
 
     // Prepare monitor & spy
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
-
 
     // The first output is currently disabled, let's try to enable it
     auto output = config->outputs().first();
@@ -134,7 +130,7 @@ void TestKWaylandConfig::testPositionChange()
     QVERIFY(config);
 
     // Prepare monitor & spy
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
@@ -172,7 +168,7 @@ void TestKWaylandConfig::testRotationChange()
     QVERIFY(config);
 
     // Prepare monitor & spy
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
@@ -197,7 +193,6 @@ void TestKWaylandConfig::testRotationChange()
 
     auto newoutput = newconfig->outputs().first();
     QCOMPARE(newoutput->rotation(), rotation);
-
 }
 
 void TestKWaylandConfig::testScaleChange()
@@ -213,7 +208,7 @@ void TestKWaylandConfig::testScaleChange()
     QVERIFY(config2);
 
     // Prepare monitor & spy
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     monitor->addConfig(config2);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
@@ -247,7 +242,7 @@ void TestKWaylandConfig::testModeChange()
     auto config = op->config();
     QVERIFY(config);
 
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
@@ -279,7 +274,7 @@ void TestKWaylandConfig::testApplyOnPending()
     auto config2 = op2->config();
     QVERIFY(config2);
 
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
@@ -320,7 +315,6 @@ void TestKWaylandConfig::testApplyOnPending()
     QCOMPARE(configSpy.count(), 2);
     QCOMPARE(output2->scale(), 3.0);
 }
-
 
 QTEST_GUILESS_MAIN(TestKWaylandConfig)
 

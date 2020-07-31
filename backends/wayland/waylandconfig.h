@@ -47,19 +47,19 @@ class WaylandScreen;
  * received, signalled by the initialized() signal. This means that the
  * wayland client has received information about all interfaces, and that all
  * outputs are completely initialized. From then on, we properly notifyUpdate().
-*/
+ */
 class WaylandConfig : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit WaylandConfig(QObject *parent = nullptr);
+    explicit WaylandConfig(QObject* parent = nullptr);
     ~WaylandConfig() override;
 
     virtual Disman::ConfigPtr currentConfig();
     virtual QMap<int, WaylandOutput*> outputMap() const;
 
-    void applyConfig(const Disman::ConfigPtr &newConfig);
+    void applyConfig(const Disman::ConfigPtr& newConfig);
 
     bool isInitialized() const;
 
@@ -69,26 +69,27 @@ Q_SIGNALS:
 
 private:
     struct PendingInterface {
-        bool operator ==(const PendingInterface &other) {
+        bool operator==(const PendingInterface& other)
+        {
             return name == other.name;
         }
         QString name;
-        WaylandInterface *interface;
-        QThread *thread;
+        WaylandInterface* interface;
+        QThread* thread;
     };
 
     void initKWinTabletMode();
     void setScreenOutputs();
 
     void queryInterfaces();
-    void queryInterface(KPluginMetaData *plugin);
-    void takeInterface(const PendingInterface &pending);
-    void rejectInterface(const PendingInterface &pending);
+    void queryInterface(KPluginMetaData* plugin);
+    void takeInterface(const PendingInterface& pending);
+    void rejectInterface(const PendingInterface& pending);
 
     Disman::ConfigPtr m_dismanConfig;
-    WaylandScreen *m_screen;
+    WaylandScreen* m_screen;
     QPointer<WaylandInterface> m_interface;
-    QThread *m_thread;
+    QThread* m_thread;
 
     bool m_tabletModeAvailable;
     bool m_tabletModeEngaged;

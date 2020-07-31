@@ -20,15 +20,15 @@
 
 #include <QVector>
 
-Disman::Output::Type Utils::guessOutputType(const QString &type, const QString &name)
+Disman::Output::Type Utils::guessOutputType(const QString& type, const QString& name)
 {
-    static const auto embedded = { QLatin1String("LVDS"),
-                                   QLatin1String("IDP"),
-                                   QLatin1String("EDP"),
-                                   QLatin1String("LCD"),
-                                   QLatin1String("DSI") };
+    static const auto embedded = {QLatin1String("LVDS"),
+                                  QLatin1String("IDP"),
+                                  QLatin1String("EDP"),
+                                  QLatin1String("LCD"),
+                                  QLatin1String("DSI")};
 
-    for (const QLatin1String &pre : embedded) {
+    for (const QLatin1String& pre : embedded) {
         if (name.startsWith(pre, Qt::CaseInsensitive)) {
             return Disman::Output::Panel;
         }
@@ -60,7 +60,8 @@ Disman::Output::Type Utils::guessOutputType(const QString &type, const QString &
         return Disman::Output::TVC4;
     } else if (type.contains(QLatin1String("TV"))) {
         return Disman::Output::TV;
-    } else if (type.contains(QLatin1String("DisplayPort")) || type.startsWith(QLatin1String("DP"))) {
+    } else if (type.contains(QLatin1String("DisplayPort"))
+               || type.startsWith(QLatin1String("DP"))) {
         return Disman::Output::DisplayPort;
     } else if (type.contains(QLatin1String("unknown"))) {
         return Disman::Output::Unknown;
@@ -68,4 +69,3 @@ Disman::Output::Type Utils::guessOutputType(const QString &type, const QString &
         return Disman::Output::Unknown;
     }
 }
-

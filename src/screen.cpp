@@ -16,25 +16,25 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "screen.h"
 
 using namespace Disman;
 
 class Q_DECL_HIDDEN Screen::Private
 {
-  public:
-    Private():
-      id(0),
-      maxActiveOutputsCount(0)
-    { }
+public:
+    Private()
+        : id(0)
+        , maxActiveOutputsCount(0)
+    {
+    }
 
-    Private(const Private &other):
-        id(other.id),
-        maxActiveOutputsCount(other.maxActiveOutputsCount),
-        currentSize(other.currentSize),
-        minSize(other.minSize),
-        maxSize(other.maxSize)
+    Private(const Private& other)
+        : id(other.id)
+        , maxActiveOutputsCount(other.maxActiveOutputsCount)
+        , currentSize(other.currentSize)
+        , minSize(other.minSize)
+        , maxSize(other.maxSize)
     {
     }
 
@@ -46,17 +46,16 @@ class Q_DECL_HIDDEN Screen::Private
 };
 
 Screen::Screen()
- : QObject(nullptr)
- , d(new Private())
+    : QObject(nullptr)
+    , d(new Private())
 {
 }
 
-Screen::Screen(Screen::Private *dd)
- : QObject()
- , d(dd)
+Screen::Screen(Screen::Private* dd)
+    : QObject()
+    , d(dd)
 {
 }
-
 
 Screen::~Screen()
 {
@@ -67,7 +66,6 @@ ScreenPtr Screen::clone() const
 {
     return ScreenPtr(new Screen(new Private(*d)));
 }
-
 
 int Screen::id() const
 {
@@ -125,7 +123,7 @@ void Screen::setMaxActiveOutputsCount(int maxActiveOutputsCount)
     d->maxActiveOutputsCount = maxActiveOutputsCount;
 }
 
-void Screen::apply(const ScreenPtr &other)
+void Screen::apply(const ScreenPtr& other)
 {
     // Only set values that can change
     setMaxActiveOutputsCount(other->d->maxActiveOutputsCount);

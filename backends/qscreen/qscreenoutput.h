@@ -15,15 +15,14 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef QSCREEN_OUTPUT_H
 #define QSCREEN_OUTPUT_H
 
 #include "qscreenconfig.h"
 
 #include "config.h"
-#include "output.h"
 #include "edid.h"
+#include "output.h"
 
 #include <QScreen>
 
@@ -35,23 +34,23 @@ class QScreenOutput : public QObject
     Q_OBJECT
 
 public:
-    explicit QScreenOutput(const QScreen *qscreen, QObject *parent = nullptr);
+    explicit QScreenOutput(const QScreen* qscreen, QObject* parent = nullptr);
     ~QScreenOutput() override;
 
     Disman::OutputPtr toDismanOutput() const;
-    void updateDismanOutput(Disman::OutputPtr &output) const;
+    void updateDismanOutput(Disman::OutputPtr& output) const;
 
     int id() const;
     void setId(const int newId);
 
-    const QScreen *qscreen() const;
+    const QScreen* qscreen() const;
 
 private:
-    void updateFromQScreen(const QScreen *qscreen);
-    const QScreen *m_qscreen;
+    void updateFromQScreen(const QScreen* qscreen);
+    const QScreen* m_qscreen;
     int m_id;
 };
 
-} // namespace
+}
 
 #endif

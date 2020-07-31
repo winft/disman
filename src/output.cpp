@@ -16,56 +16,56 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "output.h"
-#include "mode.h"
-#include "edid.h"
 #include "abstractbackend.h"
 #include "backendmanager_p.h"
 #include "disman_debug.h"
+#include "edid.h"
+#include "mode.h"
 
-#include <QStringList>
-#include <QScopedPointer>
-#include <QRect>
 #include <QCryptographicHash>
+#include <QRect>
+#include <QScopedPointer>
+#include <QStringList>
 
 using namespace Disman;
 
 class Q_DECL_HIDDEN Output::Private
 {
-  public:
-    Private():
-        id(0),
-        type(Unknown),
-        replicationSource(0),
-        rotation(None),
-        scale(1.0),
-        connected(false),
-        enabled(false),
-        primary(false),
-        edid(nullptr)
-    {}
-
-    Private(const Private &other):
-        id(other.id),
-        name(other.name),
-        type(other.type),
-        icon(other.icon),
-        clones(other.clones),
-        replicationSource(other.replicationSource),
-        currentMode(other.currentMode),
-        preferredMode(other.preferredMode),
-        preferredModes(other.preferredModes),
-        sizeMm(other.sizeMm),
-        position(other.position),
-        rotation(other.rotation),
-        scale(other.scale),
-        connected(other.connected),
-        enabled(other.enabled),
-        primary(other.primary),
-        followPreferredMode(other.followPreferredMode)
+public:
+    Private()
+        : id(0)
+        , type(Unknown)
+        , replicationSource(0)
+        , rotation(None)
+        , scale(1.0)
+        , connected(false)
+        , enabled(false)
+        , primary(false)
+        , edid(nullptr)
     {
-        Q_FOREACH (const ModePtr &otherMode, other.modeList) {
+    }
+
+    Private(const Private& other)
+        : id(other.id)
+        , name(other.name)
+        , type(other.type)
+        , icon(other.icon)
+        , clones(other.clones)
+        , replicationSource(other.replicationSource)
+        , currentMode(other.currentMode)
+        , preferredMode(other.preferredMode)
+        , preferredModes(other.preferredModes)
+        , sizeMm(other.sizeMm)
+        , position(other.position)
+        , rotation(other.rotation)
+        , scale(other.scale)
+        , connected(other.connected)
+        , enabled(other.enabled)
+        , primary(other.primary)
+        , followPreferredMode(other.followPreferredMode)
+    {
+        Q_FOREACH (const ModePtr& otherMode, other.modeList) {
             modeList.insert(otherMode->id(), otherMode->clone());
         }
         if (other.edid) {
@@ -98,7 +98,7 @@ class Q_DECL_HIDDEN Output::Private
     QScopedPointer<Edid> edid;
 };
 
-bool Output::Private::compareModeList(const ModeList& before, const ModeList &after)
+bool Output::Private::compareModeList(const ModeList& before, const ModeList& after)
 {
     if (before.count() != after.count()) {
         return false;
@@ -109,8 +109,8 @@ bool Output::Private::compareModeList(const ModeList& before, const ModeList &af
         if (ita == after.constEnd()) {
             return false;
         }
-        const auto &mb = itb.value();
-        const auto &ma = ita.value();
+        const auto& mb = itb.value();
+        const auto& ma = ita.value();
         if (mb->id() != ma->id()) {
             return false;
         }
@@ -128,12 +128,11 @@ bool Output::Private::compareModeList(const ModeList& before, const ModeList &af
     return true;
 }
 
-
 QString Output::Private::biggestMode(const ModeList& modes) const
 {
     int area, total = 0;
     Disman::ModePtr biggest;
-    Q_FOREACH(const Disman::ModePtr &mode, modes) {
+    Q_FOREACH (const Disman::ModePtr& mode, modes) {
         area = mode->size().width() * mode->size().height();
         if (area < total) {
             continue;
@@ -158,15 +157,14 @@ QString Output::Private::biggestMode(const ModeList& modes) const
 }
 
 Output::Output()
- : QObject(nullptr)
- , d(new Private())
+    : QObject(nullptr)
+    , d(new Private())
 {
-
 }
 
-Output::Output(Output::Private *dd)
- : QObject()
- , d(dd)
+Output::Output(Output::Private* dd)
+    : QObject()
+    , d(dd)
 {
 }
 
@@ -226,8 +224,7 @@ QString Output::hashMd5() const
     if (edid() && edid()->isValid()) {
         return edid()->hash();
     }
-    const auto hash = QCryptographicHash::hash(name().toLatin1(),
-                                               QCryptographicHash::Md5);
+    const auto hash = QCryptographicHash::hash(name().toLatin1(), QCryptographicHash::Md5);
     return QString::fromLatin1(hash.toHex());
 }
 
@@ -277,7 +274,7 @@ ModeList Output::modes() const
     return d->modeList;
 }
 
-void Output::setModes(const ModeList &modes)
+void Output::setModes(const ModeList& modes)
 {
     bool changed = !d->compareModeList(d->modeList, modes);
     d->modeList = modes;
@@ -308,7 +305,7 @@ ModePtr Output::currentMode() const
     return d->modeList.value(d->currentMode);
 }
 
-void Output::setPreferredModes(const QStringList &modes)
+void Output::setPreferredModes(const QStringList& modes)
 {
     d->preferredMode = QString();
     d->preferredModes = modes;
@@ -331,7 +328,7 @@ QString Output::preferredModeId() const
     int area, total = 0;
     Disman::ModePtr biggest;
     Disman::ModePtr candidateMode;
-    Q_FOREACH(const QString &modeId, d->preferredModes) {
+    Q_FOREACH (const QString& modeId, d->preferredModes) {
         candidateMode = mode(modeId);
         area = candidateMode->size().width() * candidateMode->size().height();
         if (area < total) {
@@ -370,7 +367,8 @@ void Output::setPosition(const QPointF& position)
     Q_EMIT geometryChanged();
 }
 
-// TODO KF6: make the Rotation enum an enum class and align values with Wayland transformation property
+// TODO KF6: make the Rotation enum an enum class and align values with Wayland transformation
+// property
 Output::Rotation Output::rotation() const
 {
     return d->rotation;
@@ -474,7 +472,7 @@ QList<int> Output::clones() const
     return d->clones;
 }
 
-void Output::setClones(const QList<int> &outputlist)
+void Output::setClones(const QList<int>& outputlist)
 {
     if (d->clones == outputlist) {
         return;
@@ -507,7 +505,7 @@ void Output::setEdid(const QByteArray& rawData)
     d->edid.reset(new Edid(rawData));
 }
 
-Edid *Output::edid() const
+Edid* Output::edid() const
 {
     return d->edid.data();
 }
@@ -517,7 +515,7 @@ QSize Output::sizeMm() const
     return d->sizeMm;
 }
 
-void Output::setSizeMm(const QSize &size)
+void Output::setSizeMm(const QSize& size)
 {
     d->sizeMm = size;
 }
@@ -604,11 +602,13 @@ void Output::apply(const OutputPtr& other)
     }
     if (d->clones != other->d->clones) {
         changes << &Output::clonesChanged;
-        setClones(other->d->clones);;
+        setClones(other->d->clones);
+        ;
     }
     if (d->replicationSource != other->d->replicationSource) {
         changes << &Output::replicationSourceChanged;
-        setReplicationSource(other->d->replicationSource);;
+        setReplicationSource(other->d->replicationSource);
+        ;
     }
     if (!d->compareModeList(d->modeList, other->d->modeList)) {
         changes << &Output::outputChanged;
@@ -617,7 +617,7 @@ void Output::apply(const OutputPtr& other)
 
     setPreferredModes(other->d->preferredModes);
     ModeList modes;
-    Q_FOREACH (const ModePtr &otherMode, other->modes()) {
+    Q_FOREACH (const ModePtr& otherMode, other->modes()) {
         modes.insert(otherMode->id(), otherMode->clone());
     }
     setModes(modes);
@@ -630,26 +630,22 @@ void Output::apply(const OutputPtr& other)
     blockSignals(keepBlocked);
 
     while (!changes.isEmpty()) {
-        const ChangeSignal &sig = changes.first();
-        Q_EMIT (this->*sig)();
+        const ChangeSignal& sig = changes.first();
+        Q_EMIT(this->*sig)();
         changes.removeAll(sig);
     }
 }
 
-QDebug operator<<(QDebug dbg, const Disman::OutputPtr &output)
+QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 {
-    if(output) {
-        dbg << "Disman::Output(" << output->id() << " "
-                                  << output->name()
-                                  << (output->isConnected() ? "connected" : "disconnected")
-                                  << (output->isEnabled() ? "enabled" : "disabled")
-                                  << (output->isPrimary() ? "primary" : "")
-                                  << "geometry:" << output->geometry()
-                                  << "scale:" << output->scale()
-                                  << "modeId:" << output->currentModeId()
-                                  << "clone:" << (output->clones().isEmpty() ? "no" : "yes")
-                                  << "followPreferredMode:" << output->followPreferredMode()
-                                  << ")";
+    if (output) {
+        dbg << "Disman::Output(" << output->id() << " " << output->name()
+            << (output->isConnected() ? "connected" : "disconnected")
+            << (output->isEnabled() ? "enabled" : "disabled")
+            << (output->isPrimary() ? "primary" : "") << "geometry:" << output->geometry()
+            << "scale:" << output->scale() << "modeId:" << output->currentModeId()
+            << "clone:" << (output->clones().isEmpty() ? "no" : "yes")
+            << "followPreferredMode:" << output->followPreferredMode() << ")";
     } else {
         dbg << "Disman::Output(NULL)";
     }

@@ -18,8 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "kwayland_output.h"
 
-#include <mode.h>
 #include <edid.h>
+#include <mode.h>
 
 #include "kwayland_logging.h"
 
@@ -29,17 +29,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace Disman;
 namespace Wl = KWayland::Client;
 
-const QMap<Wl::OutputDevice::Transform, Output::Rotation>
-s_rotationMap = {
-    {Wl::OutputDevice::Transform::Normal, Output::None},
-    {Wl::OutputDevice::Transform::Rotated90, Output::Right},
-    {Wl::OutputDevice::Transform::Rotated180, Output::Inverted},
-    {Wl::OutputDevice::Transform::Rotated270, Output::Left},
-    {Wl::OutputDevice::Transform::Flipped, Output::None},
-    {Wl::OutputDevice::Transform::Flipped90, Output::Right},
-    {Wl::OutputDevice::Transform::Flipped180, Output::Inverted},
-    {Wl::OutputDevice::Transform::Flipped270, Output::Left}
-};
+const QMap<Wl::OutputDevice::Transform, Output::Rotation> s_rotationMap
+    = {{Wl::OutputDevice::Transform::Normal, Output::None},
+       {Wl::OutputDevice::Transform::Rotated90, Output::Right},
+       {Wl::OutputDevice::Transform::Rotated180, Output::Inverted},
+       {Wl::OutputDevice::Transform::Rotated270, Output::Left},
+       {Wl::OutputDevice::Transform::Flipped, Output::None},
+       {Wl::OutputDevice::Transform::Flipped90, Output::Right},
+       {Wl::OutputDevice::Transform::Flipped180, Output::Inverted},
+       {Wl::OutputDevice::Transform::Flipped270, Output::Left}};
 
 Output::Rotation toDismanRotation(const Wl::OutputDevice::Transform transform)
 {
@@ -52,7 +50,7 @@ Wl::OutputDevice::Transform toKWaylandTransform(const Output::Rotation rotation)
     return s_rotationMap.key(rotation);
 }
 
-KWaylandOutput::KWaylandOutput(quint32 id, QObject *parent)
+KWaylandOutput::KWaylandOutput(quint32 id, QObject* parent)
     : WaylandOutput(id, parent)
     , m_device(nullptr)
 {
@@ -78,19 +76,19 @@ Wl::OutputDevice* KWaylandOutput::outputDevice() const
     return m_device;
 }
 
-void KWaylandOutput::createOutputDevice(Wl::Registry *registry, quint32 name, quint32 version)
+void KWaylandOutput::createOutputDevice(Wl::Registry* registry, quint32 name, quint32 version)
 {
     Q_ASSERT(!m_device);
     m_device = registry->createOutputDevice(name, version);
 
     connect(m_device, &Wl::OutputDevice::removed, this, &KWaylandOutput::removed);
     connect(m_device, &Wl::OutputDevice::done, this, [this]() {
-                Q_EMIT dataReceived();
-                connect(m_device, &Wl::OutputDevice::changed, this, &KWaylandOutput::changed);
+        Q_EMIT dataReceived();
+        connect(m_device, &Wl::OutputDevice::changed, this, &KWaylandOutput::changed);
     });
 }
 
-void KWaylandOutput::updateDismanOutput(OutputPtr &output)
+void KWaylandOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
     output->setEnabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
@@ -106,14 +104,14 @@ void KWaylandOutput::updateDismanOutput(OutputPtr &output)
     m_modeIdMap.clear();
     QString currentModeId = QStringLiteral("-1");
 
-    for (const Wl::OutputDevice::Mode &wlMode : m_device->modes()) {
+    for (const Wl::OutputDevice::Mode& wlMode : m_device->modes()) {
         ModePtr mode(new Mode());
         const QString name = modeName(wlMode);
 
         QString modeId = QString::number(wlMode.id);
         if (modeId.isEmpty()) {
-            qCDebug(DISMAN_WAYLAND) << "Could not create mode id from"
-                                     << wlMode.id << ", using" << name << "instead.";
+            qCDebug(DISMAN_WAYLAND)
+                << "Could not create mode id from" << wlMode.id << ", using" << name << "instead.";
             modeId = name;
         }
 
@@ -151,17 +149,15 @@ void KWaylandOutput::updateDismanOutput(OutputPtr &output)
     output->setType(guessType(m_device->model(), m_device->model()));
 }
 
-bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration *wlConfig,
-                                const Disman::OutputPtr &output)
+bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration* wlConfig, const Disman::OutputPtr& output)
 {
     bool changed = false;
 
     // enabled?
-    if ((m_device->enabled() == Wl::OutputDevice::Enablement::Enabled)
-            != output->isEnabled()) {
+    if ((m_device->enabled() == Wl::OutputDevice::Enablement::Enabled) != output->isEnabled()) {
         changed = true;
-        const auto enablement = output->isEnabled() ? Wl::OutputDevice::Enablement::Enabled :
-                                                      Wl::OutputDevice::Enablement::Disabled;
+        const auto enablement = output->isEnabled() ? Wl::OutputDevice::Enablement::Enabled
+                                                    : Wl::OutputDevice::Enablement::Disabled;
         wlConfig->setEnabled(m_device, enablement);
     }
 
@@ -191,17 +187,16 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration *wlConfig,
             wlConfig->setMode(m_device, newModeId);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid disman mode id:" << output->currentModeId()
-                                   << "\n\n" << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid disman mode id:" << output->currentModeId() << "\n\n"
+                                  << m_modeIdMap;
     }
     return changed;
 }
 
-QString KWaylandOutput::modeName(const Wl::OutputDevice::Mode &m) const
+QString KWaylandOutput::modeName(const Wl::OutputDevice::Mode& m) const
 {
-    return QString::number(m.size.width()) + QLatin1Char('x') +
-           QString::number(m.size.height()) + QLatin1Char('@') +
-           QString::number(qRound(m.refreshRate/1000.0));
+    return QString::number(m.size.width()) + QLatin1Char('x') + QString::number(m.size.height())
+        + QLatin1Char('@') + QString::number(qRound(m.refreshRate / 1000.0));
 }
 
 QString KWaylandOutput::name() const
@@ -210,10 +205,11 @@ QString KWaylandOutput::name() const
     return QStringLiteral("%1 %2").arg(m_device->manufacturer(), m_device->model());
 }
 
-QDebug operator<<(QDebug dbg, const KWaylandOutput *output)
+QDebug operator<<(QDebug dbg, const KWaylandOutput* output)
 {
-    dbg << "KWaylandOutput(Id:" << output->id() <<", Name:" << \
-        QString(output->outputDevice()->manufacturer() + QLatin1Char(' ') + \
-        output->outputDevice()->model())  << ")";
+    dbg << "KWaylandOutput(Id:" << output->id() << ", Name:"
+        << QString(output->outputDevice()->manufacturer() + QLatin1Char(' ')
+                   + output->outputDevice()->model())
+        << ")";
     return dbg;
 }

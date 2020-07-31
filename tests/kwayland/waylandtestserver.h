@@ -15,21 +15,19 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef DISMAN_WAYLAND_TESTSERVER_H
 #define DISMAN_WAYLAND_TESTSERVER_H
 
 #include <QObject>
 
-// KWayland
 #include <KWayland/Server/compositor_interface.h>
 #include <KWayland/Server/display.h>
-#include <KWayland/Server/outputdevice_interface.h>
 #include <KWayland/Server/dpms_interface.h>
 #include <KWayland/Server/outputconfiguration_interface.h>
+#include <KWayland/Server/outputdevice_interface.h>
+#include <KWayland/Server/outputmanagement_interface.h>
 #include <KWayland/Server/seat_interface.h>
 #include <KWayland/Server/shell_interface.h>
-#include <KWayland/Server/outputmanagement_interface.h>
 
 namespace Disman
 {
@@ -43,13 +41,13 @@ class WaylandTestServer : public QObject
     Q_OBJECT
 
 public:
-    explicit WaylandTestServer(QObject *parent = nullptr);
+    explicit WaylandTestServer(QObject* parent = nullptr);
     ~WaylandTestServer() override;
 
-    void setConfig(const QString &configfile);
+    void setConfig(const QString& configfile);
     void start();
     void stop();
-    void pickupConfigFile(const QString &configfile);
+    void pickupConfigFile(const QString& configfile);
 
     void showOutputs();
     KWayland::Server::Display* display();
@@ -68,19 +66,20 @@ Q_SIGNALS:
     void configChanged();
 
 private Q_SLOTS:
-    void configurationChangeRequested(KWayland::Server::OutputConfigurationInterface *configurationInterface);
+    void configurationChangeRequested(
+        KWayland::Server::OutputConfigurationInterface* configurationInterface);
 
 private:
     static QString modeString(KWayland::Server::OutputDeviceInterface* outputdevice, int mid);
     QString m_configFile;
-    KWayland::Server::Display *m_display;
+    KWayland::Server::Display* m_display;
     QList<KWayland::Server::OutputDeviceInterface*> m_outputs;
-    KWayland::Server::OutputManagementInterface *m_outputManagement;
-    KWayland::Server::DpmsManagerInterface *m_dpmsManager;
+    KWayland::Server::OutputManagementInterface* m_outputManagement;
+    KWayland::Server::DpmsManagerInterface* m_dpmsManager;
     bool m_suspendChanges;
-    KWayland::Server::OutputConfigurationInterface *m_waiting;
+    KWayland::Server::OutputConfigurationInterface* m_waiting;
 };
 
-} // namespace
+}
 
-#endif // DISMAN_WAYLAND_SCREEN_H
+#endif

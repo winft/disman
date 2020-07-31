@@ -15,20 +15,20 @@
  *  along with this program; if not, write to the Free Software                      *
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA   *
  *************************************************************************************/
-
 #include "testpnp.h"
 
-#include <QGuiApplication>
 #include <QCommandLineParser>
+#include <QGuiApplication>
 
 using namespace Disman;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     QGuiApplication app(argc, argv);
 
-    QCommandLineOption input = QCommandLineOption(QStringList() << QStringLiteral("m") << QStringLiteral("monitor"),
-                                                  QStringLiteral("Keep running monitoring for changes"));
+    QCommandLineOption input
+        = QCommandLineOption(QStringList() << QStringLiteral("m") << QStringLiteral("monitor"),
+                             QStringLiteral("Keep running monitoring for changes"));
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addOption(input);

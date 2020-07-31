@@ -38,12 +38,12 @@ public:
     QString name() const override;
     QString serviceName() const override;
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr &config) override;
+    void setConfig(const Disman::ConfigPtr& config) override;
     bool isValid() const override;
     QByteArray edid(int outputId) const override;
 
 private:
-    WaylandConfig *m_internalConfig;
+    WaylandConfig* m_internalConfig;
 };
 
 }

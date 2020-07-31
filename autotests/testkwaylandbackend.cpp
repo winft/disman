@@ -15,20 +15,19 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include <QCoreApplication>
 #include <QCryptographicHash>
-#include <QtTest>
 #include <QObject>
+#include <QtTest>
 
 #include "../src/backendmanager_p.h"
-#include "../src/getconfigoperation.h"
-#include "../src/setconfigoperation.h"
 #include "../src/config.h"
 #include "../src/configmonitor.h"
-#include "../src/output.h"
-#include "../src/mode.h"
 #include "../src/edid.h"
+#include "../src/getconfigoperation.h"
+#include "../src/mode.h"
+#include "../src/output.h"
+#include "../src/setconfigoperation.h"
 
 // KWayland
 #include <KWayland/Server/display.h>
@@ -45,7 +44,7 @@ class testWaylandBackend : public QObject
     Q_OBJECT
 
 public:
-    explicit testWaylandBackend(QObject *parent = nullptr);
+    explicit testWaylandBackend(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void init();
@@ -62,14 +61,13 @@ private Q_SLOTS:
     void addAndRemoveOutput();
     void testEdid();
 
-
 private:
     ConfigPtr m_config;
-    WaylandTestServer *m_server;
-    KWayland::Server::OutputDeviceInterface *m_serverOutputDevice;
+    WaylandTestServer* m_server;
+    KWayland::Server::OutputDeviceInterface* m_serverOutputDevice;
 };
 
-testWaylandBackend::testWaylandBackend(QObject *parent)
+testWaylandBackend::testWaylandBackend(QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
 {
@@ -88,7 +86,7 @@ void testWaylandBackend::init()
     setenv("WAYLAND_DISPLAY", s_socketName.toLocal8Bit().constData(), 1);
     m_server->start();
 
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
     QVERIFY(m_config);
@@ -102,7 +100,7 @@ void testWaylandBackend::cleanup()
 
 void testWaylandBackend::loadConfig()
 {
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
     QVERIFY(m_config->isValid());
@@ -137,7 +135,7 @@ void testWaylandBackend::verifyOutputs()
             primaryFound = true;
         }
     }
-    //qCDebug(DISMAN_WAYLAND) << "Primary found? " << primaryFound << m_config->outputs();
+    // qCDebug(DISMAN_WAYLAND) << "Primary found? " << primaryFound << m_config->outputs();
     QVERIFY(primaryFound);
     QVERIFY(m_config->outputs().count());
     QCOMPARE(m_server->outputCount(), m_config->outputs().count());
@@ -147,11 +145,11 @@ void testWaylandBackend::verifyOutputs()
     QVERIFY(primary->isConnected());
 
     QList<int> ids;
-    Q_FOREACH (const auto &output, m_config->outputs()) {
+    Q_FOREACH (const auto& output, m_config->outputs()) {
         QVERIFY(!output->name().isEmpty());
         QVERIFY(output->id() > -1);
         QVERIFY(output->isConnected());
-        QVERIFY(output->geometry() != QRectF(1,1,1,1));
+        QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));
         QVERIFY(output->geometry() != QRectF());
         QVERIFY(output->sizeMm() != QSize());
         QVERIFY(output->edid() != nullptr);
@@ -168,7 +166,7 @@ void testWaylandBackend::verifyModes()
     QVERIFY(primary);
     QVERIFY(primary->modes().count() > 0);
 
-    Q_FOREACH (const auto &output, m_config->outputs()) {
+    Q_FOREACH (const auto& output, m_config->outputs()) {
         Q_FOREACH (auto mode, output->modes()) {
             QVERIFY(!mode->name().isEmpty());
             QVERIFY(mode->refreshRate() > 0);
@@ -180,7 +178,7 @@ void testWaylandBackend::verifyModes()
 void testWaylandBackend::verifyIds()
 {
     QList<quint32> ids;
-    Q_FOREACH (const auto &output, m_config->outputs()) {
+    Q_FOREACH (const auto& output, m_config->outputs()) {
         QVERIFY(ids.contains(output->id()) == false);
         QVERIFY(output->id() > 0);
         ids << output->id();
@@ -190,7 +188,7 @@ void testWaylandBackend::verifyIds()
 void testWaylandBackend::simpleWrite()
 {
     Disman::BackendManager::instance()->shutdownBackend();
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
     auto output = m_config->output(18);
@@ -206,11 +204,11 @@ void testWaylandBackend::simpleWrite()
 void testWaylandBackend::addAndRemoveOutput()
 {
     Disman::BackendManager::instance()->shutdownBackend();
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
     QCOMPARE(config->outputs().count(), 2);
-    Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->addConfig(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
 
@@ -240,9 +238,9 @@ void testWaylandBackend::addAndRemoveOutput()
     m_serverOutputDevice->create();
 
     QVERIFY(configSpy.wait());
-    //QTRY_VERIFY(configSpy.count());
+    // QTRY_VERIFY(configSpy.count());
 
-    GetConfigOperation *op2 = new GetConfigOperation();
+    GetConfigOperation* op2 = new GetConfigOperation();
     op2->exec();
     auto newconfig = op2->config();
     QCOMPARE(newconfig->outputs().count(), 3);
@@ -250,7 +248,7 @@ void testWaylandBackend::addAndRemoveOutput()
     // Now remove the output again.
     delete m_serverOutputDevice;
     QVERIFY(configSpy.wait());
-    GetConfigOperation *op3 = new GetConfigOperation();
+    GetConfigOperation* op3 = new GetConfigOperation();
     op3->exec();
     newconfig = op3->config();
     QCOMPARE(newconfig->outputs().count(), 2);
@@ -260,12 +258,18 @@ void testWaylandBackend::testEdid()
 {
     m_server->showOutputs();
 
-    QByteArray data = QByteArray::fromBase64("AP///////wAQrBbwTExLQQ4WAQOANCB46h7Frk80sSYOUFSlSwCBgKlA0QBxTwEBAQEBAQEBKDyAoHCwI0AwIDYABkQhAAAaAAAA/wBGNTI1TTI0NUFLTEwKAAAA/ABERUxMIFUyNDEwCiAgAAAA/QA4TB5REQAKICAgICAgAToCAynxUJAFBAMCBxYBHxITFCAVEQYjCQcHZwMMABAAOC2DAQAA4wUDAQI6gBhxOC1AWCxFAAZEIQAAHgEdgBhxHBYgWCwlAAZEIQAAngEdAHJR0B4gbihVAAZEIQAAHowK0Iog4C0QED6WAAZEIQAAGAAAAAAAAAAAAAAAAAAAPg==");
+    QByteArray data = QByteArray::fromBase64(
+        "AP///////"
+        "wAQrBbwTExLQQ4WAQOANCB46h7Frk80sSYOUFSlSwCBgKlA0QBxTwEBAQEBAQEBKDyAoHCwI0AwIDYABkQhAAAaAAA"
+        "A/wBGNTI1TTI0NUFLTEwKAAAA/ABERUxMIFUyNDEwCiAgAAAA/"
+        "QA4TB5REQAKICAgICAgAToCAynxUJAFBAMCBxYBHxITFCAVEQYjCQcHZwMMABAAOC2DAQAA4wUDAQI6gBhxOC1AWCx"
+        "FAAZEIQAAHgEdgBhxHBYgWCwlAAZEIQAAngEdAHJR0B4gbihVAAZEIQAAHowK0Iog4C0QED6WAAZEIQAAGAAAAAAAA"
+        "AAAAAAAAAAAPg==");
 
     QScopedPointer<Edid> edid(new Edid(data));
     QVERIFY(edid->isValid());
 
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
     QVERIFY(config->outputs().count() > 0);
@@ -290,14 +294,13 @@ void testWaylandBackend::testEdid()
 
 void testWaylandBackend::verifyFeatures()
 {
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
     QVERIFY(!config->supportedFeatures().testFlag(Config::Feature::None));
     QVERIFY(config->supportedFeatures().testFlag(Config::Feature::Writable));
     QVERIFY(!config->supportedFeatures().testFlag(Config::Feature::PrimaryDisplay));
 }
-
 
 QTEST_GUILESS_MAIN(testWaylandBackend)
 

@@ -15,26 +15,25 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "qscreenconfig.h"
+#include "qscreenbackend.h"
 #include "qscreenoutput.h"
 #include "qscreenscreen.h"
-#include "qscreenbackend.h"
 
 #include <mode.h>
 
-#include <QRect>
 #include <QGuiApplication>
+#include <QRect>
 #include <QScreen>
 
 using namespace Disman;
 
-QScreenConfig::QScreenConfig(QObject *parent)
+QScreenConfig::QScreenConfig(QObject* parent)
     : QObject(parent)
     , m_screen(new QScreenScreen(this))
     , m_blockSignals(true)
 {
-    foreach(const QScreen * qscreen, QGuiApplication::screens()) {
+    foreach (const QScreen* qscreen, QGuiApplication::screens()) {
         screenAdded(qscreen);
     }
     m_blockSignals = false;
@@ -55,10 +54,10 @@ ConfigPtr QScreenConfig::toDismanConfig() const
     return config;
 }
 
-int QScreenConfig::outputId(const QScreen *qscreen)
+int QScreenConfig::outputId(const QScreen* qscreen)
 {
     QList<int> ids;
-    foreach(auto output, m_outputMap) {
+    foreach (auto output, m_outputMap) {
         if (qscreen == output->qscreen()) {
             return output->id();
         }
@@ -67,10 +66,10 @@ int QScreenConfig::outputId(const QScreen *qscreen)
     return m_lastOutputId;
 }
 
-void QScreenConfig::screenAdded(const QScreen *qscreen)
+void QScreenConfig::screenAdded(const QScreen* qscreen)
 {
     qCDebug(DISMAN_QSCREEN) << "Screen added" << qscreen << qscreen->name();
-    QScreenOutput *qscreenoutput = new QScreenOutput(qscreen, this);
+    QScreenOutput* qscreenoutput = new QScreenOutput(qscreen, this);
     qscreenoutput->setId(outputId(qscreen));
     m_outputMap.insert(qscreenoutput->id(), qscreenoutput);
 
@@ -79,12 +78,12 @@ void QScreenConfig::screenAdded(const QScreen *qscreen)
     }
 }
 
-void QScreenConfig::screenRemoved(QScreen *qscreen)
+void QScreenConfig::screenRemoved(QScreen* qscreen)
 {
     qCDebug(DISMAN_QSCREEN) << "Screen removed" << qscreen << QGuiApplication::screens().count();
     // Find output matching the QScreen object and remove it
     int removedOutputId = -1;
-    foreach(auto output, m_outputMap) {
+    foreach (auto output, m_outputMap) {
         if (output->qscreen() == qscreen) {
             removedOutputId = output->id();
             m_outputMap.remove(removedOutputId);
@@ -94,15 +93,15 @@ void QScreenConfig::screenRemoved(QScreen *qscreen)
     Q_EMIT configChanged(toDismanConfig());
 }
 
-void QScreenConfig::updateDismanConfig(ConfigPtr &config) const
+void QScreenConfig::updateDismanConfig(ConfigPtr& config) const
 {
     Disman::ScreenPtr screen = config->screen();
     m_screen->updateDismanScreen(screen);
     config->setScreen(screen);
 
-    //Removing removed outputs
+    // Removing removed outputs
     Disman::OutputList outputs = config->outputs();
-    Q_FOREACH(const Disman::OutputPtr &output, outputs) {
+    Q_FOREACH (const Disman::OutputPtr& output, outputs) {
         if (!m_outputMap.contains(output->id())) {
             config->removeOutput(output->id());
         }
@@ -110,7 +109,7 @@ void QScreenConfig::updateDismanConfig(ConfigPtr &config) const
 
     // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
     Disman::OutputList dismanOutputs = config->outputs();
-    foreach(QScreenOutput *output, m_outputMap) {
+    foreach (QScreenOutput* output, m_outputMap) {
         Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
 
         if (!dismanOutput) {
@@ -125,7 +124,7 @@ void QScreenConfig::updateDismanConfig(ConfigPtr &config) const
     config->setOutputs(dismanOutputs);
 }
 
-QMap< int, QScreenOutput * > QScreenConfig::outputMap() const
+QMap<int, QScreenOutput*> QScreenConfig::outputMap() const
 {
     return m_outputMap;
 }

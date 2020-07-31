@@ -19,11 +19,11 @@
 
 #include "output.h"
 
-#include "xrandrmode.h"
 #include "xcbwrapper.h"
+#include "xrandrmode.h"
 
-#include <QObject>
 #include <QMap>
+#include <QObject>
 #include <QVariant>
 
 class XRandRConfig;
@@ -41,15 +41,15 @@ class XRandROutput : public QObject
 public:
     typedef QMap<xcb_randr_output_t, XRandROutput*> Map;
 
-    explicit XRandROutput(xcb_randr_output_t id, XRandRConfig *config);
+    explicit XRandROutput(xcb_randr_output_t id, XRandRConfig* config);
     ~XRandROutput() override;
 
     void disabled();
     void disconnected();
 
     void update();
-    void update(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_randr_connection_t conn,
-                bool primary);
+    void
+    update(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_randr_connection_t conn, bool primary);
 
     void setIsPrimary(bool primary);
 
@@ -75,18 +75,18 @@ public:
 
     Disman::OutputPtr toDismanOutput() const;
 
-    void updateLogicalSize(const Disman::OutputPtr &output, XRandRCrtc *crtc = nullptr);
+    void updateLogicalSize(const Disman::OutputPtr& output, XRandRCrtc* crtc = nullptr);
 
 private:
     void init();
-    void updateModes(const XCB::OutputInfo &outputInfo);
+    void updateModes(const XCB::OutputInfo& outputInfo);
 
-    static Disman::Output::Type fetchOutputType(xcb_randr_output_t outputId, const QString &name);
+    static Disman::Output::Type fetchOutputType(xcb_randr_output_t outputId, const QString& name);
     static QByteArray typeFromProperty(xcb_randr_output_t outputId);
 
     xcb_render_transform_t currentTransform() const;
 
-    XRandRConfig *m_config;
+    XRandRConfig* m_config;
     xcb_randr_output_t m_id;
     QString m_name;
     QString m_icon;
@@ -105,7 +105,7 @@ private:
     unsigned int m_heightMm;
 
     bool m_hotplugModeUpdate = false;
-    XRandRCrtc *m_crtc;
+    XRandRCrtc* m_crtc;
 };
 
 Q_DECLARE_METATYPE(XRandROutput::Map)

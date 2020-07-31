@@ -19,8 +19,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "waylandconfig.h"
 
-#include "waylandbackend.h"
 #include "wayland_interface.h"
+#include "waylandbackend.h"
 #include "waylandoutput.h"
 #include "waylandscreen.h"
 
@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace Disman
 {
 
-WaylandConfig::WaylandConfig(QObject *parent)
+WaylandConfig::WaylandConfig(QObject* parent)
     : QObject(parent)
     , m_dismanConfig(new Config)
     , m_screen(new WaylandScreen(this))
@@ -59,9 +59,10 @@ WaylandConfig::~WaylandConfig()
 
 void WaylandConfig::initKWinTabletMode()
 {
-    auto *interface = new OrgKdeKWinTabletModeManagerInterface(QStringLiteral("org.kde.KWin"),
-                                                           QStringLiteral("/org/kde/KWin"),
-                                                           QDBusConnection::sessionBus(), this);
+    auto* interface = new OrgKdeKWinTabletModeManagerInterface(QStringLiteral("org.kde.KWin"),
+                                                               QStringLiteral("/org/kde/KWin"),
+                                                               QDBusConnection::sessionBus(),
+                                                               this);
     if (!interface->isValid()) {
         m_tabletModeAvailable = false;
         m_tabletModeEngaged = false;
@@ -71,8 +72,10 @@ void WaylandConfig::initKWinTabletMode()
     m_tabletModeAvailable = interface->tabletModeAvailable();
     m_tabletModeEngaged = interface->tabletMode();
 
-    connect(interface, &OrgKdeKWinTabletModeManagerInterface::tabletModeChanged,
-            this, [this](bool tabletMode) {
+    connect(interface,
+            &OrgKdeKWinTabletModeManagerInterface::tabletModeChanged,
+            this,
+            [this](bool tabletMode) {
                 if (m_tabletModeEngaged == tabletMode) {
                     return;
                 }
@@ -80,10 +83,11 @@ void WaylandConfig::initKWinTabletMode()
                 if (m_interface && m_interface->isInitialized()) {
                     Q_EMIT configChanged();
                 }
-            }
-    );
-    connect(interface, &OrgKdeKWinTabletModeManagerInterface::tabletModeAvailableChanged,
-            this, [this](bool available) {
+            });
+    connect(interface,
+            &OrgKdeKWinTabletModeManagerInterface::tabletModeAvailableChanged,
+            this,
+            [this](bool available) {
                 if (m_tabletModeAvailable == available) {
                     return;
                 }
@@ -91,7 +95,7 @@ void WaylandConfig::initKWinTabletMode()
                 if (m_interface && m_interface->isInitialized()) {
                     Q_EMIT configChanged();
                 }
-    });
+            });
 }
 
 bool WaylandConfig::isInitialized() const
@@ -122,7 +126,7 @@ QMap<int, WaylandOutput*> WaylandConfig::outputMap() const
     return m_interface->outputMap();
 }
 
-void WaylandConfig::applyConfig(const ConfigPtr &newConfig)
+void WaylandConfig::applyConfig(const ConfigPtr& newConfig)
 {
     m_interface->applyConfig(newConfig);
 }
@@ -136,14 +140,13 @@ void WaylandConfig::queryInterfaces()
         }
         if (m_syncLoop.isRunning()) {
             qCWarning(DISMAN_WAYLAND) << "Connection to Wayland server timed out. Does the "
-                                          "compositor support output management?";
+                                         "compositor support output management?";
             m_syncLoop.quit();
         }
         m_pendingInterfaces.clear();
     });
 
-    auto availableInterfacePlugins
-            = KPluginLoader::findPlugins(QStringLiteral("disman/wayland"));
+    auto availableInterfacePlugins = KPluginLoader::findPlugins(QStringLiteral("disman/wayland"));
 
     for (auto plugin : availableInterfacePlugins) {
         queryInterface(&plugin);
@@ -151,7 +154,7 @@ void WaylandConfig::queryInterfaces()
     m_syncLoop.exec();
 }
 
-void WaylandConfig::queryInterface(KPluginMetaData *plugin)
+void WaylandConfig::queryInterface(KPluginMetaData* plugin)
 {
     PendingInterface pending;
 
@@ -165,7 +168,7 @@ void WaylandConfig::queryInterface(KPluginMetaData *plugin)
     }
 
     // TODO: qobject_cast not working here. Why?
-    auto *factory = dynamic_cast<WaylandFactory*>(plugin->instantiate());
+    auto* factory = dynamic_cast<WaylandFactory*>(plugin->instantiate());
     if (!factory) {
         return;
     }
@@ -176,9 +179,9 @@ void WaylandConfig::queryInterface(KPluginMetaData *plugin)
     connect(pending.interface, &WaylandInterface::connectionFailed, this, [this, &pending] {
         qCWarning(DISMAN_WAYLAND) << "Backend" << pending.name << "failed.";
         rejectInterface(pending);
-        m_pendingInterfaces.erase(std::remove(m_pendingInterfaces.begin(),
-                                              m_pendingInterfaces.end(), pending),
-                                  m_pendingInterfaces.end());
+        m_pendingInterfaces.erase(
+            std::remove(m_pendingInterfaces.begin(), m_pendingInterfaces.end(), pending),
+            m_pendingInterfaces.end());
     });
 
     connect(pending.interface, &WaylandInterface::initialized, this, [this, pending] {
@@ -201,7 +204,7 @@ void WaylandConfig::queryInterface(KPluginMetaData *plugin)
     pending.interface->initConnection(pending.thread);
 }
 
-void WaylandConfig::takeInterface(const PendingInterface &pending)
+void WaylandConfig::takeInterface(const PendingInterface& pending)
 {
     m_interface = pending.interface;
     m_thread = pending.thread;
@@ -214,7 +217,7 @@ void WaylandConfig::takeInterface(const PendingInterface &pending)
     Q_EMIT initialized();
 }
 
-void WaylandConfig::rejectInterface(const PendingInterface &pending)
+void WaylandConfig::rejectInterface(const PendingInterface& pending)
 {
     pending.thread->quit();
     pending.thread->wait();

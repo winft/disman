@@ -17,7 +17,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "qscreenbackend.h"
 #include "qscreenconfig.h"
 #include "qscreenoutput.h"
@@ -26,7 +25,7 @@ using namespace Disman;
 
 Q_LOGGING_CATEGORY(DISMAN_QSCREEN, "disman.qscreen")
 
-QScreenConfig *QScreenBackend::s_internalConfig = nullptr;
+QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
 
 QScreenBackend::QScreenBackend()
     : Disman::AbstractBackend()
@@ -34,8 +33,8 @@ QScreenBackend::QScreenBackend()
 {
     if (s_internalConfig == nullptr) {
         s_internalConfig = new QScreenConfig();
-        connect(s_internalConfig, &QScreenConfig::configChanged,
-                this, &QScreenBackend::configChanged);
+        connect(
+            s_internalConfig, &QScreenConfig::configChanged, this, &QScreenBackend::configChanged);
     }
 }
 
@@ -53,13 +52,12 @@ QString QScreenBackend::serviceName() const
     return QStringLiteral("org.kde.Disman.Backend.QScreen");
 }
 
-
 ConfigPtr QScreenBackend::config() const
 {
     return s_internalConfig->toDismanConfig();
 }
 
-void QScreenBackend::setConfig(const ConfigPtr &config)
+void QScreenBackend::setConfig(const ConfigPtr& config)
 {
     if (!config) {
         return;

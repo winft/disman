@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 #include "xcbwrapper.h"
 
-static xcb_connection_t *sXRandR11XCBConnection = nullptr;
+static xcb_connection_t* sXRandR11XCBConnection = nullptr;
 
 xcb_connection_t* XCB::connection()
 {
@@ -42,9 +42,8 @@ void XCB::closeConnection()
 
 xcb_screen_t* XCB::screenOfDisplay(xcb_connection_t* c, int screen)
 {
-    for (auto iter = xcb_setup_roots_iterator(xcb_get_setup(c));
-         iter.rem; --screen, xcb_screen_next(&iter))
-    {
+    for (auto iter = xcb_setup_roots_iterator(xcb_get_setup(c)); iter.rem;
+         --screen, xcb_screen_next(&iter)) {
         if (screen == 0) {
             return iter.data;
         }
@@ -52,7 +51,6 @@ xcb_screen_t* XCB::screenOfDisplay(xcb_connection_t* c, int screen)
 
     return nullptr;
 }
-
 
 XCB::GrabServer::GrabServer()
 {

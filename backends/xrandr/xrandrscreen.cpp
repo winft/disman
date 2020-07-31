@@ -20,12 +20,12 @@
 
 #include "config.h"
 #include "screen.h"
-#include "xrandrconfig.h"
 #include "xcbwrapper.h"
+#include "xrandrconfig.h"
 
 #include <QX11Info>
 
-XRandRScreen::XRandRScreen(XRandRConfig *config)
+XRandRScreen::XRandRScreen(XRandRConfig* config)
     : QObject(config)
 {
     XCB::ScreenSize size(XRandR::rootWindow());
@@ -40,11 +40,11 @@ XRandRScreen::~XRandRScreen()
 
 void XRandRScreen::update()
 {
-    xcb_screen_t *screen = XCB::screenOfDisplay(XCB::connection(), QX11Info::appScreen());
+    xcb_screen_t* screen = XCB::screenOfDisplay(XCB::connection(), QX11Info::appScreen());
     m_currentSize = QSize(screen->width_in_pixels, screen->height_in_pixels);
 }
 
-void XRandRScreen::update(const QSize &size)
+void XRandRScreen::update(const QSize& size)
 {
     m_currentSize = size;
 }
@@ -62,14 +62,14 @@ Disman::ScreenPtr XRandRScreen::toDismanScreen() const
     dismanScreen->setMinSize(m_minSize);
     dismanScreen->setCurrentSize(m_currentSize);
 
-    XCB::ScopedPointer<xcb_randr_get_screen_resources_reply_t>
-            screenResources(XRandR::screenResources());
+    XCB::ScopedPointer<xcb_randr_get_screen_resources_reply_t> screenResources(
+        XRandR::screenResources());
     dismanScreen->setMaxActiveOutputsCount(screenResources->num_crtcs);
 
     return dismanScreen;
 }
 
-void XRandRScreen::updateDismanScreen(Disman::ScreenPtr &screen) const
+void XRandRScreen::updateDismanScreen(Disman::ScreenPtr& screen) const
 {
     screen->setCurrentSize(m_currentSize);
 }

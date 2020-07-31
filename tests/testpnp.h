@@ -15,7 +15,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef DISMAN_TESTPNP_H
 #define DISMAN_TESTPNP_H
 
@@ -34,12 +33,12 @@ class TestPnp : public QObject
     Q_OBJECT
 
 public:
-    explicit TestPnp(bool monitor, QObject *parent = nullptr);
+    explicit TestPnp(bool monitor, QObject* parent = nullptr);
     ~TestPnp() override;
 
 private Q_SLOTS:
     void init();
-    void configReady(Disman::ConfigOperation *op);
+    void configReady(Disman::ConfigOperation* op);
     void print();
 
 private:
@@ -47,6 +46,6 @@ private:
     bool m_monitor;
 };
 
-} // namespace
+}
 
-#endif // DISMAN_TESTPNP_H
+#endif

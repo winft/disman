@@ -20,13 +20,13 @@
 #ifndef CONFIGSERIALIZER_H
 #define CONFIGSERIALIZER_H
 
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QVariant>
 #include <QDBusArgument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QVariant>
 
-#include "types.h"
 #include "disman_export.h"
+#include "types.h"
 
 namespace Disman
 {
@@ -34,29 +34,29 @@ namespace Disman
 namespace ConfigSerializer
 {
 
-DISMAN_EXPORT QJsonObject serializePoint(const QPointF &point);
-DISMAN_EXPORT QJsonObject serializeSize(const QSize &size);
-DISMAN_EXPORT QJsonObject serializeSizeF(const QSizeF &size);
+DISMAN_EXPORT QJsonObject serializePoint(const QPointF& point);
+DISMAN_EXPORT QJsonObject serializeSize(const QSize& size);
+DISMAN_EXPORT QJsonObject serializeSizeF(const QSizeF& size);
 template<typename T>
-DISMAN_EXPORT  QJsonArray serializeList(const QList<T> &list)
+DISMAN_EXPORT QJsonArray serializeList(const QList<T>& list)
 {
     QJsonArray arr;
-    Q_FOREACH (const T &t, list) {
+    Q_FOREACH (const T& t, list) {
         arr.append(t);
     }
     return arr;
 }
 
-DISMAN_EXPORT QJsonObject serializeConfig(const Disman::ConfigPtr &config);
-DISMAN_EXPORT QJsonObject serializeOutput(const Disman::OutputPtr &output);
-DISMAN_EXPORT QJsonObject serializeMode(const Disman::ModePtr &mode);
-DISMAN_EXPORT QJsonObject serializeScreen(const Disman::ScreenPtr &screen);
+DISMAN_EXPORT QJsonObject serializeConfig(const Disman::ConfigPtr& config);
+DISMAN_EXPORT QJsonObject serializeOutput(const Disman::OutputPtr& output);
+DISMAN_EXPORT QJsonObject serializeMode(const Disman::ModePtr& mode);
+DISMAN_EXPORT QJsonObject serializeScreen(const Disman::ScreenPtr& screen);
 
-DISMAN_EXPORT QPointF deserializePoint(const QDBusArgument &map);
-DISMAN_EXPORT QSize deserializeSize(const QDBusArgument &map);
-DISMAN_EXPORT QSizeF deserializeSizeF(const QDBusArgument &map);
+DISMAN_EXPORT QPointF deserializePoint(const QDBusArgument& map);
+DISMAN_EXPORT QSize deserializeSize(const QDBusArgument& map);
+DISMAN_EXPORT QSizeF deserializeSizeF(const QDBusArgument& map);
 template<typename T>
-DISMAN_EXPORT QList<T> deserializeList(const QDBusArgument &arg)
+DISMAN_EXPORT QList<T> deserializeList(const QDBusArgument& arg)
 {
     QList<T> list;
     arg.beginArray();
@@ -68,13 +68,13 @@ DISMAN_EXPORT QList<T> deserializeList(const QDBusArgument &arg)
     arg.endArray();
     return list;
 }
-DISMAN_EXPORT Disman::ConfigPtr deserializeConfig(const QVariantMap &map);
-DISMAN_EXPORT Disman::OutputPtr deserializeOutput(const QDBusArgument &output);
-DISMAN_EXPORT Disman::ModePtr deserializeMode(const QDBusArgument &mode);
-DISMAN_EXPORT Disman::ScreenPtr deserializeScreen(const QDBusArgument &screen);
+DISMAN_EXPORT Disman::ConfigPtr deserializeConfig(const QVariantMap& map);
+DISMAN_EXPORT Disman::OutputPtr deserializeOutput(const QDBusArgument& output);
+DISMAN_EXPORT Disman::ModePtr deserializeMode(const QDBusArgument& mode);
+DISMAN_EXPORT Disman::ScreenPtr deserializeScreen(const QDBusArgument& screen);
 
 }
 
 }
 
-#endif // CONFIGSERIALIZER_H
+#endif

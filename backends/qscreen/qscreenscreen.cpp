@@ -15,9 +15,9 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
+#include "qscreenscreen.h"
 
 #include "qscreenbackend.h"
-#include "qscreenscreen.h"
 #include "qscreenoutput.h"
 
 #include <configmonitor.h>
@@ -28,7 +28,7 @@
 
 using namespace Disman;
 
-QScreenScreen::QScreenScreen(QScreenConfig *config)
+QScreenScreen::QScreenScreen(QScreenConfig* config)
     : QObject(config)
 {
 }
@@ -44,7 +44,7 @@ ScreenPtr QScreenScreen::toDismanScreen() const
     return dismanScreen;
 }
 
-void QScreenScreen::updateDismanScreen(ScreenPtr &screen) const
+void QScreenScreen::updateDismanScreen(ScreenPtr& screen) const
 {
     if (!screen) {
         return;

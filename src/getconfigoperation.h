@@ -16,16 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #ifndef DISMAN_GETCONFIGOPERATION_H
 #define DISMAN_GETCONFIGOPERATION_H
 
 #include "configoperation.h"
-#include "types.h"
 #include "disman_export.h"
+#include "types.h"
 
-
-namespace Disman {
+namespace Disman
+{
 
 class GetConfigOperationPrivate;
 
@@ -34,7 +33,6 @@ class DISMAN_EXPORT GetConfigOperation : public Disman::ConfigOperation
     Q_OBJECT
 
 public:
-
     explicit GetConfigOperation(Options options = NoOptions, QObject* parent = nullptr);
     ~GetConfigOperation() override;
 
@@ -48,4 +46,4 @@ private:
 };
 }
 
-#endif // DISMAN_GETCONFIGOPERATION_H
+#endif

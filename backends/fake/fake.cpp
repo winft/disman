@@ -15,7 +15,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "fake.h"
 #include "parser.h"
 
@@ -28,9 +27,9 @@
 #include <QFile>
 #include <QTimer>
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 
 #include <QDBusConnection>
 
@@ -45,13 +44,12 @@ Fake::Fake()
 {
     QLoggingCategory::setFilterRules(QStringLiteral("disman.fake.debug = true"));
 
-
     if (qgetenv("DISMAN_BACKEND_INPROCESS") != QByteArray("1")) {
         QTimer::singleShot(0, this, &Fake::delayedInit);
     }
 }
 
-void Fake::init(const QVariantMap &arguments)
+void Fake::init(const QVariantMap& arguments)
 {
     if (!mConfig.isNull()) {
         mConfig.clear();
@@ -59,7 +57,6 @@ void Fake::init(const QVariantMap &arguments)
 
     mConfigFile = arguments[QStringLiteral("TEST_DATA")].toString();
     qCDebug(DISMAN_FAKE) << "Fake profile file:" << mConfigFile;
-
 }
 
 void Fake::delayedInit()
@@ -91,7 +88,7 @@ ConfigPtr Fake::config() const
     return mConfig;
 }
 
-void Fake::setConfig(const ConfigPtr &config)
+void Fake::setConfig(const ConfigPtr& config)
 {
     qCDebug(DISMAN_FAKE) << "set config" << config->outputs();
     mConfig = config->clone();
@@ -113,7 +110,7 @@ QByteArray Fake::edid(int outputId) const
     const QJsonObject json = jsonDoc.object();
 
     const QJsonArray outputs = json[QStringLiteral("outputs")].toArray();
-    Q_FOREACH(const QJsonValue &value, outputs) {
+    Q_FOREACH (const QJsonValue& value, outputs) {
         const QVariantMap output = value.toObject().toVariantMap();
         if (output[QStringLiteral("id")].toInt() != outputId) {
             continue;
@@ -164,7 +161,7 @@ void Fake::setPrimary(int outputId, bool primary)
     Q_EMIT configChanged(mConfig);
 }
 
-void Fake::setCurrentModeId(int outputId, const QString &modeId)
+void Fake::setCurrentModeId(int outputId, const QString& modeId)
 {
     Disman::OutputPtr output = config()->output(outputId);
     if (output->currentModeId() == modeId) {
@@ -187,7 +184,7 @@ void Fake::setRotation(int outputId, int rotation)
     Q_EMIT configChanged(mConfig);
 }
 
-void Fake::addOutput(int outputId, const QString &name)
+void Fake::addOutput(int outputId, const QString& name)
 {
     Disman::OutputPtr output(new Disman::Output);
     output->setId(outputId);

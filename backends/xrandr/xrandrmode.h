@@ -17,10 +17,10 @@
  *************************************************************************************/
 #pragma once
 
-#include <QObject>
 #include <QMap>
-#include <QVariant>
+#include <QObject>
 #include <QSize>
+#include <QVariant>
 
 #include "types.h"
 #include "xcbwrapper.h"
@@ -39,7 +39,7 @@ class XRandRMode : public QObject
 public:
     typedef QMap<xcb_randr_mode_t, XRandRMode*> Map;
 
-    explicit XRandRMode(const xcb_randr_mode_info_t &modeInfo, XRandROutput *output);
+    explicit XRandRMode(const xcb_randr_mode_info_t& modeInfo, XRandROutput* output);
     ~XRandRMode() override;
 
     Disman::ModePtr toDismanMode();

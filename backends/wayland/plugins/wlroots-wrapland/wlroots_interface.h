@@ -45,41 +45,41 @@ class WlrootsFactory : public WaylandFactory
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.waylandinterface" FILE "wlroots-wrapland.json")
 
 public:
-    WaylandInterface* createInterface(QObject *parent = nullptr) override;
+    WaylandInterface* createInterface(QObject* parent = nullptr) override;
 };
 
 class WlrootsInterface : public WaylandInterface
 {
     Q_OBJECT
 public:
-    explicit WlrootsInterface(QObject *parent = nullptr);
+    explicit WlrootsInterface(QObject* parent = nullptr);
     ~WlrootsInterface() override = default;
 
-    void initConnection(QThread *thread) override;
+    void initConnection(QThread* thread) override;
     bool isInitialized() const override;
 
     QMap<int, WaylandOutput*> outputMap() const override;
 
-    void applyConfig(const Disman::ConfigPtr &newConfig) override;
-    void updateConfig(Disman::ConfigPtr &config) override;
+    void applyConfig(const Disman::ConfigPtr& newConfig) override;
+    void updateConfig(Disman::ConfigPtr& config) override;
 
     Wrapland::Client::WlrOutputManagerV1* outputManager() const;
 
 protected:
-    void insertOutput(WaylandOutput *output) override;
-    WaylandOutput* takeOutput(WaylandOutput *output) override;
+    void insertOutput(WaylandOutput* output) override;
+    WaylandOutput* takeOutput(WaylandOutput* output) override;
     void handleDisconnect() override;
 
 private:
     void setupRegistry();
-    void addHead(Wrapland::Client::WlrOutputHeadV1 *head);
+    void addHead(Wrapland::Client::WlrOutputHeadV1* head);
     void tryPendingConfig();
 
-    Wrapland::Client::ConnectionThread *m_connection;
-    Wrapland::Client::EventQueue *m_queue;
+    Wrapland::Client::ConnectionThread* m_connection;
+    Wrapland::Client::EventQueue* m_queue;
 
-    Wrapland::Client::Registry *m_registry;
-    Wrapland::Client::WlrOutputManagerV1 *m_outputManager;
+    Wrapland::Client::Registry* m_registry;
+    Wrapland::Client::WlrOutputManagerV1* m_outputManager;
 
     // Wrapland names as keys
     QMap<int, WlrootsOutput*> m_outputMap;
