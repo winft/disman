@@ -30,7 +30,58 @@ public:
     Private();
     Private(const Private& other);
 
-    QString biggestMode(const ModeList& modes) const;
+    ModePtr mode(QSize const& resolution, double refresh_rate) const;
+
+    template<typename M>
+    ModePtr get_mode(M const& mode) const
+    {
+        return mode;
+    }
+
+    template<typename List>
+    QSize best_resolution(const List& modes) const
+    {
+        QSize best_size{0, 0};
+
+        for (auto _mode : modes) {
+            auto mode = get_mode(_mode);
+            auto mode_size = mode->size();
+            if (best_size.width() * best_size.height() < mode_size.width() * mode_size.height()) {
+                best_size = mode_size;
+            }
+        }
+        return best_size;
+    }
+
+    template<typename List>
+    double best_refresh_rate(const List& modes, QSize const& resolution) const
+    {
+        ModePtr best_mode;
+        double best_refresh = 0.;
+
+        for (auto _mode : modes) {
+            auto mode = get_mode(_mode);
+            if (resolution != mode->size()) {
+                continue;
+            }
+            if (best_refresh < mode->refreshRate()) {
+                best_mode = mode;
+                best_refresh = mode->refreshRate();
+            }
+        }
+
+        return best_refresh;
+    }
+
+    template<typename List>
+    ModePtr best_mode(const List& modes) const
+    {
+        auto const resolution = best_resolution(modes);
+        auto const refresh_rate = best_refresh_rate(modes, resolution);
+
+        return mode(resolution, refresh_rate);
+    }
+
     bool compareModeList(const ModeList& before, const ModeList& after);
 
     int id;
@@ -52,5 +103,14 @@ public:
 
     QScopedPointer<Edid> edid;
 };
+
+template<>
+ModePtr Output::Private::get_mode(const QString& modeId) const
+{
+    if (!modeList.contains(modeId)) {
+        return ModePtr();
+    }
+    return modeList[modeId];
+}
 
 }

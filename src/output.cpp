@@ -69,6 +69,16 @@ Output::Private::Private(const Private& other)
     }
 }
 
+ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) const
+{
+    for (auto mode : modeList) {
+        if (resolution == mode->size() && refresh_rate == mode->refreshRate()) {
+            return mode;
+        }
+    }
+    return ModePtr();
+}
+
 bool Output::Private::compareModeList(const ModeList& before, const ModeList& after)
 {
     if (before.count() != after.count()) {
@@ -97,34 +107,6 @@ bool Output::Private::compareModeList(const ModeList& before, const ModeList& af
     }
     // They're the same
     return true;
-}
-
-QString Output::Private::biggestMode(const ModeList& modes) const
-{
-    int area, total = 0;
-    Disman::ModePtr biggest;
-    Q_FOREACH (const Disman::ModePtr& mode, modes) {
-        area = mode->size().width() * mode->size().height();
-        if (area < total) {
-            continue;
-        }
-        if (area == total && mode->refreshRate() < biggest->refreshRate()) {
-            continue;
-        }
-        if (area == total && mode->refreshRate() > biggest->refreshRate()) {
-            biggest = mode;
-            continue;
-        }
-
-        total = area;
-        biggest = mode;
-    }
-
-    if (!biggest) {
-        return QString();
-    }
-
-    return biggest->id();
 }
 
 Output::Output()
@@ -293,33 +275,14 @@ QString Output::preferredModeId() const
         return d->preferredMode;
     }
     if (d->preferredModes.isEmpty()) {
-        return d->biggestMode(modes());
+        auto best_mode = d->best_mode(modes());
+        return best_mode->id();
     }
 
-    int area, total = 0;
-    Disman::ModePtr biggest;
-    Disman::ModePtr candidateMode;
-    Q_FOREACH (const QString& modeId, d->preferredModes) {
-        candidateMode = mode(modeId);
-        area = candidateMode->size().width() * candidateMode->size().height();
-        if (area < total) {
-            continue;
-        }
-        if (area == total && biggest && candidateMode->refreshRate() < biggest->refreshRate()) {
-            continue;
-        }
-        if (area == total && biggest && candidateMode->refreshRate() > biggest->refreshRate()) {
-            biggest = candidateMode;
-            continue;
-        }
+    auto best = d->best_mode(d->preferredModes);
+    Q_ASSERT_X(best, "preferredModeId", "biggest mode must exist");
 
-        total = area;
-        biggest = candidateMode;
-    }
-
-    Q_ASSERT_X(biggest, "preferredModeId", "biggest mode must exist");
-
-    d->preferredMode = biggest->id();
+    d->preferredMode = best->id();
     return d->preferredMode;
 }
 
