@@ -16,7 +16,8 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-#include "output.h"
+#include "output_p.h"
+
 #include "abstractbackend.h"
 #include "backendmanager_p.h"
 #include "disman_debug.h"
@@ -28,75 +29,48 @@
 #include <QScopedPointer>
 #include <QStringList>
 
-using namespace Disman;
-
-class Q_DECL_HIDDEN Output::Private
+namespace Disman
 {
-public:
-    Private()
-        : id(0)
-        , type(Unknown)
-        , replicationSource(0)
-        , rotation(None)
-        , scale(1.0)
-        , connected(false)
-        , enabled(false)
-        , primary(false)
-        , edid(nullptr)
-    {
+
+Output::Private::Private()
+    : id(0)
+    , type(Unknown)
+    , replicationSource(0)
+    , rotation(None)
+    , scale(1.0)
+    , connected(false)
+    , enabled(false)
+    , primary(false)
+    , edid(nullptr)
+{
+}
+
+Output::Private::Private(const Private& other)
+    : id(other.id)
+    , name(other.name)
+    , type(other.type)
+    , icon(other.icon)
+    , clones(other.clones)
+    , replicationSource(other.replicationSource)
+    , currentModeId(other.currentModeId)
+    , preferredMode(other.preferredMode)
+    , preferredModes(other.preferredModes)
+    , sizeMm(other.sizeMm)
+    , position(other.position)
+    , rotation(other.rotation)
+    , scale(other.scale)
+    , connected(other.connected)
+    , enabled(other.enabled)
+    , primary(other.primary)
+    , followPreferredMode(other.followPreferredMode)
+{
+    Q_FOREACH (const ModePtr& otherMode, other.modeList) {
+        modeList.insert(otherMode->id(), otherMode->clone());
     }
-
-    Private(const Private& other)
-        : id(other.id)
-        , name(other.name)
-        , type(other.type)
-        , icon(other.icon)
-        , clones(other.clones)
-        , replicationSource(other.replicationSource)
-        , currentModeId(other.currentModeId)
-        , preferredMode(other.preferredMode)
-        , preferredModes(other.preferredModes)
-        , sizeMm(other.sizeMm)
-        , position(other.position)
-        , rotation(other.rotation)
-        , scale(other.scale)
-        , connected(other.connected)
-        , enabled(other.enabled)
-        , primary(other.primary)
-        , followPreferredMode(other.followPreferredMode)
-    {
-        Q_FOREACH (const ModePtr& otherMode, other.modeList) {
-            modeList.insert(otherMode->id(), otherMode->clone());
-        }
-        if (other.edid) {
-            edid.reset(other.edid->clone());
-        }
+    if (other.edid) {
+        edid.reset(other.edid->clone());
     }
-
-    QString biggestMode(const ModeList& modes) const;
-    bool compareModeList(const ModeList& before, const ModeList& after);
-
-    int id;
-    QString name;
-    Type type;
-    QString icon;
-    ModeList modeList;
-    QList<int> clones;
-    int replicationSource;
-    QString currentModeId;
-    QString preferredMode;
-    QStringList preferredModes;
-    QSize sizeMm;
-    QPointF position;
-    Rotation rotation;
-    qreal scale;
-    bool connected;
-    bool enabled;
-    bool primary;
-    bool followPreferredMode = false;
-
-    QScopedPointer<Edid> edid;
-};
+}
 
 bool Output::Private::compareModeList(const ModeList& before, const ModeList& after)
 {
@@ -634,6 +608,8 @@ void Output::apply(const OutputPtr& other)
         Q_EMIT(this->*sig)();
         changes.removeAll(sig);
     }
+}
+
 }
 
 QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
