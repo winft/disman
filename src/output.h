@@ -114,7 +114,7 @@ public:
     void setModes(const ModeList& modes);
 
     QString currentModeId() const;
-    void setCurrentModeId(const QString& mode);
+    void setCurrentModeId(const QString& modeId);
     Q_INVOKABLE ModePtr currentMode() const;
 
     void setPreferredModes(const QStringList& modes);

@@ -53,7 +53,7 @@ public:
         , icon(other.icon)
         , clones(other.clones)
         , replicationSource(other.replicationSource)
-        , currentMode(other.currentMode)
+        , currentModeId(other.currentModeId)
         , preferredMode(other.preferredMode)
         , preferredModes(other.preferredModes)
         , sizeMm(other.sizeMm)
@@ -83,7 +83,7 @@ public:
     ModeList modeList;
     QList<int> clones;
     int replicationSource;
-    QString currentMode;
+    QString currentModeId;
     QString preferredMode;
     QStringList preferredModes;
     QSize sizeMm;
@@ -286,23 +286,23 @@ void Output::setModes(const ModeList& modes)
 
 QString Output::currentModeId() const
 {
-    return d->currentMode;
+    return d->currentModeId;
 }
 
-void Output::setCurrentModeId(const QString& mode)
+void Output::setCurrentModeId(const QString& modeId)
 {
-    if (d->currentMode == mode) {
+    if (d->currentModeId == modeId) {
         return;
     }
 
-    d->currentMode = mode;
+    d->currentModeId = modeId;
 
     Q_EMIT currentModeIdChanged();
 }
 
 ModePtr Output::currentMode() const
 {
-    return d->modeList.value(d->currentMode);
+    return d->modeList.value(d->currentModeId);
 }
 
 void Output::setPreferredModes(const QStringList& modes)
@@ -584,9 +584,9 @@ void Output::apply(const OutputPtr& other)
         changes << &Output::geometryChanged;
         setScale(other->d->scale);
     }
-    if (d->currentMode != other->d->currentMode) {
+    if (d->currentModeId != other->d->currentModeId) {
         changes << &Output::currentModeIdChanged;
-        setCurrentModeId(other->d->currentMode);
+        setCurrentModeId(other->d->currentModeId);
     }
     if (d->connected != other->d->connected) {
         changes << &Output::isConnectedChanged;
