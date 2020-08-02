@@ -19,31 +19,86 @@
  *************************************************************************************/
 #include "waylandbackend.h"
 
-#include "waylandconfig.h"
+#include "wayland_interface.h"
 #include "waylandoutput.h"
+#include "waylandscreen.h"
 
+#include "tabletmodemanager_interface.h"
 #include "wayland_logging.h"
 
+#include <config.h>
 #include <configmonitor.h>
 #include <mode.h>
 
-#include <QSettings>
-#include <QStandardPaths>
+#include <KPluginLoader>
+#include <KPluginMetaData>
+
+#include <QThread>
 
 using namespace Disman;
 
 WaylandBackend::WaylandBackend()
     : Disman::AbstractBackend()
-    , m_internalConfig(new WaylandConfig(this))
+    , m_screen{new WaylandScreen}
 {
     qCDebug(DISMAN_WAYLAND) << "Loading Wayland backend.";
-
-    connect(m_internalConfig, &WaylandConfig::configChanged, this, [this]() {
-        Q_EMIT configChanged(m_internalConfig->currentConfig());
-    });
+    initKWinTabletMode();
+    queryInterfaces();
 }
 
-WaylandBackend::~WaylandBackend() = default;
+WaylandBackend::~WaylandBackend()
+{
+    for (auto pending : m_pendingInterfaces) {
+        rejectInterface(pending);
+    }
+    m_pendingInterfaces.clear();
+
+    if (m_thread) {
+        m_thread->quit();
+        m_thread->wait();
+    }
+}
+
+void WaylandBackend::initKWinTabletMode()
+{
+    auto* interface = new OrgKdeKWinTabletModeManagerInterface(QStringLiteral("org.kde.KWin"),
+                                                               QStringLiteral("/org/kde/KWin"),
+                                                               QDBusConnection::sessionBus(),
+                                                               this);
+    if (!interface->isValid()) {
+        m_tabletModeAvailable = false;
+        m_tabletModeEngaged = false;
+        return;
+    }
+
+    m_tabletModeAvailable = interface->tabletModeAvailable();
+    m_tabletModeEngaged = interface->tabletMode();
+
+    connect(interface,
+            &OrgKdeKWinTabletModeManagerInterface::tabletModeChanged,
+            this,
+            [this](bool tabletMode) {
+                if (m_tabletModeEngaged == tabletMode) {
+                    return;
+                }
+                m_tabletModeEngaged = tabletMode;
+                if (m_interface && m_interface->isInitialized()) {
+                    Q_EMIT configChanged(config());
+                }
+            });
+    connect(interface,
+            &OrgKdeKWinTabletModeManagerInterface::tabletModeAvailableChanged,
+            this,
+            [this](bool available) {
+                if (m_tabletModeAvailable == available) {
+                    return;
+                }
+                m_tabletModeAvailable = available;
+                if (m_interface && m_interface->isInitialized()) {
+                    Q_EMIT configChanged(config());
+                }
+            });
+}
 
 QString WaylandBackend::name() const
 {
@@ -58,7 +113,18 @@ QString WaylandBackend::serviceName() const
 ConfigPtr WaylandBackend::config() const
 {
     // Note: This should ONLY be called from GetConfigOperation!
-    return m_internalConfig->currentConfig();
+
+    ConfigPtr config(new Config);
+
+    // TODO: do this setScreen call less clunky
+    config->setScreen(m_screen->toDismanScreen(config));
+
+    m_interface->updateConfig(config);
+
+    ScreenPtr screen = config->screen();
+    m_screen->updateDismanScreen(screen);
+
+    return config;
 }
 
 void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
@@ -66,19 +132,127 @@ void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
     if (!newconfig) {
         return;
     }
-    m_internalConfig->applyConfig(newconfig);
+    m_interface->applyConfig(newconfig);
 }
 
 QByteArray WaylandBackend::edid(int outputId) const
 {
-    WaylandOutput* output = m_internalConfig->outputMap().value(outputId);
+    WaylandOutput* output = outputMap().value(outputId);
     if (!output) {
         return QByteArray();
     }
     return output->edid();
 }
 
+QMap<int, WaylandOutput*> WaylandBackend::outputMap() const
+{
+    return m_interface->outputMap();
+}
+
 bool WaylandBackend::isValid() const
 {
-    return m_internalConfig->isInitialized();
+    return m_interface && m_interface->isInitialized();
+}
+
+void WaylandBackend::setScreenOutputs()
+{
+    m_screen->setOutputs(outputMap().values());
+}
+
+void WaylandBackend::queryInterfaces()
+{
+    QTimer::singleShot(3000, this, [this] {
+        for (auto pending : m_pendingInterfaces) {
+            qCWarning(DISMAN_WAYLAND) << pending.name << "backend could not be aquired in time.";
+            rejectInterface(pending);
+        }
+        if (m_syncLoop.isRunning()) {
+            qCWarning(DISMAN_WAYLAND) << "Connection to Wayland server timed out. Does the "
+                                         "compositor support output management?";
+            m_syncLoop.quit();
+        }
+        m_pendingInterfaces.clear();
+    });
+
+    auto availableInterfacePlugins = KPluginLoader::findPlugins(QStringLiteral("disman/wayland"));
+
+    for (auto plugin : availableInterfacePlugins) {
+        queryInterface(&plugin);
+    }
+    m_syncLoop.exec();
+}
+
+void WaylandBackend::queryInterface(KPluginMetaData* plugin)
+{
+    PendingInterface pending;
+
+    pending.name = plugin->name();
+
+    for (auto other : m_pendingInterfaces) {
+        if (pending.name == other.name) {
+            // Names must be unique.
+            return;
+        }
+    }
+
+    // TODO: qobject_cast not working here. Why?
+    auto* factory = dynamic_cast<WaylandFactory*>(plugin->instantiate());
+    if (!factory) {
+        return;
+    }
+    pending.interface = factory->createInterface();
+    pending.thread = new QThread();
+
+    m_pendingInterfaces.push_back(pending);
+    connect(pending.interface, &WaylandInterface::connectionFailed, this, [this, &pending] {
+        qCWarning(DISMAN_WAYLAND) << "Backend" << pending.name << "failed.";
+        rejectInterface(pending);
+        m_pendingInterfaces.erase(
+            std::remove(m_pendingInterfaces.begin(), m_pendingInterfaces.end(), pending),
+            m_pendingInterfaces.end());
+    });
+
+    connect(pending.interface, &WaylandInterface::initialized, this, [this, pending] {
+        if (m_interface) {
+            // Too late. Already have an interface initialized.
+            return;
+        }
+
+        for (auto other : m_pendingInterfaces) {
+            if (other.interface != pending.interface) {
+                rejectInterface(other);
+            }
+        }
+        m_pendingInterfaces.clear();
+
+        takeInterface(pending);
+        m_syncLoop.quit();
+    });
+
+    pending.interface->initConnection(pending.thread);
+}
+
+void WaylandBackend::takeInterface(const PendingInterface& pending)
+{
+    m_interface = pending.interface;
+    m_thread = pending.thread;
+    connect(m_interface, &WaylandInterface::configChanged, this, [this] {
+        Q_EMIT configChanged(config());
+    });
+
+    setScreenOutputs();
+    connect(
+        m_interface, &WaylandInterface::outputsChanged, this, &WaylandBackend::setScreenOutputs);
+
+    qCDebug(DISMAN_WAYLAND) << "Backend" << pending.name << "initialized.";
+}
+
+void WaylandBackend::rejectInterface(const PendingInterface& pending)
+{
+    pending.thread->quit();
+    pending.thread->wait();
+    delete pending.thread;
+    delete pending.interface;
+
+    qCDebug(DISMAN_WAYLAND) << "Backend" << pending.name << "rejected.";
 }

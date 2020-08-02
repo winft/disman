@@ -4,7 +4,6 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
 
 set(wayland_SRCS
     waylandbackend.cpp
-    waylandconfig.cpp
     wayland_interface.cpp
     waylandoutput.cpp
     waylandscreen.cpp

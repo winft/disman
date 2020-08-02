@@ -21,10 +21,18 @@
 
 #include "abstractbackend.h"
 
+#include <QEventLoop>
+#include <QPointer>
+
+#include <vector>
+
+class KPluginMetaData;
+
 namespace Disman
 {
-
-class WaylandConfig;
+class WaylandInterface;
+class WaylandOutput;
+class WaylandScreen;
 
 class WaylandBackend : public Disman::AbstractBackend
 {
@@ -37,13 +45,45 @@ public:
 
     QString name() const override;
     QString serviceName() const override;
+    bool isValid() const override;
+
     Disman::ConfigPtr config() const override;
     void setConfig(const Disman::ConfigPtr& config) override;
-    bool isValid() const override;
+
     QByteArray edid(int outputId) const override;
 
+    QMap<int, WaylandOutput*> outputMap() const;
+
 private:
-    WaylandConfig* m_internalConfig;
+    struct PendingInterface {
+        bool operator==(const PendingInterface& other)
+        {
+            return name == other.name;
+        }
+        QString name;
+        WaylandInterface* interface;
+        QThread* thread;
+    };
+
+    void initKWinTabletMode();
+    void setScreenOutputs();
+
+    void queryInterfaces();
+    void queryInterface(KPluginMetaData* plugin);
+    void takeInterface(const PendingInterface& pending);
+    void rejectInterface(const PendingInterface& pending);
+
+    Disman::ConfigPtr m_dismanConfig;
+    std::unique_ptr<WaylandScreen> m_screen;
+    QPointer<WaylandInterface> m_interface;
+    QThread* m_thread{nullptr};
+
+    bool m_tabletModeAvailable{false};
+    bool m_tabletModeEngaged{false};
+
+    QEventLoop m_syncLoop;
+
+    std::vector<PendingInterface> m_pendingInterfaces;
 };
 
 }

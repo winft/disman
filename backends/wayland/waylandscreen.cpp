@@ -17,7 +17,6 @@
  *************************************************************************************/
 #include "waylandscreen.h"
 
-#include "waylandconfig.h"
 #include "waylandoutput.h"
 
 #include <mode.h>
@@ -26,8 +25,8 @@
 
 using namespace Disman;
 
-WaylandScreen::WaylandScreen(WaylandConfig* config)
-    : QObject(config)
+WaylandScreen::WaylandScreen(QObject* parent)
+    : QObject(parent)
     , m_outputCount(0)
 {
 }

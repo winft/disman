@@ -26,7 +26,6 @@
 
 namespace Disman
 {
-class WaylandConfig;
 class WaylandOutput;
 
 class WaylandScreen : public QObject
@@ -34,7 +33,7 @@ class WaylandScreen : public QObject
     Q_OBJECT
 
 public:
-    explicit WaylandScreen(WaylandConfig* config);
+    explicit WaylandScreen(QObject* parent = nullptr);
     ~WaylandScreen() override = default;
 
     Disman::ScreenPtr toDismanScreen(Disman::ConfigPtr& parent) const;
