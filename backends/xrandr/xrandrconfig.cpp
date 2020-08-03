@@ -182,7 +182,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
 
         ++neededCrtcs;
 
-        if (dismanOutput->currentModeId() != currentOutput->currentModeId()) {
+        if (dismanOutput->auto_mode()->id() != currentOutput->currentModeId()) {
             if (!toChange.contains(outputId)) {
                 toChange.insert(outputId, dismanOutput);
             }
@@ -207,7 +207,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         }
 
         XRandRMode* currentMode
-            = currentOutput->modes().value(dismanOutput->currentModeId().toInt());
+            = currentOutput->modes().value(dismanOutput->auto_mode()->id().toInt());
         // For some reason, in some environments currentMode is null
         // which doesn't make sense because it is the *current* mode...
         // Since we haven't been able to figure out the reason why
@@ -372,12 +372,12 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                << "Rotation: " << output->rotation() << "\n"
                                << "Pos: " << output->position() << "\n"
                                << "MMSize: " << output->sizeMm();
-        if (output->currentMode()) {
-            qCDebug(DISMAN_XRANDR) << "Size: " << output->currentMode()->size();
+        if (output->auto_mode()) {
+            qCDebug(DISMAN_XRANDR) << "Size: " << output->auto_mode()->size();
         }
 
-        qCDebug(DISMAN_XRANDR) << "Mode: " << output->currentModeId() << "\n"
-                               << "Preferred Mode: " << output->preferredModeId() << "\n"
+        qCDebug(DISMAN_XRANDR) << "Mode: " << output->auto_mode()->id() << "\n"
+                               << "Preferred Mode: " << output->preferred_mode()->id() << "\n"
                                << "Preferred modes: " << output->preferredModes() << "\n"
                                << "Modes: ";
 
@@ -440,7 +440,7 @@ QSize XRandRConfig::screenSize(const Disman::ConfigPtr& config) const
             continue;
         }
 
-        const ModePtr currentMode = output->currentMode();
+        const ModePtr currentMode = output->auto_mode();
         if (!currentMode) {
             qCDebug(DISMAN_XRANDR) << "Output: " << output->name() << " has no current Mode!";
             continue;
@@ -561,8 +561,8 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput) const
     }
 
     XRandROutput* xOutput = output(dismanOutput->id());
-    const int modeId = dismanOutput->currentMode() ? dismanOutput->currentModeId().toInt()
-                                                   : dismanOutput->preferredModeId().toInt();
+    const int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
+                                                 : dismanOutput->preferred_mode()->id().toInt();
     xOutput->updateLogicalSize(dismanOutput, freeCrtc);
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (enable output)"
@@ -572,8 +572,8 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput) const
                            << "\n"
                            << "\tNew CRTC:" << freeCrtc->crtc() << "\n"
                            << "\tPos:" << dismanOutput->position() << "\n"
-                           << "\tMode:" << dismanOutput->currentMode()
-                           << "Preferred:" << dismanOutput->preferredModeId() << "\n"
+                           << "\tMode:" << dismanOutput->auto_mode()
+                           << "Preferred:" << dismanOutput->preferred_mode()->id() << "\n"
                            << "\tRotation:" << dismanOutput->rotation();
 
     if (!sendConfig(dismanOutput, freeCrtc)) {
@@ -596,8 +596,8 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput) const
         return enableOutput(dismanOutput);
     }
 
-    int modeId = dismanOutput->currentMode() ? dismanOutput->currentModeId().toInt()
-                                             : dismanOutput->preferredModeId().toInt();
+    int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
+                                           : dismanOutput->preferred_mode()->id().toInt();
     xOutput->updateLogicalSize(dismanOutput);
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (change output)"
@@ -607,7 +607,7 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput) const
                            << "\n"
                            << "\tCRTC:" << xOutput->crtc()->crtc() << "\n"
                            << "\tPos:" << dismanOutput->position() << "\n"
-                           << "\tMode:" << modeId << dismanOutput->currentMode() << "\n"
+                           << "\tMode:" << modeId << dismanOutput->auto_mode() << "\n"
                            << "\tRotation:" << dismanOutput->rotation();
 
     if (!sendConfig(dismanOutput, xOutput->crtc())) {
@@ -622,8 +622,8 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput) const
 bool XRandRConfig::sendConfig(const Disman::OutputPtr& dismanOutput, XRandRCrtc* crtc) const
 {
     xcb_randr_output_t outputs[1]{static_cast<xcb_randr_output_t>(dismanOutput->id())};
-    const int modeId = dismanOutput->currentMode() ? dismanOutput->currentModeId().toInt()
-                                                   : dismanOutput->preferredModeId().toInt();
+    const int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
+                                                 : dismanOutput->preferred_mode()->id().toInt();
 
     auto cookie = xcb_randr_set_crtc_config(XCB::connection(),
                                             crtc->crtc(),

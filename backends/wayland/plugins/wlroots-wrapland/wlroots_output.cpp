@@ -126,7 +126,8 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     m_modeIdMap.clear();
     QString currentModeId = QStringLiteral("-1");
 
-    auto currentMode = m_head->currentMode();
+    auto current_head_mode = m_head->currentMode();
+    ModePtr current_mode;
 
     int modeCounter = 0;
     for (auto wlMode : m_head->modes()) {
@@ -144,8 +145,8 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
         if (wlMode->preferred()) {
             preferredModeIds << modeId;
         }
-        if (currentMode == wlMode) {
-            currentModeId = modeId;
+        if (current_head_mode == wlMode) {
+            current_mode = mode;
         }
 
         // Update the Disman => Wrapland mode id translation map.
@@ -155,13 +156,18 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
         modeList[modeId] = mode;
     }
 
-    if (currentModeId == QLatin1String("-1")) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
-    }
-
-    output->setCurrentModeId(currentModeId);
     output->setPreferredModes(preferredModeIds);
     output->setModes(modeList);
+
+    if (current_mode.isNull()) {
+        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
+    } else {
+        output->set_mode(current_mode);
+        output->set_resolution(current_mode->size());
+        auto success = output->set_refresh_rate(current_mode->refreshRate());
+        assert(success);
+    }
+
     output->setScale(m_head->scale());
     output->setType(guessType(m_head->name(), m_head->name()));
 }
@@ -198,15 +204,14 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     }
 
     // mode
-    if (m_modeIdMap.contains(output->currentModeId())) {
-        auto newMode = m_modeIdMap.value(output->currentModeId(), nullptr);
+    if (auto mode_id = output->auto_mode()->id(); m_modeIdMap.contains(mode_id)) {
+        auto newMode = m_modeIdMap.value(mode_id, nullptr);
         if (newMode != m_head->currentMode()) {
             changed = true;
             wlConfig->setMode(m_head, newMode);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << output->currentModeId() << "\n\n"
-                                  << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << mode_id << "\n\n" << m_modeIdMap;
     }
 
     return changed;

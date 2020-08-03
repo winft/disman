@@ -366,10 +366,10 @@ void Doctor::showOutputs() const
                             .arg(QString::number(mode->size().width()),
                                  QString::number(mode->size().height()),
                                  QString::number(qRound(mode->refreshRate())));
-            if (mode == output->currentMode()) {
+            if (mode == output->auto_mode()) {
                 name = green + name + QLatin1Char('*') + cr;
             }
-            if (mode == output->preferredMode()) {
+            if (mode == output->preferred_mode()) {
                 name = name + QLatin1Char('!');
             }
             cout << mode->id() << ":" << name << " ";
@@ -448,7 +448,7 @@ bool Doctor::setMode(int id, const QString& mode_id)
                                      QString::number(qRound(mode->refreshRate())));
                 if (mode->id() == mode_id || name == mode_id) {
                     qCDebug(DISMAN_DOCTOR) << "Taddaaa! Found mode" << mode->id() << name;
-                    output->setCurrentModeId(mode->id());
+                    output->set_mode(mode);
                     m_changed = true;
                     return true;
                 }

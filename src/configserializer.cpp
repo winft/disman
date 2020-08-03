@@ -92,7 +92,10 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("position")] = serializePoint(output->position());
     obj[QLatin1String("scale")] = output->scale();
     obj[QLatin1String("rotation")] = static_cast<int>(output->rotation());
-    obj[QLatin1String("currentModeId")] = output->currentModeId();
+    if (auto const mode = output->commanded_mode()) {
+        obj[QLatin1String("resolution")] = serializeSize(mode->size());
+        obj[QLatin1String("refresh_rate")] = mode->refreshRate();
+    }
     obj[QLatin1String("preferredModes")] = serializeList(output->preferredModes());
     obj[QLatin1String("followPreferredMode")] = output->followPreferredMode();
     obj[QLatin1String("enabled")] = output->isEnabled();
@@ -100,6 +103,8 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     // obj[QLatin1String("edid")] = output->edid()->raw();
     obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
     obj[QLatin1String("replicationSource")] = output->replicationSource();
+    obj[QLatin1String("auto_resolution")] = output->auto_resolution();
+    obj[QLatin1String("auto_refresh_rate")] = output->auto_refresh_rate();
 
     QJsonArray modes;
     Q_FOREACH (const ModePtr& mode, output->modes()) {
@@ -279,8 +284,14 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->setScale(value.toDouble());
         } else if (key == QLatin1String("rotation")) {
             output->setRotation(static_cast<Output::Rotation>(value.toInt()));
-        } else if (key == QLatin1String("currentModeId")) {
-            output->setCurrentModeId(value.toString());
+        } else if (key == QLatin1String("resolution")) {
+            output->set_resolution(value.toSize());
+        } else if (key == QLatin1String("refresh_rate")) {
+            output->set_refresh_rate(value.toDouble());
+        } else if (key == QLatin1String("auto_resolution")) {
+            output->set_auto_resolution(value.toBool());
+        } else if (key == QLatin1String("auto_refresh_rate")) {
+            output->set_auto_refresh_rate(value.toBool());
         } else if (key == QLatin1String("preferredModes")) {
             output->setPreferredModes(deserializeList<QString>(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("followPreferredMode")) {

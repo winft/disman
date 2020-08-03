@@ -174,7 +174,7 @@ void testQScreenBackend::commonUsagePattern()
         info[QStringLiteral("pos")] = pos;
 
         if (output->isEnabled()) {
-            const Disman::ModePtr mode = output->currentMode();
+            const Disman::ModePtr mode = output->auto_mode();
             if (!mode) {
                 // qWarning() << "CurrentMode is null" << output->name();
                 return;

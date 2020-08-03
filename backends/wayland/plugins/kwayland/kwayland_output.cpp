@@ -101,7 +101,7 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     ModeList modeList;
     QStringList preferredModeIds;
     m_modeIdMap.clear();
-    QString currentModeId = QStringLiteral("-1");
+    ModePtr current_mode;
 
     for (const Wl::OutputDevice::Mode& wlMode : m_device->modes()) {
         ModePtr mode(new Mode());
@@ -125,7 +125,7 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
         mode->setName(name);
 
         if (wlMode.flags.testFlag(Wl::OutputDevice::Mode::Flag::Current)) {
-            currentModeId = modeId;
+            current_mode = mode;
         }
         if (wlMode.flags.testFlag(Wl::OutputDevice::Mode::Flag::Preferred)) {
             preferredModeIds << modeId;
@@ -137,13 +137,19 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
         modeList[modeId] = mode;
     }
 
-    if (currentModeId == QLatin1String("-1")) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
-    }
-
-    output->setCurrentModeId(currentModeId);
     output->setPreferredModes(preferredModeIds);
     output->setModes(modeList);
+
+    if (current_mode.isNull()) {
+        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
+    } else {
+        output->set_mode(current_mode);
+        output->set_resolution(current_mode->size());
+        auto success = output->set_refresh_rate(current_mode->refreshRate());
+        if (!success) {
+            qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
+        }
+    }
     output->setScale(m_device->scaleF());
     output->setType(guessType(m_device->model(), m_device->model()));
 }
@@ -179,15 +185,16 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration* wlConfig, const Disman
     }
 
     // mode
-    if (m_modeIdMap.contains(output->currentModeId())) {
-        const int newModeId = m_modeIdMap.value(output->currentModeId(), -1);
+    if (auto mode = output->auto_mode(); mode && m_modeIdMap.contains(mode->id())) {
+        const int newModeId = m_modeIdMap.value(mode->id(), -1);
         if (newModeId != m_device->currentMode().id) {
             changed = true;
             wlConfig->setMode(m_device, newModeId);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid disman mode id:" << output->currentModeId() << "\n\n"
-                                  << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:"
+                                  << (mode ? mode->id() : QStringLiteral("null"))
+                                  << "\n  -> available were:" << m_modeIdMap;
     }
     return changed;
 }

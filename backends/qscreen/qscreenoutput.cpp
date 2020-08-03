@@ -105,5 +105,5 @@ void QScreenOutput::updateDismanOutput(OutputPtr& output) const
     ModeList modes;
     modes[modeid] = mode;
     output->setModes(modes);
-    output->setCurrentModeId(modeid);
+    output->set_mode(mode);
 }

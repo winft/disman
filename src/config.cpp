@@ -134,19 +134,19 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
             return false;
         }
         // if there is no currentMode
-        if (output->currentModeId().isEmpty()) {
+        if (output->auto_mode().isNull()) {
             qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
                             << "has no currentModeId";
             return false;
         }
         // If the mode is not found in the current output
-        if (!currentOutput->mode(output->currentModeId())) {
+        if (!currentOutput->mode(output->auto_mode()->id())) {
             qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
-                            << "has no mode:" << output->currentModeId();
+                            << "has no mode:" << output->auto_mode()->id();
             return false;
         }
 
-        auto const outputSize = output->currentMode()->size();
+        auto const outputSize = output->auto_mode()->size();
 
         if (output->position().x() < rect.x()) {
             rect.setX(output->position().x());

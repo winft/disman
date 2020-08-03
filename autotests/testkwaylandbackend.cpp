@@ -191,9 +191,10 @@ void testWaylandBackend::simpleWrite()
     m_config = op->config();
     auto output = m_config->output(18);
     QVERIFY(output);
-    auto n_mode = QStringLiteral("800x600@60");
-    auto o_mode = output->currentModeId();
-    output->setCurrentModeId(n_mode);
+
+    auto n_mode = QStringLiteral("1");
+    output->set_mode(output->mode(n_mode));
+    QCOMPARE(output->commanded_mode()->size(), QSize(800, 600));
 
     auto setop = new SetConfigOperation(m_config);
     QVERIFY(setop->exec());

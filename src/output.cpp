@@ -1,6 +1,7 @@
 /*************************************************************************************
  *  Copyright (C) 2012 by Alejandro Fiestas Olivares <afiestas@kde.org>              *
  *  Copyright (C) 2014 by Daniel Vrátil <dvratil@redhat.com>                         *
+ *  Copyright © 2020 Roman Gilg <subdiff@gmail.com>                                  *
  *                                                                                   *
  *  This library is free software; you can redistribute it and/or                    *
  *  modify it under the terms of the GNU Lesser General Public                       *
@@ -50,7 +51,8 @@ Output::Private::Private(const Private& other)
     , type(other.type)
     , icon(other.icon)
     , replicationSource(other.replicationSource)
-    , currentModeId(other.currentModeId)
+    , resolution(other.resolution)
+    , refresh_rate(other.refresh_rate)
     , preferredMode(other.preferredMode)
     , preferredModes(other.preferredModes)
     , sizeMm(other.sizeMm)
@@ -60,6 +62,8 @@ Output::Private::Private(const Private& other)
     , enabled(other.enabled)
     , primary(other.primary)
     , followPreferredMode(other.followPreferredMode)
+    , auto_resolution{other.auto_resolution}
+    , auto_refresh_rate{other.auto_refresh_rate}
 {
     Q_FOREACH (const ModePtr& otherMode, other.modeList) {
         modeList.insert(otherMode->id(), otherMode->clone());
@@ -208,19 +212,63 @@ void Output::setModes(const ModeList& modes)
     d->modeList = modes;
 }
 
-QString Output::currentModeId() const
+void Output::set_mode(ModePtr const& mode)
 {
-    return d->currentModeId;
+    set_resolution(mode->size());
+    set_refresh_rate(mode->refreshRate());
 }
 
-void Output::setCurrentModeId(const QString& modeId)
+void Output::set_to_preferred_mode()
 {
-    d->currentModeId = modeId;
+    set_mode(preferred_mode());
 }
 
-ModePtr Output::currentMode() const
+ModePtr Output::commanded_mode() const
 {
-    return d->modeList.value(d->currentModeId);
+    for (auto mode : d->modeList) {
+        if (mode->size() == d->resolution && mode->refreshRate() == d->refresh_rate) {
+            return mode;
+        }
+    }
+    return ModePtr();
+}
+
+bool Output::set_resolution(QSize const& size)
+{
+    d->resolution = size;
+    return !commanded_mode().isNull();
+}
+
+bool Output::set_refresh_rate(double rate)
+{
+    d->refresh_rate = rate;
+    return !commanded_mode().isNull();
+}
+
+QSize Output::best_resolution() const
+{
+    return d->best_resolution(modes());
+}
+
+double Output::best_refresh_rate(QSize const& resolution) const
+{
+    return d->best_refresh_rate(modes(), resolution);
+}
+
+ModePtr Output::best_mode() const
+{
+    return d->best_mode(modes());
+}
+
+ModePtr Output::auto_mode() const
+{
+    auto const resolution = auto_resolution() ? best_resolution() : d->resolution;
+    auto const refresh_rate = auto_refresh_rate() ? best_refresh_rate(resolution) : d->refresh_rate;
+
+    if (auto mode = d->mode(resolution, refresh_rate)) {
+        return mode;
+    }
+    return preferred_mode();
 }
 
 void Output::setPreferredModes(const QStringList& modes)
@@ -234,26 +282,20 @@ QStringList Output::preferredModes() const
     return d->preferredModes;
 }
 
-QString Output::preferredModeId() const
+ModePtr Output::preferred_mode() const
 {
     if (!d->preferredMode.isEmpty()) {
-        return d->preferredMode;
+        return d->modeList.value(d->preferredMode);
     }
     if (d->preferredModes.isEmpty()) {
-        auto best_mode = d->best_mode(modes());
-        return best_mode->id();
+        return d->best_mode(modes());
     }
 
     auto best = d->best_mode(d->preferredModes);
-    Q_ASSERT_X(best, "preferredModeId", "biggest mode must exist");
+    Q_ASSERT_X(best, "preferred_mode", "biggest mode must exist");
 
     d->preferredMode = best->id();
-    return d->preferredMode;
-}
-
-ModePtr Output::preferredMode() const
-{
-    return d->modeList.value(preferredModeId());
+    return best;
 }
 
 void Output::setPosition(const QPointF& position)
@@ -371,6 +413,26 @@ void Disman::Output::setFollowPreferredMode(bool follow)
     d->followPreferredMode = follow;
 }
 
+bool Output::auto_resolution() const
+{
+    return d->auto_resolution;
+}
+
+void Output::set_auto_resolution(bool auto_res)
+{
+    d->auto_resolution = auto_res;
+}
+
+bool Output::auto_refresh_rate() const
+{
+    return d->auto_refresh_rate;
+}
+
+void Output::set_auto_refresh_rate(bool auto_rate)
+{
+    d->auto_refresh_rate = auto_rate;
+}
+
 bool Output::isPositionable() const
 {
     return isEnabled() && !replicationSource();
@@ -378,9 +440,9 @@ bool Output::isPositionable() const
 
 QSize Output::enforcedModeSize() const
 {
-    if (const auto mode = currentMode()) {
+    if (const auto mode = auto_mode()) {
         return mode->size();
-    } else if (const auto mode = preferredMode()) {
+    } else if (const auto mode = preferred_mode()) {
         return mode->size();
     } else if (d->modeList.count() > 0) {
         return d->modeList.first()->size();
@@ -405,7 +467,6 @@ void Output::apply(const OutputPtr& other)
     setPosition(other->geometry().topLeft());
     setRotation(other->d->rotation);
     setScale(other->d->scale);
-    setCurrentModeId(other->d->currentModeId);
     setEnabled(other->d->enabled);
 
     if (d->primary != other->d->primary) {
@@ -427,6 +488,12 @@ void Output::apply(const OutputPtr& other)
         d->edid.reset(other->d->edid->clone());
     }
 
+    set_resolution(other->d->resolution);
+    set_refresh_rate(other->d->refresh_rate);
+
+    set_auto_resolution(other->d->auto_resolution);
+    set_auto_refresh_rate(other->d->auto_refresh_rate);
+
     blockSignals(keepBlocked);
 
     while (!changes.isEmpty()) {
@@ -446,7 +513,7 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
         dbg << "Disman::Output(" << output->id() << " " << output->name()
             << (output->isEnabled() ? "enabled" : "disabled")
             << (output->isPrimary() ? "primary" : "") << "geometry:" << output->geometry()
-            << "scale:" << output->scale() << "modeId:" << output->currentModeId()
+            << "scale:" << output->scale() << "mode:" << output->auto_mode()
             << "followPreferredMode:" << output->followPreferredMode() << ")";
     } else {
         dbg << "Disman::Output(NULL)";

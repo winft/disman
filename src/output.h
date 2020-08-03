@@ -1,6 +1,7 @@
 /*************************************************************************************
  *  Copyright (C) 2012 by Alejandro Fiestas Olivares <afiestas@kde.org>              *
  *  Copyright (C) 2014 by Daniel Vrátil <dvratil@redhat.com>                         *
+ *  Copyright © 2020 Roman Gilg <subdiff@gmail.com>                                  *
  *                                                                                   *
  *  This library is free software; you can redistribute it and/or                    *
  *  modify it under the terms of the GNU Lesser General Public                       *
@@ -110,23 +111,66 @@ public:
     void setIcon(const QString& icon);
 
     Q_INVOKABLE ModePtr mode(const QString& id) const;
+    ModePtr mode(QSize const& resolution, double refresh_rate) const;
+
     ModeList modes() const;
     void setModes(const ModeList& modes);
 
-    QString currentModeId() const;
-    void setCurrentModeId(const QString& modeId);
-    Q_INVOKABLE ModePtr currentMode() const;
+    /**
+     * Sets the mode.
+     *
+     * @see commmanded_mode
+     */
+    void set_mode(ModePtr const& mode);
+    bool set_resolution(QSize const& size);
+    bool set_refresh_rate(double rate);
+
+    void set_to_preferred_mode();
+
+    /**
+     * Returns the mode determined by the set resolution and refresh rate. When received from the
+     * backend this determines the current hardware mode independet of what auto_mode says.
+     *
+     * On the opposite if they are not the same the configuration is not in sync what indicates
+     * a corruption of the output configuration.
+     *
+     * @see commanded_mode
+     * @see set_resolution
+     * @see set_refresh_rate
+     */
+    ModePtr commanded_mode() const;
+
+    /**
+     * Returns a best mode by first selecting the highest available resolution
+     * and for that resolution the mode with the highest refresh rate.
+     */
+    ModePtr best_mode() const;
+
+    /**
+     * Similar to @ref best_mode, tries to return the best mode but considers the current auto
+     * resolution and auto refresh rate settings.
+     *
+     * That means in a first step the highest available resolution is chosen if @ref auto_resolution
+     * is true and otherwise the currently set resolution. In a second step the mode with the
+     * highest refresh rate for this resolution will be returned if @ref auto_refresh_rate is true,
+     * otherwise the mode with the currently set refresh rate. If such a mode does not exist null
+     * is returned.
+     */
+    ModePtr auto_mode() const;
+
+    QSize best_resolution() const;
+    double best_refresh_rate(QSize const& resolution) const;
 
     void setPreferredModes(const QStringList& modes);
     QStringList preferredModes() const;
+
     /**
-     * Returns the preferred mode with higher resolution and refresh
+     * Returns a mode that the hardware marked as preferred and that is the best one in the sense
+     * of @ref best_mode().
+     *
+     * @see best_mode
      */
-    Q_INVOKABLE QString preferredModeId() const;
-    /**
-     * Returns Disman::Mode associated with preferredModeId()
-     */
-    Q_INVOKABLE ModePtr preferredMode() const;
+    ModePtr preferred_mode() const;
 
     /**
      * Returns either current mode size or if not available preferred one or if also not
@@ -233,6 +277,12 @@ public:
      * @since 5.15
      */
     void setFollowPreferredMode(bool follow);
+
+    bool auto_resolution() const;
+    void set_auto_resolution(bool auto_res);
+
+    bool auto_refresh_rate() const;
+    void set_auto_refresh_rate(bool auto_rate);
 
     void apply(const OutputPtr& other);
 

@@ -90,7 +90,10 @@ public:
     QString icon;
     ModeList modeList;
     int replicationSource;
-    QString currentModeId;
+
+    QSize resolution;
+    double refresh_rate{0};
+
     QString preferredMode;
     QStringList preferredModes;
     QSize sizeMm;
@@ -100,6 +103,9 @@ public:
     bool enabled;
     bool primary;
     bool followPreferredMode = false;
+
+    bool auto_resolution{false};
+    bool auto_refresh_rate{false};
 
     QScopedPointer<Edid> edid;
 };

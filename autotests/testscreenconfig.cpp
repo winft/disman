@@ -97,15 +97,15 @@ void testScreenConfig::singleOutput()
     QCOMPARE(output->modes().count(), 3);
     QCOMPARE(output->position(), QPoint(0, 0));
     QCOMPARE(output->geometry(), QRect(0, 0, 1280, 800));
-    QCOMPARE(output->currentModeId(), QLatin1String("3"));
-    QCOMPARE(output->preferredModeId(), QLatin1String("3"));
+    QCOMPARE(output->auto_mode()->id(), QLatin1String("3"));
+    QCOMPARE(output->preferred_mode()->id(), QLatin1String("3"));
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.0);
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), true);
     // QCOMPARE(output->isEmbedded(), true);
 
-    const ModePtr mode = output->currentMode();
+    const ModePtr mode = output->auto_mode();
     QCOMPARE(mode->size(), QSize(1280, 800));
     QCOMPARE(mode->refreshRate(), (float)59.9);
 }
@@ -120,7 +120,7 @@ void testScreenConfig::singleOutputWithoutPreferred()
     QVERIFY(!output.isNull());
 
     QVERIFY(output->preferredModes().isEmpty());
-    QCOMPARE(output->preferredModeId(), QLatin1String("3"));
+    QCOMPARE(output->preferred_mode()->id(), QLatin1String("3"));
 }
 
 void testScreenConfig::multiOutput()
@@ -146,14 +146,14 @@ void testScreenConfig::multiOutput()
     QCOMPARE(output->modes().count(), 4);
     QCOMPARE(output->position(), QPoint(1280, 0));
     QCOMPARE(output->geometry(), QRect(1280, 0, 1920 / 1.4, 1080 / 1.4));
-    QCOMPARE(output->currentModeId(), QLatin1String("4"));
-    QCOMPARE(output->preferredModeId(), QLatin1String("4"));
+    QCOMPARE(output->auto_mode()->id(), QLatin1String("4"));
+    QCOMPARE(output->preferred_mode()->id(), QLatin1String("4"));
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.4);
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), false);
 
-    const ModePtr mode = output->currentMode();
+    const ModePtr mode = output->auto_mode();
     QVERIFY(!mode.isNull());
     QCOMPARE(mode->size(), QSize(1920, 1080));
     QCOMPARE(mode->refreshRate(), (float)60.0);
@@ -176,9 +176,9 @@ void testScreenConfig::configCanBeApplied()
     primaryBroken->setId(currentPrimary->id());
     QVERIFY(!Config::canBeApplied(brokenConfig));
     QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->setCurrentModeId(QStringLiteral("42"));
+    primaryBroken->set_mode(primaryBroken->mode(QStringLiteral("42")));
     QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->setCurrentModeId(currentPrimary->currentModeId());
+    primaryBroken->set_mode(currentPrimary->auto_mode());
     QVERIFY(!Config::canBeApplied(brokenConfig));
     qDebug() << "brokenConfig.modes" << primaryBroken->mode(QStringLiteral("3"));
     primaryBroken->mode(QStringLiteral("3"))->setSize(QSize(1280, 800));
@@ -241,7 +241,7 @@ void testScreenConfig::testInvalidMode()
     QVERIFY(invalidMode.isNull());
 
     auto output = new Disman::Output();
-    auto currentMode = output->currentMode();
+    auto currentMode = output->auto_mode();
     QVERIFY(currentMode.isNull());
     QVERIFY(!currentMode);
     delete output;

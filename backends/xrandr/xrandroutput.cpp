@@ -381,7 +381,7 @@ void XRandROutput::updateLogicalSize(const Disman::OutputPtr& output, XRandRCrtc
     auto const logicalSize = output->geometry().size();
     xcb_render_transform_t transform = unityTransform();
 
-    Disman::ModePtr mode = output->currentMode() ? output->currentMode() : output->preferredMode();
+    auto mode = output->auto_mode() ? output->auto_mode() : output->preferred_mode();
     if (mode && logicalSize.isValid()) {
         QSize modeSize = mode->size();
         if (!output->isHorizontal()) {
@@ -439,7 +439,13 @@ Disman::OutputPtr XRandROutput::toDismanOutput() const
         if (isEnabled()) {
             dismanOutput->setPosition(position());
             dismanOutput->setRotation(rotation());
-            dismanOutput->setCurrentModeId(currentModeId());
+
+            auto cur_mode = currentMode();
+            if (cur_mode) {
+                dismanOutput->set_mode(dismanOutput->mode(QString::number(cur_mode->id())));
+                dismanOutput->set_resolution(cur_mode->size());
+                dismanOutput->set_refresh_rate(cur_mode->refreshRate());
+            }
         }
         // TODO: set logical size?
     }

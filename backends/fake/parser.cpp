@@ -136,7 +136,9 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map)
     output->setModes(modelist);
     map.remove(QStringLiteral("modes"));
 
-    output->setCurrentModeId(map[QStringLiteral("currentModeId")].toString());
+    if (!map[QStringLiteral("currentModeId")].toString().isEmpty()) {
+        output->set_mode(output->mode(map[QStringLiteral("currentModeId")].toString()));
+    }
 
     const QByteArray type = map[QStringLiteral("type")].toByteArray().toUpper();
     if (type.contains("LVDS") || type.contains("EDP") || type.contains("IDP")

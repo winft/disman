@@ -296,7 +296,7 @@ void TestInProcess::testConfigApply()
     //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().first();
     // qDebug() << "m0:" << m0->id() << m0;
-    output->setCurrentModeId(m0->id());
+    output->set_mode(m0);
     QVERIFY(Config::canBeApplied(config));
 
     // expected to fail, SetConfigOperation is out-of-process only
@@ -322,7 +322,7 @@ void TestInProcess::testConfigMonitor()
     //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().first();
     // qDebug() << "m0:" << m0->id() << m0;
-    output->setCurrentModeId(m0->id());
+    output->set_mode(m0);
     QVERIFY(Config::canBeApplied(config));
 
     QSignalSpy monitorSpy(ConfigMonitor::instance(), &ConfigMonitor::configurationChanged);

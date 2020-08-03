@@ -152,11 +152,11 @@ void Fake::setPrimary(int outputId, bool primary)
 void Fake::setCurrentModeId(int outputId, const QString& modeId)
 {
     Disman::OutputPtr output = config()->output(outputId);
-    if (output->currentModeId() == modeId) {
+    if (auto mode = output->commanded_mode(); mode && mode->id() == modeId) {
         return;
     }
 
-    output->setCurrentModeId(modeId);
+    output->set_mode(output->mode(modeId));
     Q_EMIT configChanged(mConfig);
 }
 

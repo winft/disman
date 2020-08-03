@@ -127,11 +127,11 @@ void TestPnp::print()
         qDebug() << "Rotation: " << output->rotation();
         qDebug() << "Pos: " << output->position();
         qDebug() << "MMSize: " << output->sizeMm();
-        if (output->currentMode()) {
-            qDebug() << "Size: " << output->currentMode()->size();
+        if (output->auto_mode()) {
+            qDebug() << "Size: " << output->auto_mode()->size();
         }
-        qDebug() << "Mode: " << output->currentModeId();
-        qDebug() << "Preferred Mode: " << output->preferredModeId();
+        qDebug() << "Mode: " << output->auto_mode()->id();
+        qDebug() << "Preferred Mode: " << output->preferred_mode()->id();
         qDebug() << "Preferred modes: " << output->preferredModes();
         qDebug() << "Modes: ";
 
