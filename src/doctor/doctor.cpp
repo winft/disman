@@ -92,7 +92,7 @@ void Doctor::start(QCommandLineParser* parser)
     }
     if (m_parser->isSet(QStringLiteral("dpms"))) {
         if (!QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
-            cerr << "DPMS is only supported on Wayland." << endl;
+            cerr << "DPMS is only supported on Wayland." << Qt::endl;
             // We need to kick the event loop, otherwise .quit() hangs
             QTimer::singleShot(0, qApp->quit);
             return;
@@ -151,36 +151,36 @@ void Doctor::showDpms()
 
 void Doctor::showBackends() const
 {
-    cout << "Environment: " << endl;
+    cout << "Environment: " << Qt::endl;
     auto env_disman_backend = (qgetenv("DISMAN_BACKEND").isEmpty())
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
-    cout << "  * DISMAN_BACKEND           : " << env_disman_backend << endl;
+    cout << "  * DISMAN_BACKEND           : " << env_disman_backend << Qt::endl;
     auto env_disman_backend_inprocess = (qgetenv("DISMAN_BACKEND_INPROCESS").isEmpty())
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_BACKEND_INPROCESS"));
-    cout << "  * DISMAN_BACKEND_INPROCESS : " << env_disman_backend_inprocess << endl;
+    cout << "  * DISMAN_BACKEND_INPROCESS : " << env_disman_backend_inprocess << Qt::endl;
     auto env_disman_logging = (qgetenv("DISMAN_LOGGING").isEmpty())
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_LOGGING"));
-    cout << "  * DISMAN_LOGGING           : " << env_disman_logging << endl;
+    cout << "  * DISMAN_LOGGING           : " << env_disman_logging << Qt::endl;
 
     cout << "Logging to                : "
          << (Log::instance()->enabled() ? Log::instance()->logFile()
                                         : QStringLiteral("[logging disabled]"))
-         << endl;
+         << Qt::endl;
     auto backends = BackendManager::instance()->listBackends();
     auto preferred = BackendManager::instance()->preferredBackend();
-    cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << endl;
-    cout << "Available Disman backends:" << endl;
+    cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << Qt::endl;
+    cout << "Available Disman backends:" << Qt::endl;
     Q_FOREACH (const QFileInfo f, backends) {
         auto c = blue;
         if (preferred == f) {
             c = green;
         }
-        cout << "  * " << c << f.fileName() << cr << ": " << f.absoluteFilePath() << endl;
+        cout << "  * " << c << f.fileName() << cr << ": " << f.absoluteFilePath() << Qt::endl;
     }
-    cout << endl;
+    cout << Qt::endl;
 }
 
 void Doctor::setOptionList(const QStringList& positionalArgs)
@@ -205,7 +205,7 @@ void Doctor::parsePositionalArgs()
                 if (output_id == -1) {
                     output_id = ops[1].toInt(&ok);
                     if (!ok) {
-                        cerr << "Unable to parse output id: " << ops[1] << endl;
+                        cerr << "Unable to parse output id: " << ops[1] << Qt::endl;
                         qApp->exit(3);
                         return;
                     }
@@ -239,7 +239,7 @@ void Doctor::parsePositionalArgs()
                     int x = _pos[0].toInt(&ok);
                     int y = _pos[1].toInt(&ok);
                     if (!ok) {
-                        cerr << "Unable to parse position: " << ops[3] << endl;
+                        cerr << "Unable to parse position: " << ops[3] << Qt::endl;
                         qApp->exit(5);
                         return;
                     }
@@ -289,7 +289,7 @@ void Doctor::parsePositionalArgs()
                         return;
                     }
                 } else {
-                    cerr << "Unable to parse arguments: " << op << endl;
+                    cerr << "Unable to parse arguments: " << op << Qt::endl;
                     qApp->exit(2);
                     return;
                 }
@@ -385,7 +385,7 @@ void Doctor::showOutputs() const
         if (output->isPrimary()) {
             cout << blue << "primary";
         }
-        cout << cr << endl;
+        cout << cr << Qt::endl;
     }
 }
 
@@ -404,13 +404,13 @@ bool Doctor::setEnabled(int id, bool enabled = true)
 
     Q_FOREACH (const auto& output, m_config->outputs()) {
         if (output->id() == id) {
-            cout << (enabled ? "Enabling " : "Disabling ") << "output " << id << endl;
+            cout << (enabled ? "Enabling " : "Disabling ") << "output " << id << Qt::endl;
             output->setEnabled(enabled);
             m_changed = true;
             return true;
         }
     }
-    cerr << "Output with id " << id << " not found." << endl;
+    cerr << "Output with id " << id << " not found." << Qt::endl;
     qApp->exit(8);
     return false;
 }
@@ -430,7 +430,7 @@ bool Doctor::setPosition(int id, const QPoint& pos)
             return true;
         }
     }
-    cout << "Output with id " << id << " not found." << endl;
+    cout << "Output with id " << id << " not found." << Qt::endl;
     return false;
 }
 
@@ -458,7 +458,7 @@ bool Doctor::setMode(int id, const QString& mode_id)
             }
         }
     }
-    cout << "Output mode " << mode_id << " not found." << endl;
+    cout << "Output mode " << mode_id << " not found." << Qt::endl;
     return false;
 }
 
@@ -476,7 +476,7 @@ bool Doctor::setScale(int id, qreal scale)
             return true;
         }
     }
-    cout << "Output scale " << id << " invalid." << endl;
+    cout << "Output scale " << id << " invalid." << Qt::endl;
     return false;
 }
 
@@ -494,7 +494,7 @@ bool Doctor::setRotation(int id, Disman::Output::Rotation rot)
             return true;
         }
     }
-    cout << "Output rotation " << id << " invalid." << endl;
+    cout << "Output rotation " << id << " invalid." << Qt::endl;
     return false;
 }
 

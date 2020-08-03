@@ -422,7 +422,7 @@ QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
         const auto outputs = config->outputs();
         for (const auto& output : outputs) {
             if (output->isConnected()) {
-                dbg << endl << output;
+                dbg << Qt::endl << output;
             }
         }
         dbg << ")";
