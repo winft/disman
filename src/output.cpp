@@ -49,7 +49,6 @@ Output::Private::Private(const Private& other)
     , name(other.name)
     , type(other.type)
     , icon(other.icon)
-    , clones(other.clones)
     , replicationSource(other.replicationSource)
     , currentModeId(other.currentModeId)
     , preferredMode(other.preferredMode)
@@ -423,22 +422,6 @@ void Output::setPrimary(bool primary)
     Q_EMIT isPrimaryChanged();
 }
 
-QList<int> Output::clones() const
-{
-    return d->clones;
-}
-
-void Output::setClones(const QList<int>& outputlist)
-{
-    if (d->clones == outputlist) {
-        return;
-    }
-
-    d->clones = outputlist;
-
-    Q_EMIT clonesChanged();
-}
-
 int Output::replicationSource() const
 {
     return d->replicationSource;
@@ -552,11 +535,6 @@ void Output::apply(const OutputPtr& other)
         changes << &Output::isPrimaryChanged;
         setPrimary(other->d->primary);
     }
-    if (d->clones != other->d->clones) {
-        changes << &Output::clonesChanged;
-        setClones(other->d->clones);
-        ;
-    }
     if (d->replicationSource != other->d->replicationSource) {
         changes << &Output::replicationSourceChanged;
         setReplicationSource(other->d->replicationSource);
@@ -597,7 +575,6 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
             << (output->isEnabled() ? "enabled" : "disabled")
             << (output->isPrimary() ? "primary" : "") << "geometry:" << output->geometry()
             << "scale:" << output->scale() << "modeId:" << output->currentModeId()
-            << "clone:" << (output->clones().isEmpty() ? "no" : "yes")
             << "followPreferredMode:" << output->followPreferredMode() << ")";
     } else {
         dbg << "Disman::Output(NULL)";

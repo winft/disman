@@ -97,7 +97,6 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("followPreferredMode")] = output->followPreferredMode();
     obj[QLatin1String("enabled")] = output->isEnabled();
     obj[QLatin1String("primary")] = output->isPrimary();
-    obj[QLatin1String("clones")] = serializeList(output->clones());
     // obj[QLatin1String("edid")] = output->edid()->raw();
     obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
     obj[QLatin1String("replicationSource")] = output->replicationSource();
@@ -290,8 +289,6 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->setEnabled(value.toBool());
         } else if (key == QLatin1String("primary")) {
             output->setPrimary(value.toBool());
-        } else if (key == QLatin1String("clones")) {
-            output->setClones(deserializeList<int>(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("replicationSource")) {
             output->setReplicationSource(value.toInt());
         } else if (key == QLatin1String("sizeMM")) {

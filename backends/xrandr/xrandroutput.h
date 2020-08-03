@@ -99,8 +99,6 @@ private:
     XRandRMode::Map m_modes;
     QStringList m_preferredModes;
 
-    QList<xcb_randr_output_t> m_clones;
-
     unsigned int m_widthMm;
     unsigned int m_heightMm;
 

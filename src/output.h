@@ -154,25 +154,6 @@ public:
     void setPrimary(bool primary);
 
     /**
-     * @brief Immutable clones because of hardware restrictions
-     *
-     * Clones are set symmetcally on all outputs. The list contains ids
-     * for all other outputs being clones of this output.
-     *
-     * @return List of output ids being clones of each other.
-     */
-    QList<int> clones() const;
-    /**
-     * @brief Set the clones list.
-     *
-     * When this output is part of a configuration this call is followed by
-     * similar calls on other outputs making the lists in all outputs
-     * symmetric.
-     * @param outputlist
-     */
-    void setClones(const QList<int>& outputlist);
-
-    /**
      * @brief Provides the source for an ongoing replication
      *
      * If the returned output id is non-null this output is a replica of the
@@ -261,7 +242,6 @@ Q_SIGNALS:
     void rotationChanged();
     void isEnabledChanged();
     void isPrimaryChanged();
-    void clonesChanged();
     void replicationSourceChanged();
     void followPreferredModeChanged(bool followPreferredMode);
 

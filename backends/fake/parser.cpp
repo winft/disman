@@ -138,16 +138,6 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map)
 
     output->setCurrentModeId(map[QStringLiteral("currentModeId")].toString());
 
-    if (map.contains(QStringLiteral("clones"))) {
-        QList<int> clones;
-        Q_FOREACH (const QVariant& id, map[QStringLiteral("clones")].toList()) {
-            clones.append(id.toInt());
-        }
-
-        output->setClones(clones);
-        map.remove(QStringLiteral("clones"));
-    }
-
     const QByteArray type = map[QStringLiteral("type")].toByteArray().toUpper();
     if (type.contains("LVDS") || type.contains("EDP") || type.contains("IDP")
         || type.contains("7")) {

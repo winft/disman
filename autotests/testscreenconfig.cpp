@@ -40,7 +40,6 @@ private Q_SLOTS:
     void singleOutput();
     void singleOutputWithoutPreferred();
     void multiOutput();
-    void clonesOutput();
     void configCanBeApplied();
     void supportedFeatures();
     void testInvalidMode();
@@ -105,7 +104,6 @@ void testScreenConfig::singleOutput()
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), true);
     // QCOMPARE(output->isEmbedded(), true);
-    QVERIFY2(output->clones().isEmpty(), "In singleOutput is impossible to have clones");
 
     const ModePtr mode = output->currentMode();
     QCOMPARE(mode->size(), QSize(1280, 800));
@@ -154,34 +152,11 @@ void testScreenConfig::multiOutput()
     QCOMPARE(output->scale(), 1.4);
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), false);
-    QVERIFY2(output->clones().isEmpty(), "This simulates extended output, no clones");
 
     const ModePtr mode = output->currentMode();
     QVERIFY(!mode.isNull());
     QCOMPARE(mode->size(), QSize(1920, 1080));
     QCOMPARE(mode->refreshRate(), (float)60.0);
-}
-
-void testScreenConfig::clonesOutput()
-{
-    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleclone.json");
-
-    const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
-    const ScreenPtr screen = config->screen();
-    QVERIFY(!screen.isNull());
-
-    QCOMPARE(screen->minSize(), QSize(320, 200));
-    QCOMPARE(screen->maxSize(), QSize(8192, 8192));
-    QCOMPARE(screen->currentSize(), QSize(1024, 768));
-
-    const OutputPtr one = config->outputs()[1];
-    const OutputPtr two = config->outputs()[2];
-
-    QCOMPARE(one->currentMode()->size(), two->currentMode()->size());
-    QCOMPARE(one->clones().count(), 1);
-    QCOMPARE(one->clones().first(), two->id());
-    QVERIFY2(two->clones().isEmpty(), "Output two should have no clones");
 }
 
 void testScreenConfig::configCanBeApplied()

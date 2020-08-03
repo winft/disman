@@ -376,12 +376,7 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
             qCDebug(DISMAN_XRANDR) << "Size: " << output->currentMode()->size();
         }
 
-        qCDebug(DISMAN_XRANDR) << "Clones: "
-                               << (output->clones().isEmpty()
-                                       ? QStringLiteral("None")
-                                       : QString::number(output->clones().count()))
-                               << "\n"
-                               << "Mode: " << output->currentModeId() << "\n"
+        qCDebug(DISMAN_XRANDR) << "Mode: " << output->currentModeId() << "\n"
                                << "Preferred Mode: " << output->preferredModeId() << "\n"
                                << "Preferred modes: " << output->preferredModes() << "\n"
                                << "Modes: ";

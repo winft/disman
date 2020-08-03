@@ -155,7 +155,6 @@ void XRandROutput::update(xcb_randr_crtc_t crtc,
         } else {
             // Disconnected
             m_connected = conn;
-            m_clones.clear();
             m_heightMm = 0;
             m_widthMm = 0;
             m_type = Disman::Output::Unknown;
@@ -216,11 +215,6 @@ void XRandROutput::init()
     m_icon = QString();
     m_connected = (xcb_randr_connection_t)outputInfo->connection;
     m_primary = (primary->output == m_id);
-
-    xcb_randr_output_t* clones = xcb_randr_get_output_info_clones(outputInfo.data());
-    for (int i = 0; i < outputInfo->num_clones; ++i) {
-        m_clones.append(clones[i]);
-    }
 
     m_widthMm = outputInfo->mm_width;
     m_heightMm = outputInfo->mm_height;
@@ -441,14 +435,6 @@ Disman::OutputPtr XRandROutput::toDismanOutput() const
         dismanOutput->setModes(dismanModes);
         dismanOutput->setPreferredModes(m_preferredModes);
         dismanOutput->setPrimary(m_primary);
-        dismanOutput->setClones([](const QList<xcb_randr_output_t>& clones) {
-            QList<int> kclones;
-            kclones.reserve(clones.size());
-            for (xcb_randr_output_t o : clones) {
-                kclones.append(static_cast<int>(o));
-            }
-            return kclones;
-        }(m_clones));
         dismanOutput->setEnabled(isEnabled());
         if (isEnabled()) {
             dismanOutput->setPosition(position());

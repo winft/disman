@@ -38,7 +38,6 @@ public:
     Type type;
     QString icon;
     ModeList modeList;
-    QList<int> clones;
     int replicationSource;
     QString currentModeId;
     QString preferredMode;

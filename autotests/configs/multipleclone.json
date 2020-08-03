@@ -1,4 +1,5 @@
 {
+    "_comment" : "CURRENTLY NOT IN USE, TODO: adapt for output replication testing",
     "screen" :
     {
         "id" : 1,

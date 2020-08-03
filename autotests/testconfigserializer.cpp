@@ -148,7 +148,6 @@ private Q_SLOTS:
         output->setPreferredModes(QStringList() << QStringLiteral("1"));
         output->setEnabled(true);
         output->setPrimary(true);
-        output->setClones(QList<int>() << 50 << 60);
         output->setSizeMm(QSize(310, 250));
 
         const QJsonObject obj = Disman::ConfigSerializer::serializeOutput(output);
@@ -171,11 +170,6 @@ private Q_SLOTS:
         QCOMPARE(obj[QLatin1String("currentModeId")].toString(), output->currentModeId());
         QCOMPARE(obj[QLatin1String("enabled")].toBool(), output->isEnabled());
         QCOMPARE(obj[QLatin1String("primary")].toBool(), output->isPrimary());
-        const QJsonArray clones = obj[QLatin1String("clones")].toArray();
-        QCOMPARE(clones.size(), output->clones().count());
-        for (int i = 0; i < clones.size(); ++i) {
-            QCOMPARE(clones[i].toInt(), output->clones()[i]);
-        }
         const QJsonObject sizeMm = obj[QLatin1String("sizeMM")].toObject();
         QCOMPARE(sizeMm[QLatin1String("width")].toInt(), output->sizeMm().width());
         QCOMPARE(sizeMm[QLatin1String("height")].toInt(), output->sizeMm().height());
