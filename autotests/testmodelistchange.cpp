@@ -133,18 +133,11 @@ void TestModeListChange::modeListChange()
     QVERIFY(!modelist.isEmpty());
 
     ConfigMonitor::instance()->addConfig(config);
-    QSignalSpy outputChangedSpy(output.data(), &Output::outputChanged);
-    QVERIFY(outputChangedSpy.isValid());
-    QSignalSpy modesChangedSpy(output.data(), &Output::modesChanged);
-    QVERIFY(modesChangedSpy.isValid());
 
     auto before = createModeList();
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 1);
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 1);
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 1);
     QCOMPARE(output->modes().first()->size(), s0);
     QCOMPARE(output->modes().first()->id(), QStringLiteral("11"));
 
@@ -156,7 +149,6 @@ void TestModeListChange::modeListChange()
     firstmode->setSize(snew);
     firstmode->setId(idnew);
     output->setModes(after);
-    QCOMPARE(modesChangedSpy.count(), 2);
 
     QString _id = QString::number(11);
     Disman::ModePtr dismanMode(new Disman::Mode);
@@ -166,8 +158,18 @@ void TestModeListChange::modeListChange()
     dismanMode->setRefreshRate(60);
     before.insert(_id, dismanMode);
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 3);
-    QCOMPARE(outputChangedSpy.count(), modesChangedSpy.count());
+    QCOMPARE(output->modes().size(), 3);
+
+    QString _id2 = QString::number(999);
+    Disman::ModePtr dismanMode2(new Disman::Mode);
+    dismanMode2->setId(_id2);
+    dismanMode2->setName(_id2);
+    dismanMode2->setSize(s0);
+    dismanMode2->setRefreshRate(60);
+    before.insert(_id2, dismanMode2);
+    output->setModes(before);
+    QCOMPARE(output->modes().size(), 4);
+    QCOMPARE(output->modes()[_id2]->id(), _id2);
 }
 
 QTEST_MAIN(TestModeListChange)

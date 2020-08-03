@@ -138,13 +138,7 @@ int Output::id() const
 
 void Output::setId(int id)
 {
-    if (d->id == id) {
-        return;
-    }
-
     d->id = id;
-
-    Q_EMIT outputChanged();
 }
 
 QString Output::name() const
@@ -154,13 +148,7 @@ QString Output::name() const
 
 void Output::setName(const QString& name)
 {
-    if (d->name == name) {
-        return;
-    }
-
     d->name = name;
-
-    Q_EMIT outputChanged();
 }
 
 // TODO KF6: remove this deprecated method
@@ -188,13 +176,7 @@ Output::Type Output::type() const
 
 void Output::setType(Type type)
 {
-    if (d->type == type) {
-        return;
-    }
-
     d->type = type;
-
-    Q_EMIT outputChanged();
 }
 
 QString Output::icon() const
@@ -204,13 +186,7 @@ QString Output::icon() const
 
 void Output::setIcon(const QString& icon)
 {
-    if (d->icon == icon) {
-        return;
-    }
-
     d->icon = icon;
-
-    Q_EMIT outputChanged();
 }
 
 ModePtr Output::mode(const QString& id) const
@@ -229,12 +205,7 @@ ModeList Output::modes() const
 
 void Output::setModes(const ModeList& modes)
 {
-    bool changed = !d->compareModeList(d->modeList, modes);
     d->modeList = modes;
-    if (changed) {
-        emit modesChanged();
-        emit outputChanged();
-    }
 }
 
 QString Output::currentModeId() const
@@ -244,13 +215,7 @@ QString Output::currentModeId() const
 
 void Output::setCurrentModeId(const QString& modeId)
 {
-    if (d->currentModeId == modeId) {
-        return;
-    }
-
     d->currentModeId = modeId;
-
-    Q_EMIT currentModeIdChanged();
 }
 
 ModePtr Output::currentMode() const
@@ -293,12 +258,7 @@ ModePtr Output::preferredMode() const
 
 void Output::setPosition(const QPointF& position)
 {
-    if (d->position == position) {
-        return;
-    }
-
     d->position = position;
-    Q_EMIT geometryChanged();
 }
 
 // TODO KF6: make the Rotation enum an enum class and align values with Wayland transformation
@@ -310,12 +270,7 @@ Output::Rotation Output::rotation() const
 
 void Output::setRotation(Output::Rotation rotation)
 {
-    if (d->rotation == rotation) {
-        return;
-    }
-
     d->rotation = rotation;
-    Q_EMIT geometryChanged();
 }
 
 double Output::scale() const
@@ -325,11 +280,7 @@ double Output::scale() const
 
 void Output::setScale(double scale)
 {
-    if (qFuzzyCompare(d->scale, scale)) {
-        return;
-    }
     d->scale = scale;
-    Q_EMIT geometryChanged();
 }
 
 QRectF Output::geometry() const
@@ -360,13 +311,7 @@ bool Output::isEnabled() const
 
 void Output::setEnabled(bool enabled)
 {
-    if (d->enabled == enabled) {
-        return;
-    }
-
     d->enabled = enabled;
-
-    Q_EMIT isEnabledChanged();
 }
 
 bool Output::isPrimary() const
@@ -392,13 +337,7 @@ int Output::replicationSource() const
 
 void Output::setReplicationSource(int source)
 {
-    if (d->replicationSource == source) {
-        return;
-    }
-
     d->replicationSource = source;
-
-    Q_EMIT replicationSourceChanged();
 }
 
 void Output::setEdid(const QByteArray& rawData)
@@ -429,10 +368,7 @@ bool Disman::Output::followPreferredMode() const
 
 void Disman::Output::setFollowPreferredMode(bool follow)
 {
-    if (follow != d->followPreferredMode) {
-        d->followPreferredMode = follow;
-        Q_EMIT followPreferredModeChanged(follow);
-    }
+    d->followPreferredMode = follow;
 }
 
 bool Output::isPositionable() const
@@ -462,51 +398,22 @@ void Output::apply(const OutputPtr& other)
     // outputs from intermediate change signals
     const bool keepBlocked = signalsBlocked();
     blockSignals(true);
-    if (d->name != other->d->name) {
-        changes << &Output::outputChanged;
-        setName(other->d->name);
-    }
-    if (d->type != other->d->type) {
-        changes << &Output::outputChanged;
-        setType(other->d->type);
-    }
-    if (d->icon != other->d->icon) {
-        changes << &Output::outputChanged;
-        setIcon(other->d->icon);
-    }
-    if (d->position != other->d->position) {
-        changes << &Output::geometryChanged;
-        setPosition(other->geometry().topLeft());
-    }
-    if (d->rotation != other->d->rotation) {
-        changes << &Output::rotationChanged;
-        setRotation(other->d->rotation);
-    }
-    if (!qFuzzyCompare(d->scale, other->d->scale)) {
-        changes << &Output::geometryChanged;
-        setScale(other->d->scale);
-    }
-    if (d->currentModeId != other->d->currentModeId) {
-        changes << &Output::currentModeIdChanged;
-        setCurrentModeId(other->d->currentModeId);
-    }
-    if (d->enabled != other->d->enabled) {
-        changes << &Output::isEnabledChanged;
-        setEnabled(other->d->enabled);
-    }
+
+    setName(other->d->name);
+    setType(other->d->type);
+    setIcon(other->d->icon);
+    setPosition(other->geometry().topLeft());
+    setRotation(other->d->rotation);
+    setScale(other->d->scale);
+    setCurrentModeId(other->d->currentModeId);
+    setEnabled(other->d->enabled);
+
     if (d->primary != other->d->primary) {
         changes << &Output::isPrimaryChanged;
         setPrimary(other->d->primary);
     }
-    if (d->replicationSource != other->d->replicationSource) {
-        changes << &Output::replicationSourceChanged;
-        setReplicationSource(other->d->replicationSource);
-        ;
-    }
-    if (!d->compareModeList(d->modeList, other->d->modeList)) {
-        changes << &Output::outputChanged;
-        changes << &Output::modesChanged;
-    }
+
+    setReplicationSource(other->d->replicationSource);
 
     setPreferredModes(other->d->preferredModes);
     ModeList modes;
@@ -527,6 +434,8 @@ void Output::apply(const OutputPtr& other)
         Q_EMIT(this->*sig)();
         changes.removeAll(sig);
     }
+
+    Q_EMIT updated();
 }
 
 }

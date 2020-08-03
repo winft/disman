@@ -80,7 +80,6 @@ private Q_SLOTS:
         // Get config and monitor it for changes
         Disman::ConfigPtr config = getConfig();
         monitor->addConfig(config);
-        QSignalSpy enabledSpy(config->outputs().first().data(), SIGNAL(isEnabledChanged()));
 
         auto output = config->outputs().first();
 
@@ -91,7 +90,6 @@ private Q_SLOTS:
         QTRY_VERIFY(!spy.isEmpty());
 
         QCOMPARE(spy.size(), 1);
-        QCOMPARE(enabledSpy.size(), 1);
         QCOMPARE(config->output(1)->isEnabled(), false);
 
         output->setEnabled(false);

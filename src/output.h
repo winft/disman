@@ -235,23 +235,13 @@ public:
     void setFollowPreferredMode(bool follow);
 
     void apply(const OutputPtr& other);
-Q_SIGNALS:
-    void outputChanged();
-    void geometryChanged();
-    void currentModeIdChanged();
-    void rotationChanged();
-    void isEnabledChanged();
-    void isPrimaryChanged();
-    void replicationSourceChanged();
-    void followPreferredModeChanged(bool followPreferredMode);
 
-    /** The mode list changed.
-     *
-     * This may happen when a mode is added or changed.
-     *
-     * @since 5.8.3
+Q_SIGNALS:
+    /**
+     * An update to the output was applied. Changes to its properties could have occured.
      */
-    void modesChanged();
+    void updated();
+    void isPrimaryChanged();
 
 private:
     Q_DISABLE_COPY(Output)

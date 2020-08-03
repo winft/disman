@@ -215,7 +215,6 @@ void TestKWaylandConfig::testScaleChange()
     QSignalSpy configSpy2(monitor, &Disman::ConfigMonitor::configurationChanged);
 
     auto output2 = config2->outputs()[2]; // is this id stable enough?
-    QSignalSpy outputSpy(output2.data(), &Disman::Output::geometryChanged);
     QCOMPARE(output2->scale(), 1.0);
 
     auto output = config->outputs()[2]; // is this id stable enough?
@@ -230,7 +229,6 @@ void TestKWaylandConfig::testScaleChange()
     QCOMPARE(serverSpy.count(), 1);
 
     QCOMPARE(configSpy.count(), 1);
-    QCOMPARE(outputSpy.count(), 1);
     QCOMPARE(configSpy2.count(), 1);
     QCOMPARE(output2->scale(), 2.0);
 }
