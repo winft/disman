@@ -22,6 +22,9 @@ include(CheckCXXCompilerFlag)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core DBus Gui Test X11Extras)
 
 # Wayland backend plugin KWayland
