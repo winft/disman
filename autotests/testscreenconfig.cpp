@@ -102,7 +102,6 @@ void testScreenConfig::singleOutput()
     QCOMPARE(output->preferredModeId(), QLatin1String("3"));
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.0);
-    QCOMPARE(output->isConnected(), true);
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), true);
     // QCOMPARE(output->isEmbedded(), true);
@@ -153,7 +152,6 @@ void testScreenConfig::multiOutput()
     QCOMPARE(output->preferredModeId(), QLatin1String("4"));
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.4);
-    QCOMPARE(output->isConnected(), true);
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), false);
     QVERIFY2(output->clones().isEmpty(), "This simulates extended output, no clones");
@@ -202,7 +200,6 @@ void testScreenConfig::configCanBeApplied()
     QVERIFY(!Config::canBeApplied(brokenConfig));
     primaryBroken->setId(currentPrimary->id());
     QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->setConnected(currentPrimary->isConnected());
     QVERIFY(!Config::canBeApplied(brokenConfig));
     primaryBroken->setCurrentModeId(QStringLiteral("42"));
     QVERIFY(!Config::canBeApplied(brokenConfig));

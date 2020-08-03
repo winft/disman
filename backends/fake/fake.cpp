@@ -121,18 +121,6 @@ QByteArray Fake::edid(int outputId) const
     return QByteArray();
 }
 
-void Fake::setConnected(int outputId, bool connected)
-{
-    Disman::OutputPtr output = config()->output(outputId);
-    if (output->isConnected() == connected) {
-        return;
-    }
-
-    output->setConnected(connected);
-    qCDebug(DISMAN_FAKE) << "emitting configChanged in Fake";
-    Q_EMIT configChanged(mConfig);
-}
-
 void Fake::setEnabled(int outputId, bool enabled)
 {
     Disman::OutputPtr output = config()->output(outputId);

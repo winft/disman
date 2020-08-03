@@ -47,7 +47,6 @@ public:
     QPointF position;
     Rotation rotation;
     qreal scale;
-    bool connected;
     bool enabled;
     bool primary;
     bool followPreferredMode = false;

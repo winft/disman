@@ -122,10 +122,6 @@ void TestPnp::print()
         qDebug() << "Id: " << output->id();
         qDebug() << "Name: " << output->name();
         qDebug() << "Type: " << typetoString(output->type());
-        qDebug() << "Connected: " << output->isConnected();
-        if (!output->isConnected()) {
-            continue;
-        }
         qDebug() << "Enabled: " << output->isEnabled();
         qDebug() << "Primary: " << output->isPrimary();
         qDebug() << "Rotation: " << output->rotation();

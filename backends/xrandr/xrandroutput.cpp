@@ -432,7 +432,6 @@ Disman::OutputPtr XRandROutput::toDismanOutput() const
     // QXL will be creating a new mode we need to jump to every time the display is resized
     dismanOutput->setFollowPreferredMode(m_hotplugModeUpdate);
 
-    dismanOutput->setConnected(isConnected());
     if (isConnected()) {
         Disman::ModeList dismanModes;
         for (auto iter = m_modes.constBegin(), end = m_modes.constEnd(); iter != end; ++iter) {

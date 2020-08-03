@@ -152,7 +152,7 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     }
     qCDebug(DISMAN) << "Correcting output positions by:" << QPoint(offsetX, offsetY);
     Q_FOREACH (const Disman::OutputPtr& output, config->outputs()) {
-        if (!output->isConnected() || !output->isEnabled()) {
+        if (!output->isEnabled()) {
             continue;
         }
         auto newPos

@@ -41,7 +41,6 @@ public:
     QByteArray edid(int outputId) const override;
     bool isValid() const override;
 
-    void setConnected(int outputId, bool connected);
     void setEnabled(int outputId, bool enabled);
     void setPrimary(int outputId, bool primary);
     void setCurrentModeId(int outputId, const QString& modeId);

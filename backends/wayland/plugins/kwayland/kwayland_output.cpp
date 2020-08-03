@@ -92,7 +92,6 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
     output->setEnabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
-    output->setConnected(true);
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->setName(name());
     output->setSizeMm(m_device->physicalSize());

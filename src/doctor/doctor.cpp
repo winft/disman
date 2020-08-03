@@ -357,9 +357,6 @@ void Doctor::showOutputs() const
         cout << " "
              << (output->isEnabled() ? green + QLatin1String("enabled")
                                      : red + QLatin1String("disabled"));
-        cout << " "
-             << (output->isConnected() ? green + QLatin1String("connected")
-                                       : red + QLatin1String("disconnected"));
         cout << " " << (output->isPrimary() ? green + QLatin1String("primary") : QString());
         auto _type = typeString[output->type()];
         cout << " " << yellow << (_type.isEmpty() ? QStringLiteral("UnmappedOutputType") : _type);

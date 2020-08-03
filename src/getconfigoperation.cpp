@@ -117,10 +117,6 @@ void GetConfigOperationPrivate::onConfigReceived(QDBusPendingCallWatcher* watche
         return;
     }
     Q_FOREACH (const OutputPtr& output, config->outputs()) {
-        if (!output->isConnected()) {
-            continue;
-        }
-
         QDBusPendingCallWatcher* watcher
             = new QDBusPendingCallWatcher(mBackend->getEdid(output->id()), this);
         watcher->setProperty("outputId", output->id());

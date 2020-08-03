@@ -365,12 +365,7 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                << "\n"
                                << "Id: " << output->id() << "\n"
                                << "Name: " << output->name() << "\n"
-                               << "Type: " << output->type() << "\n"
-                               << "Connected: " << output->isConnected();
-
-        if (!output->isConnected()) {
-            continue;
-        }
+                               << "Type: " << output->type();
 
         qCDebug(DISMAN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
                                << "Primary: " << output->isPrimary() << "\n"
@@ -446,7 +441,7 @@ QSize XRandRConfig::screenSize(const Disman::ConfigPtr& config) const
 {
     QRect rect;
     for (const Disman::OutputPtr& output : config->outputs()) {
-        if (!output->isConnected() || !output->isEnabled()) {
+        if (!output->isEnabled()) {
             continue;
         }
 

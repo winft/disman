@@ -120,7 +120,7 @@ void ConfigMonitor::Private::backendConfigChanged(const QVariantMap& configMap)
     }
 
     Q_FOREACH (OutputPtr output, newConfig->connectedOutputs()) {
-        if (!output->edid() && output->isConnected()) {
+        if (!output->edid()) {
             QDBusPendingReply<QByteArray> reply = mBackend->getEdid(output->id());
             mPendingEDIDRequests[newConfig].append(output->id());
             QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(reply);

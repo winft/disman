@@ -1,10 +1,6 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
   <interface name="org.kwinft.disman.fakebackend">
-    <method name="setConnected">
-      <arg type="i" name="outputId" direction="in" />
-      <arg type="b" name="connected" direction="in" />
-    </method>
     <method name="setEnabled">
       <arg type="i" name="outputId" direction="in" />
       <arg type="b" name="enabled" direction="in" />

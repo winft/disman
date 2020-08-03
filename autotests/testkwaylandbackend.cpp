@@ -142,13 +142,11 @@ void testWaylandBackend::verifyOutputs()
 
     Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary->isEnabled());
-    QVERIFY(primary->isConnected());
 
     QList<int> ids;
     Q_FOREACH (const auto& output, m_config->outputs()) {
         QVERIFY(!output->name().isEmpty());
         QVERIFY(output->id() > -1);
-        QVERIFY(output->isConnected());
         QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));
         QVERIFY(output->geometry() != QRectF());
         QVERIFY(output->sizeMm() != QSize());

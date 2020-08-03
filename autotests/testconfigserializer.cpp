@@ -146,7 +146,6 @@ private Q_SLOTS:
         output->setRotation(Disman::Output::None);
         output->setCurrentModeId(QStringLiteral("1"));
         output->setPreferredModes(QStringList() << QStringLiteral("1"));
-        output->setConnected(true);
         output->setEnabled(true);
         output->setPrimary(true);
         output->setClones(QList<int>() << 50 << 60);
@@ -170,7 +169,6 @@ private Q_SLOTS:
         QCOMPARE(static_cast<Disman::Output::Rotation>(obj[QLatin1String("rotation")].toInt()),
                  output->rotation());
         QCOMPARE(obj[QLatin1String("currentModeId")].toString(), output->currentModeId());
-        QCOMPARE(obj[QLatin1String("connected")].toBool(), output->isConnected());
         QCOMPARE(obj[QLatin1String("enabled")].toBool(), output->isEnabled());
         QCOMPARE(obj[QLatin1String("primary")].toBool(), output->isPrimary());
         const QJsonArray clones = obj[QLatin1String("clones")].toArray();

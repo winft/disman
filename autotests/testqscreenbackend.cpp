@@ -108,7 +108,6 @@ void testQScreenBackend::verifyOutputs()
 
     const Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary->isEnabled());
-    QVERIFY(primary->isConnected());
     // qDebug() << "Primary geometry? " << primary->geometry();
     // qDebug() << " prim modes: " << primary->modes();
 
@@ -118,11 +117,9 @@ void testQScreenBackend::verifyOutputs()
         qDebug() << "   output name: " << output->name();
         qDebug() << "   output modes: " << output->modes().count() << output->modes();
         qDebug() << "   output enabled: " << output->isEnabled();
-        qDebug() << "   output connect: " << output->isConnected();
         qDebug() << "   output sizeMm : " << output->sizeMm();
         QVERIFY(!output->name().isEmpty());
         QVERIFY(output->id() > -1);
-        QVERIFY(output->isConnected());
         QVERIFY(output->isEnabled());
         QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));
         QVERIFY(output->geometry() != QRectF());
@@ -165,10 +162,6 @@ void testQScreenBackend::commonUsagePattern()
 
     QVariantList outputList;
     Q_FOREACH (const Disman::OutputPtr& output, outputs) {
-        if (!output->isConnected()) {
-            continue;
-        }
-
         QVariantMap info;
         info[QStringLiteral("id")] = output->id();
         info[QStringLiteral("primary")] = output->isPrimary();

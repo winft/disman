@@ -147,9 +147,6 @@ public:
         return ((rotation() == Output::None) || (rotation() == Output::Inverted));
     }
 
-    bool isConnected() const;
-    void setConnected(bool connected);
-
     bool isEnabled() const;
     void setEnabled(bool enabled);
 
@@ -262,7 +259,6 @@ Q_SIGNALS:
     void geometryChanged();
     void currentModeIdChanged();
     void rotationChanged();
-    void isConnectedChanged();
     void isEnabledChanged();
     void isPrimaryChanged();
     void clonesChanged();

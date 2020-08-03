@@ -133,11 +133,6 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
             qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "does not exists";
             return false;
         }
-        // If the output is not connected
-        if (!currentOutput->isConnected()) {
-            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "is not connected";
-            return false;
-        }
         // if there is no currentMode
         if (output->currentModeId().isEmpty()) {
             qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
@@ -299,9 +294,6 @@ OutputList Config::connectedOutputs() const
 {
     OutputList outputs;
     Q_FOREACH (const OutputPtr& output, d->outputs) {
-        if (!output->isConnected()) {
-            continue;
-        }
         outputs.insert(output->id(), output);
     }
 
@@ -421,9 +413,7 @@ QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
         dbg << "Disman::Config(";
         const auto outputs = config->outputs();
         for (const auto& output : outputs) {
-            if (output->isConnected()) {
-                dbg << Qt::endl << output;
-            }
+            dbg << Qt::endl << output;
         }
         dbg << ")";
     } else {

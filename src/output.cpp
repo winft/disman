@@ -38,7 +38,6 @@ Output::Private::Private()
     , replicationSource(0)
     , rotation(None)
     , scale(1.0)
-    , connected(false)
     , enabled(false)
     , primary(false)
     , edid(nullptr)
@@ -59,7 +58,6 @@ Output::Private::Private(const Private& other)
     , position(other.position)
     , rotation(other.rotation)
     , scale(other.scale)
-    , connected(other.connected)
     , enabled(other.enabled)
     , primary(other.primary)
     , followPreferredMode(other.followPreferredMode)
@@ -393,22 +391,6 @@ QPointF Output::position() const
     return d->position;
 }
 
-bool Output::isConnected() const
-{
-    return d->connected;
-}
-
-void Output::setConnected(bool connected)
-{
-    if (d->connected == connected) {
-        return;
-    }
-
-    d->connected = connected;
-
-    Q_EMIT isConnectedChanged();
-}
-
 bool Output::isEnabled() const
 {
     return d->enabled;
@@ -509,7 +491,7 @@ void Disman::Output::setFollowPreferredMode(bool follow)
 
 bool Output::isPositionable() const
 {
-    return isConnected() && isEnabled() && !replicationSource();
+    return isEnabled() && !replicationSource();
 }
 
 QSize Output::enforcedModeSize() const
@@ -562,10 +544,6 @@ void Output::apply(const OutputPtr& other)
         changes << &Output::currentModeIdChanged;
         setCurrentModeId(other->d->currentModeId);
     }
-    if (d->connected != other->d->connected) {
-        changes << &Output::isConnectedChanged;
-        setConnected(other->d->connected);
-    }
     if (d->enabled != other->d->enabled) {
         changes << &Output::isEnabledChanged;
         setEnabled(other->d->enabled);
@@ -616,7 +594,6 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 {
     if (output) {
         dbg << "Disman::Output(" << output->id() << " " << output->name()
-            << (output->isConnected() ? "connected" : "disconnected")
             << (output->isEnabled() ? "enabled" : "disabled")
             << (output->isPrimary() ? "primary" : "") << "geometry:" << output->geometry()
             << "scale:" << output->scale() << "modeId:" << output->currentModeId()
