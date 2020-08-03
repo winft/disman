@@ -114,7 +114,11 @@ Disman::ConfigPtr XRandRConfig::toDismanConfig() const
     Disman::OutputList dismanOutputs;
 
     for (auto iter = m_outputs.constBegin(); iter != m_outputs.constEnd(); ++iter) {
-        Disman::OutputPtr dismanOutput = (*iter)->toDismanOutput();
+        auto output = *iter;
+        if (!output->isConnected()) {
+            continue;
+        }
+        auto dismanOutput = output->toDismanOutput();
         dismanOutputs.insert(dismanOutput->id(), dismanOutput);
     }
 
