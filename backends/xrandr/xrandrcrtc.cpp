@@ -20,10 +20,11 @@
  */
 #include "xrandrcrtc.h"
 
+#include "xcbwrapper.h"
 #include "xrandr.h"
 #include "xrandrconfig.h"
 
-#include "xcbwrapper.h"
+#include "xrandr_logging.h"
 
 XRandRCrtc::XRandRCrtc(xcb_randr_crtc_t crtc, XRandRConfig* config)
     : QObject(config)

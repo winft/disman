@@ -8,6 +8,13 @@ set(fake_SRCS
     parser.cpp
 )
 
+ecm_qt_declare_logging_category(
+    fake_SRCS
+    HEADER fake_logging.h
+    IDENTIFIER DISMAN_FAKE
+    CATEGORY_NAME disman.backend.fake
+)
+
 qt5_add_dbus_adaptor(fake_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml
                      fake.h Fake
 )

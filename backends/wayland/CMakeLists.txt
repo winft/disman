@@ -14,7 +14,7 @@ ecm_qt_declare_logging_category(
     wayland_SRCS
     HEADER wayland_logging.h
     IDENTIFIER DISMAN_WAYLAND
-    CATEGORY_NAME disman.wayland
+    CATEGORY_NAME disman.backend.wayland
 )
 
 qt5_add_dbus_interface(wayland_SRCS org.kde.KWin.TabletModeManager.xml tabletmodemanager_interface)

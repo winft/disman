@@ -17,6 +17,8 @@
  *************************************************************************************/
 #include "xcbeventlistener.h"
 
+#include "xrandr_logging.h"
+
 #include <QGuiApplication>
 #include <QX11Info>
 

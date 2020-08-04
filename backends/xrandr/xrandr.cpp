@@ -23,6 +23,8 @@
 #include "xrandrconfig.h"
 #include "xrandrscreen.h"
 
+#include "xrandr_logging.h"
+
 #include "config.h"
 #include "edid.h"
 #include "output.h"
@@ -43,8 +45,6 @@ bool XRandR::s_has_1_3 = false;
 bool XRandR::s_xorgCacheInitialized = false;
 
 using namespace Disman;
-
-Q_LOGGING_CATEGORY(DISMAN_XRANDR, "disman.xrandr")
 
 XRandR::XRandR()
     : Disman::AbstractBackend()

@@ -17,16 +17,18 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 #include "xrandrconfig.h"
-#include "config.h"
-#include "edid.h"
-#include "output.h"
+#include "xcbwrapper.h"
 #include "xrandr.h"
 #include "xrandrcrtc.h"
 #include "xrandrmode.h"
 #include "xrandroutput.h"
 #include "xrandrscreen.h"
 
-#include "xcbwrapper.h"
+#include "xrandr_logging.h"
+
+#include "config.h"
+#include "edid.h"
+#include "output.h"
 
 #include <QRect>
 #include <QScopedPointer>

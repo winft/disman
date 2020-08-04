@@ -18,6 +18,8 @@
 #include "parser.h"
 #include "fake.h"
 
+#include "fake_logging.h"
+
 #include "config.h"
 #include "output.h"
 

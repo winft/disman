@@ -50,6 +50,4 @@ private:
 
 }
 
-Q_DECLARE_LOGGING_CATEGORY(DISMAN_QSCREEN)
-
 #endif

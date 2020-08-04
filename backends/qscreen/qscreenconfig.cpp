@@ -20,6 +20,8 @@
 #include "qscreenoutput.h"
 #include "qscreenscreen.h"
 
+#include "qscreen_logging.h"
+
 #include <mode.h>
 
 #include <QGuiApplication>

@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <configmonitor.h>
 #include <mode.h>
 
-#include "../../wayland_logging.h"
+#include "wayland_logging.h"
 
 #include <QThread>
 #include <QTimer>

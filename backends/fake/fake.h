@@ -55,6 +55,5 @@ private:
     QString mConfigFile;
     mutable Disman::ConfigPtr mConfig;
 };
-Q_DECLARE_LOGGING_CATEGORY(DISMAN_FAKE)
 
 #endif

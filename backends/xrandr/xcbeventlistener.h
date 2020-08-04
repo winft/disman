@@ -64,5 +64,3 @@ protected:
 
     uint32_t m_window;
 };
-
-Q_DECLARE_LOGGING_CATEGORY(DISMAN_XRANDR)

@@ -14,6 +14,13 @@ set(xrandr_SRCS
     ../utils.cpp
 )
 
+ecm_qt_declare_logging_category(
+    xrandr_SRCS
+    HEADER xrandr_logging.h
+    IDENTIFIER DISMAN_XRANDR
+    CATEGORY_NAME disman.backend.xrandr
+)
+
 add_library(randr MODULE ${xrandr_SRCS})
 
 set_target_properties(randr PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")

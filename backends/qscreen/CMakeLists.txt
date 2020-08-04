@@ -9,6 +9,13 @@ set(qscreen_SRCS
     qscreenoutput.cpp
 )
 
+ecm_qt_declare_logging_category(
+    qscreen_SRCS
+    HEADER qscreen_logging.h
+    IDENTIFIER DISMAN_QSCREEN
+    CATEGORY_NAME disman.backend.qscreen
+)
+
 add_library(qscreen MODULE ${qscreen_SRCS})
 
 set_target_properties(qscreen PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")

@@ -18,6 +18,8 @@
 #include "fake.h"
 #include "parser.h"
 
+#include "fake_logging.h"
+
 #include "config.h"
 #include "edid.h"
 #include <output.h>
@@ -36,8 +38,6 @@
 #include "fakebackendadaptor.h"
 
 using namespace Disman;
-
-Q_LOGGING_CATEGORY(DISMAN_FAKE, "disman.fake")
 
 Fake::Fake()
     : Disman::AbstractBackend()

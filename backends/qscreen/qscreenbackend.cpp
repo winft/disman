@@ -23,8 +23,6 @@
 
 using namespace Disman;
 
-Q_LOGGING_CATEGORY(DISMAN_QSCREEN, "disman.qscreen")
-
 QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
 
 QScreenBackend::QScreenBackend()
