@@ -24,12 +24,14 @@
 #include <QEventLoop>
 #include <QPointer>
 
+#include <memory>
 #include <vector>
 
 class KPluginMetaData;
 
 namespace Disman
 {
+class Filer_controller;
 class WaylandInterface;
 class WaylandOutput;
 class WaylandScreen;
@@ -72,6 +74,8 @@ private:
     void queryInterface(KPluginMetaData* plugin);
     void takeInterface(const PendingInterface& pending);
     void rejectInterface(const PendingInterface& pending);
+
+    std::unique_ptr<Filer_controller> m_filer_controller;
 
     Disman::ConfigPtr m_dismanConfig;
     std::unique_ptr<WaylandScreen> m_screen;

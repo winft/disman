@@ -23,6 +23,8 @@
 #include "waylandoutput.h"
 #include "waylandscreen.h"
 
+#include "../filer_controller.h"
+
 #include "tabletmodemanager_interface.h"
 #include "wayland_logging.h"
 
@@ -39,6 +41,7 @@ using namespace Disman;
 
 WaylandBackend::WaylandBackend()
     : Disman::AbstractBackend()
+    , m_filer_controller{new Filer_controller}
     , m_screen{new WaylandScreen}
 {
     qCDebug(DISMAN_WAYLAND) << "Loading Wayland backend.";
@@ -119,6 +122,11 @@ ConfigPtr WaylandBackend::config() const
     // TODO: do this setScreen call less clunky
     config->setScreen(m_screen->toDismanScreen(config));
 
+    // We update from the windowing system first so the controller knows about the current
+    // configuration and then update one more time so the windowing system can override values
+    // it provides itself.
+    m_interface->updateConfig(config);
+    m_filer_controller->read(config);
     m_interface->updateConfig(config);
 
     ScreenPtr screen = config->screen();
@@ -132,6 +140,7 @@ void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
     if (!newconfig) {
         return;
     }
+    m_filer_controller->write(newconfig);
     m_interface->applyConfig(newconfig);
 }
 

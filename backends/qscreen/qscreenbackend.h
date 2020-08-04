@@ -23,9 +23,11 @@
 #include "abstractbackend.h"
 
 #include <QLoggingCategory>
+#include <memory>
 
 namespace Disman
 {
+class Filer_controller;
 class QScreenConfig;
 
 class QScreenBackend : public Disman::AbstractBackend
@@ -45,6 +47,8 @@ public:
 
 private:
     bool m_isValid;
+
+    std::unique_ptr<Filer_controller> m_filer_controller;
     static QScreenConfig* s_internalConfig;
 };
 

@@ -106,6 +106,10 @@ public:
 
     bool auto_resolution{false};
     bool auto_refresh_rate{false};
+    bool auto_rotate{true};
+    bool auto_rotate_only_in_tablet_mode{true};
+
+    Retention retention{Retention::Undefined};
 
     QScopedPointer<Edid> edid;
 };

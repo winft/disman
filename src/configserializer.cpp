@@ -22,7 +22,6 @@
 #include "disman_debug.h"
 #include "edid.h"
 #include "mode.h"
-#include "output.h"
 #include "screen.h"
 
 #include <QDBusArgument>
@@ -103,8 +102,12 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     // obj[QLatin1String("edid")] = output->edid()->raw();
     obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
     obj[QLatin1String("replicationSource")] = output->replicationSource();
+    obj[QLatin1String("auto_rotate")] = output->auto_rotate();
+    obj[QLatin1String("auto_rotate_only_in_tablet_mode")]
+        = output->auto_rotate_only_in_tablet_mode();
     obj[QLatin1String("auto_resolution")] = output->auto_resolution();
     obj[QLatin1String("auto_refresh_rate")] = output->auto_refresh_rate();
+    obj[QLatin1String("retention")] = static_cast<int>(output->retention());
 
     QJsonArray modes;
     Q_FOREACH (const ModePtr& mode, output->modes()) {
@@ -164,6 +167,20 @@ QPointF ConfigSerializer::deserializePoint(const QDBusArgument& arg)
 
     arg.endMap();
     return QPointF(x, y);
+}
+
+Output::Retention ConfigSerializer::deserialize_retention(QVariant const& var)
+{
+    if (var.canConvert<int>()) {
+        auto val = var.toInt();
+        if (val == static_cast<int>(Output::Retention::Global)) {
+            return Output::Retention::Global;
+        }
+        if (val == static_cast<int>(Output::Retention::Individual)) {
+            return Output::Retention::Individual;
+        }
+    }
+    return Output::Retention::Undefined;
 }
 
 QSize ConfigSerializer::deserializeSize(const QDBusArgument& arg)
@@ -288,6 +305,10 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->set_resolution(value.toSize());
         } else if (key == QLatin1String("refresh_rate")) {
             output->set_refresh_rate(value.toDouble());
+        } else if (key == QLatin1String("auto_rotate")) {
+            output->set_auto_rotate(value.toBool());
+        } else if (key == QLatin1String("auto_rotate_only_in_tablet_mode")) {
+            output->set_auto_rotate_only_in_tablet_mode(value.toBool());
         } else if (key == QLatin1String("auto_resolution")) {
             output->set_auto_resolution(value.toBool());
         } else if (key == QLatin1String("auto_refresh_rate")) {
@@ -304,6 +325,8 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->setReplicationSource(value.toInt());
         } else if (key == QLatin1String("sizeMM")) {
             output->setSizeMm(deserializeSize(value.value<QDBusArgument>()));
+        } else if (key == QLatin1String("retention")) {
+            output->set_retention(deserialize_retention(value));
         } else if (key == QLatin1String("modes")) {
             const QDBusArgument arg = value.value<QDBusArgument>();
             ModeList modes;

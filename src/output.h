@@ -69,6 +69,13 @@ public:
         Right = 8,
     };
 
+    enum class Retention {
+        Undefined = -1,
+        Global = 0,
+        Individual = 1,
+    };
+    Q_ENUM(Retention)
+
     explicit Output();
     ~Output() override;
 
@@ -269,6 +276,15 @@ public:
 
     bool auto_refresh_rate() const;
     void set_auto_refresh_rate(bool auto_rate);
+
+    bool auto_rotate() const;
+    void set_auto_rotate(bool auto_rot);
+
+    bool auto_rotate_only_in_tablet_mode() const;
+    void set_auto_rotate_only_in_tablet_mode(bool only);
+
+    Retention retention() const;
+    void set_retention(Retention retention);
 
     void apply(const OutputPtr& other);
 

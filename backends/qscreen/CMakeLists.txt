@@ -7,6 +7,9 @@ set(qscreen_SRCS
     qscreenconfig.cpp
     qscreenscreen.cpp
     qscreenoutput.cpp
+
+    ../filer_controller.cpp
+    ../logging.cpp
 )
 
 ecm_qt_declare_logging_category(

@@ -64,6 +64,7 @@ TestKWaylandConfig::TestKWaylandConfig(QObject* parent)
 {
     qputenv("DISMAN_BACKEND_INPROCESS", "1");
     qputenv("DISMAN_LOGGING", "false");
+    QStandardPaths::setTestModeEnabled(true);
 }
 
 void TestKWaylandConfig::initTestCase()
@@ -81,9 +82,14 @@ void TestKWaylandConfig::initTestCase()
 
 void TestKWaylandConfig::cleanupTestCase()
 {
-    qDebug() << "Shutting down";
     Disman::BackendManager::instance()->shutdownBackend();
     delete m_server;
+
+    // Make sure we did not accidentally unset test mode prior and delete our user configuration.
+    QStandardPaths::setTestModeEnabled(true);
+    QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+        % QStringLiteral("/disman/");
+    QVERIFY(QDir(path).removeRecursively());
 }
 
 void TestKWaylandConfig::changeConfig()

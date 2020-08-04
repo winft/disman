@@ -20,6 +20,8 @@
 
 #include "fake_logging.h"
 
+#include "../filer_controller.h"
+
 #include "config.h"
 #include "edid.h"
 #include <output.h>
@@ -41,6 +43,7 @@ using namespace Disman;
 
 Fake::Fake()
     : Disman::AbstractBackend()
+    , m_filer_controller{new Filer_controller}
 {
     QLoggingCategory::setFilterRules(QStringLiteral("disman.fake.debug = true"));
 
@@ -83,6 +86,8 @@ ConfigPtr Fake::config() const
 {
     if (mConfig.isNull()) {
         mConfig = Parser::fromJson(mConfigFile);
+        m_filer_controller->read(mConfig);
+        mConfig = Parser::fromJson(mConfigFile);
     }
 
     return mConfig;
@@ -91,6 +96,7 @@ ConfigPtr Fake::config() const
 void Fake::setConfig(const ConfigPtr& config)
 {
     qCDebug(DISMAN_FAKE) << "set config" << config->outputs();
+    m_filer_controller->write(config);
     mConfig = config->clone();
     emit configChanged(mConfig);
 }

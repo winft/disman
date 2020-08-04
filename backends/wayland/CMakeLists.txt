@@ -7,6 +7,9 @@ set(wayland_SRCS
     wayland_interface.cpp
     waylandoutput.cpp
     waylandscreen.cpp
+
+    ../filer_controller.cpp
+    ../logging.cpp
     ../utils.cpp
 )
 

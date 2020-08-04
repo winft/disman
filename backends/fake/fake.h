@@ -22,6 +22,12 @@
 
 #include <QLoggingCategory>
 #include <QObject>
+#include <memory>
+
+namespace Disman
+{
+class Filer_controller;
+}
 
 class Fake : public Disman::AbstractBackend
 {
@@ -54,6 +60,8 @@ private Q_SLOTS:
 private:
     QString mConfigFile;
     mutable Disman::ConfigPtr mConfig;
+
+    std::unique_ptr<Disman::Filer_controller> m_filer_controller;
 };
 
 #endif

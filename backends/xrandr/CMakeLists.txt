@@ -11,6 +11,9 @@ set(xrandr_SRCS
     xrandrscreen.cpp
     xcbwrapper.cpp
     xcbeventlistener.cpp
+
+    ../filer_controller.cpp
+    ../logging.cpp
     ../utils.cpp
 )
 

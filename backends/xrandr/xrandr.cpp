@@ -25,6 +25,8 @@
 
 #include "xrandr_logging.h"
 
+#include "../filer_controller.h"
+
 #include "config.h"
 #include "edid.h"
 #include "output.h"
@@ -82,6 +84,8 @@ XRandR::XRandR()
         qCWarning(DISMAN_XRANDR) << "XRandR extension not available or unsupported version";
         return;
     }
+
+    m_filer_controller.reset(new Filer_controller);
 
     if (s_screen == nullptr) {
         s_screen = XCB::screenOfDisplay(XCB::connection(), QX11Info::appScreen());
@@ -206,11 +210,16 @@ void XRandR::screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, c
     m_configChangeCompressor->start();
 }
 
+// TODO: read from control file!
+
 ConfigPtr XRandR::config() const
 {
     Disman::ConfigPtr config(new Disman::Config);
 
     s_internalConfig->update_config(config);
+    m_filer_controller->read(config);
+    s_internalConfig->update_config(config);
+
     return config;
 }
 
@@ -221,6 +230,7 @@ void XRandR::setConfig(const ConfigPtr& config)
     }
 
     qCDebug(DISMAN_XRANDR) << "XRandR::setConfig";
+    m_filer_controller->write(config);
     s_internalConfig->applyDismanConfig(config);
     qCDebug(DISMAN_XRANDR) << "XRandR::setConfig done!";
 }

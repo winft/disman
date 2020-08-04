@@ -6,6 +6,9 @@ include_directories(${CMAKE_SOURCE_DIR}/src
 set(fake_SRCS
     fake.cpp
     parser.cpp
+
+    ../filer_controller.cpp
+    ../logging.cpp
 )
 
 ecm_qt_declare_logging_category(

@@ -66,6 +66,9 @@ Output::Private::Private(const Private& other)
     , followPreferredMode(other.followPreferredMode)
     , auto_resolution{other.auto_resolution}
     , auto_refresh_rate{other.auto_refresh_rate}
+    , auto_rotate{other.auto_rotate}
+    , auto_rotate_only_in_tablet_mode{other.auto_rotate_only_in_tablet_mode}
+    , retention{other.retention}
 {
     Q_FOREACH (const ModePtr& otherMode, other.modeList) {
         modeList.insert(otherMode->id(), otherMode->clone());
@@ -425,6 +428,36 @@ void Output::set_auto_refresh_rate(bool auto_rate)
     d->auto_refresh_rate = auto_rate;
 }
 
+bool Output::auto_rotate() const
+{
+    return d->auto_rotate;
+}
+
+void Output::set_auto_rotate(bool auto_rot)
+{
+    d->auto_rotate = auto_rot;
+}
+
+bool Output::auto_rotate_only_in_tablet_mode() const
+{
+    return d->auto_rotate_only_in_tablet_mode;
+}
+
+void Output::set_auto_rotate_only_in_tablet_mode(bool only)
+{
+    d->auto_rotate_only_in_tablet_mode = only;
+}
+
+Output::Retention Output::retention() const
+{
+    return d->retention;
+}
+
+void Output::set_retention(Retention retention)
+{
+    d->retention = retention;
+}
+
 bool Output::isPositionable() const
 {
     return isEnabled() && !replicationSource();
@@ -485,6 +518,9 @@ void Output::apply(const OutputPtr& other)
 
     set_auto_resolution(other->d->auto_resolution);
     set_auto_refresh_rate(other->d->auto_refresh_rate);
+    set_auto_rotate(other->d->auto_rotate);
+    set_auto_rotate_only_in_tablet_mode(other->d->auto_rotate_only_in_tablet_mode);
+    set_retention(other->d->retention);
 
     blockSignals(keepBlocked);
 
@@ -517,9 +553,17 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
            // basic properties
            << (output->isEnabled() ? " [enabled]" : "[disabled]")
            << (output->isPrimary() ? " [primary]" : "")
+           << (output->retention() == Disman::Output::Retention::Global
+                   ? "[global retention]"
+                   : output->retention() == Disman::Output::Retention::Individual
+                       ? "[individual retention]"
+                       : "")
            << (output->followPreferredMode() ? " [hotplug-mode-update (QXL/SPICE)]" : "")
            << (output->auto_resolution() ? " [auto resolution]" : "")
            << (output->auto_refresh_rate() ? " [auto refresh rate]" : "")
+           << (output->auto_rotate() ? " [auto rotate]" : "")
+           << (output->auto_rotate_only_in_tablet_mode() ? " [auto rotate only in tablet mode]"
+                                                         : "")
 
            // geometry
            << " | physical size[mm]: " << output->sizeMm().width() << "x"

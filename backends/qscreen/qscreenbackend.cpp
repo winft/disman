@@ -21,6 +21,8 @@
 #include "qscreenconfig.h"
 #include "qscreenoutput.h"
 
+#include "../filer_controller.h"
+
 using namespace Disman;
 
 QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
@@ -28,6 +30,7 @@ QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
 QScreenBackend::QScreenBackend()
     : Disman::AbstractBackend()
     , m_isValid(true)
+    , m_filer_controller{new Filer_controller}
 {
     if (s_internalConfig == nullptr) {
         s_internalConfig = new QScreenConfig();
@@ -54,6 +57,9 @@ QString QScreenBackend::serviceName() const
 ConfigPtr QScreenBackend::config() const
 {
     ConfigPtr config(new Config);
+
+    s_internalConfig->update_config(config);
+    m_filer_controller->read(config);
     s_internalConfig->update_config(config);
 
     return config;

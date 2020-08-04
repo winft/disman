@@ -26,6 +26,7 @@
 #include <QVariant>
 
 #include "disman_export.h"
+#include "output.h"
 #include "types.h"
 
 namespace Disman
@@ -72,6 +73,7 @@ DISMAN_EXPORT Disman::ConfigPtr deserializeConfig(const QVariantMap& map);
 DISMAN_EXPORT Disman::OutputPtr deserializeOutput(const QDBusArgument& output);
 DISMAN_EXPORT Disman::ModePtr deserializeMode(const QDBusArgument& mode);
 DISMAN_EXPORT Disman::ScreenPtr deserializeScreen(const QDBusArgument& screen);
+DISMAN_EXPORT Disman::Output::Retention deserialize_retention(QVariant const& var);
 
 }
 

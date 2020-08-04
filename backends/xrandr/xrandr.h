@@ -25,8 +25,15 @@
 
 #include "xcbwrapper.h"
 
+#include <memory>
+
 class QRect;
 class QTimer;
+
+namespace Disman
+{
+class Filer_controller;
+}
 
 class XCBEventListener;
 class XRandRConfig;
@@ -80,5 +87,6 @@ private:
     XCBEventListener* m_x11Helper;
     bool m_isValid;
 
+    std::unique_ptr<Disman::Filer_controller> m_filer_controller;
     QTimer* m_configChangeCompressor;
 };
