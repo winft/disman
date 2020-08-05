@@ -31,8 +31,9 @@ QScreenBackend::QScreenBackend()
 {
     if (s_internalConfig == nullptr) {
         s_internalConfig = new QScreenConfig();
-        connect(
-            s_internalConfig, &QScreenConfig::configChanged, this, &QScreenBackend::configChanged);
+        connect(s_internalConfig, &QScreenConfig::configChanged, this, [this] {
+            Q_EMIT configChanged(config());
+        });
     }
 }
 
@@ -52,7 +53,10 @@ QString QScreenBackend::serviceName() const
 
 ConfigPtr QScreenBackend::config() const
 {
-    return s_internalConfig->toDismanConfig();
+    ConfigPtr config(new Config);
+    s_internalConfig->update_config(config);
+
+    return config;
 }
 
 void QScreenBackend::setConfig(const ConfigPtr& config)

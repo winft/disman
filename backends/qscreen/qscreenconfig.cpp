@@ -48,14 +48,6 @@ QScreenConfig::~QScreenConfig()
     qDeleteAll(m_outputMap);
 }
 
-ConfigPtr QScreenConfig::toDismanConfig() const
-{
-    ConfigPtr config(new Config);
-    config->setScreen(m_screen->toDismanScreen());
-    updateDismanConfig(config);
-    return config;
-}
-
 int QScreenConfig::outputId(const QScreen* qscreen)
 {
     QList<int> ids;
@@ -76,7 +68,7 @@ void QScreenConfig::screenAdded(const QScreen* qscreen)
     m_outputMap.insert(qscreenoutput->id(), qscreenoutput);
 
     if (!m_blockSignals) {
-        Q_EMIT configChanged(toDismanConfig());
+        Q_EMIT configChanged();
     }
 }
 
@@ -92,14 +84,12 @@ void QScreenConfig::screenRemoved(QScreen* qscreen)
             delete output;
         }
     }
-    Q_EMIT configChanged(toDismanConfig());
+    Q_EMIT configChanged();
 }
 
-void QScreenConfig::updateDismanConfig(ConfigPtr& config) const
+void QScreenConfig::update_config(ConfigPtr& config) const
 {
-    Disman::ScreenPtr screen = config->screen();
-    m_screen->updateDismanScreen(screen);
-    config->setScreen(screen);
+    config->setScreen(m_screen->toDismanScreen());
 
     // Removing removed outputs
     Disman::OutputList outputs = config->outputs();

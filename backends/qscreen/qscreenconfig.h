@@ -36,8 +36,7 @@ public:
     explicit QScreenConfig(QObject* parent = nullptr);
     ~QScreenConfig() override;
 
-    Disman::ConfigPtr toDismanConfig() const;
-    void updateDismanConfig(Disman::ConfigPtr& config) const;
+    void update_config(ConfigPtr& config) const;
 
     QMap<int, QScreenOutput*> outputMap() const;
     int outputId(const QScreen* qscreen);
@@ -47,7 +46,7 @@ private Q_SLOTS:
     void screenRemoved(QScreen* qscreen);
 
 Q_SIGNALS:
-    void configChanged(const Disman::ConfigPtr& config);
+    void configChanged();
 
 private:
     QMap<int, QScreenOutput*> m_outputMap;
