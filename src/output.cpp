@@ -325,10 +325,16 @@ QRectF Output::geometry() const
 {
     auto geo = QRectF(d->position, QSizeF());
 
-    auto size = enforcedModeSize();
+    auto const mode = auto_mode();
+    if (!mode) {
+        return geo;
+    }
+
+    auto size = mode->size();
     if (!size.isValid()) {
         return geo;
     }
+
     if (!isHorizontal()) {
         size = size.transposed();
     }
@@ -461,18 +467,6 @@ void Output::set_retention(Retention retention)
 bool Output::isPositionable() const
 {
     return isEnabled() && !replicationSource();
-}
-
-QSize Output::enforcedModeSize() const
-{
-    if (const auto mode = auto_mode()) {
-        return mode->size();
-    } else if (const auto mode = preferred_mode()) {
-        return mode->size();
-    } else if (d->modeList.count() > 0) {
-        return d->modeList.first()->size();
-    }
-    return QSize();
 }
 
 void Output::apply(const OutputPtr& other)

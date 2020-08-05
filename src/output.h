@@ -165,14 +165,6 @@ public:
      */
     ModePtr preferred_mode() const;
 
-    /**
-     * Returns either current mode size or if not available preferred one or if also not
-     * available the first one in the ModeList.
-     *
-     * @return mode size
-     */
-    QSize enforcedModeSize() const;
-
     Rotation rotation() const;
     void setRotation(Rotation rotation);
     /**
