@@ -49,7 +49,7 @@ public:
     void addNewCrtc(xcb_randr_crtc_t crtc);
     void removeOutput(xcb_randr_output_t id);
 
-    Disman::ConfigPtr toDismanConfig() const;
+    Disman::ConfigPtr update_config(Disman::ConfigPtr& config) const;
     void applyDismanConfig(const Disman::ConfigPtr& config);
 
 private:

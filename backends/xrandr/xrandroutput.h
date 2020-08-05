@@ -73,7 +73,7 @@ public:
     QByteArray edid() const;
     XRandRCrtc* crtc() const;
 
-    Disman::OutputPtr toDismanOutput() const;
+    void updateDismanOutput(Disman::OutputPtr& dismanOutput) const;
 
     void updateLogicalSize(const Disman::OutputPtr& output, XRandRCrtc* crtc = nullptr);
 

@@ -412,10 +412,8 @@ void XRandROutput::updateLogicalSize(const Disman::OutputPtr& output, XRandRCrtc
     }
 }
 
-Disman::OutputPtr XRandROutput::toDismanOutput() const
+void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 {
-    Disman::OutputPtr dismanOutput(new Disman::Output);
-
     const bool signalsBlocked = dismanOutput->signalsBlocked();
     dismanOutput->blockSignals(true);
     dismanOutput->setId(m_id);
@@ -453,5 +451,4 @@ Disman::OutputPtr XRandROutput::toDismanOutput() const
     }
 
     dismanOutput->blockSignals(signalsBlocked);
-    return dismanOutput;
 }

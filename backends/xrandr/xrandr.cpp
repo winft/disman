@@ -208,7 +208,10 @@ void XRandR::screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, c
 
 ConfigPtr XRandR::config() const
 {
-    return s_internalConfig->toDismanConfig();
+    Disman::ConfigPtr config(new Disman::Config);
+
+    s_internalConfig->update_config(config);
+    return config;
 }
 
 void XRandR::setConfig(const ConfigPtr& config)

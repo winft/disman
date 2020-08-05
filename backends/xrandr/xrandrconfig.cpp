@@ -105,10 +105,8 @@ void XRandRConfig::removeOutput(xcb_randr_output_t id)
     delete m_outputs.take(id);
 }
 
-Disman::ConfigPtr XRandRConfig::toDismanConfig() const
+Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
 {
-    Disman::ConfigPtr config(new Disman::Config);
-
     const Config::Features features = Config::Feature::Writable | Config::Feature::PrimaryDisplay
         | Config::Feature::OutputReplication;
     config->setSupportedFeatures(features);
@@ -117,10 +115,19 @@ Disman::ConfigPtr XRandRConfig::toDismanConfig() const
 
     for (auto iter = m_outputs.constBegin(); iter != m_outputs.constEnd(); ++iter) {
         auto output = *iter;
+
         if (!output->isConnected()) {
             continue;
         }
-        auto dismanOutput = output->toDismanOutput();
+
+        Disman::OutputPtr dismanOutput;
+        if (auto existing_output = config->output(output->id())) {
+            dismanOutput = existing_output;
+        } else {
+            dismanOutput.reset(new Disman::Output);
+        }
+
+        output->updateDismanOutput(dismanOutput);
         dismanOutputs.insert(dismanOutput->id(), dismanOutput);
     }
 
