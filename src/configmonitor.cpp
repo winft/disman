@@ -253,6 +253,7 @@ void ConfigMonitor::connectInProcessBackend(Disman::AbstractBackend* backend)
             return;
         }
         qCDebug(DISMAN) << "Backend change!" << config;
+        BackendManager::instance()->setConfig(config);
         d->updateConfigs(config);
     });
 }
