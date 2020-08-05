@@ -155,16 +155,7 @@ void Output::setName(const QString& name)
     d->name = name;
 }
 
-// TODO KF6: remove this deprecated method
 QString Output::hash() const
-{
-    if (edid() && edid()->isValid()) {
-        return edid()->hash();
-    }
-    return name();
-}
-
-QString Output::hashMd5() const
 {
     if (edid() && edid()->isValid()) {
         return edid()->hash();
