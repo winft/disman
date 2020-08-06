@@ -138,10 +138,15 @@ public:
     }
 
     template<typename T>
-    T get_value(OutputPtr const& output,
-                std::string const& id,
-                T default_value,
-                Output_filer* filer) const
+    T get_value(
+        OutputPtr const& output,
+        std::string const& id,
+        T default_value,
+        Output_filer* filer,
+        std::function<T(OutputPtr const&, QVariant const&, T)> getter
+        = []([[maybe_unused]] OutputPtr const& output, QVariant const& val, T default_value) {
+              return Filer_helpers::from_variant(val, default_value);
+          }) const
     {
         if (!filer || output->retention() == Output::Retention::Individual) {
             auto const outputs_info = get_outputs_info();
@@ -150,7 +155,7 @@ public:
                 auto const info = variant_info.toMap();
                 if (is_info_for_output(info, output)) {
                     auto const val = info[QString::fromStdString(id)];
-                    return Filer_helpers::from_variant(val, default_value);
+                    return getter(output, val, default_value);
                 }
             }
         }
@@ -158,20 +163,28 @@ public:
         // Retention is global or info for output not in config control file. If an output filer
         // was provided we hand over to that, otherwise we can only return the default value.
         if (filer) {
-            return filer->get_value(id, default_value);
+            return filer->get_value(id, default_value, getter);
         }
         return default_value;
     }
 
     template<typename T>
-    void set_value(OutputPtr const& output, std::string const& id, T value, Output_filer* filer)
+    void set_value(
+        OutputPtr const& output,
+        std::string const& id,
+        T value,
+        Output_filer* filer,
+        std::function<void(QVariantMap&, std::string const&, T)> setter
+        = [](QVariantMap& info, std::string const& id, T value) {
+              info[QString::fromStdString(id)] = value;
+          })
     {
         QList<QVariant>::iterator it;
         auto outputs_info = get_outputs_info();
 
-        auto set_output_value = [filer, &id, value]() {
+        auto set_output_value = [&]() {
             if (filer) {
-                filer->set_value(id, value);
+                filer->set_value(id, value, setter);
             }
         };
 
@@ -180,7 +193,7 @@ public:
             if (!is_info_for_output(output_info, output)) {
                 continue;
             }
-            output_info[QString::fromStdString(id)] = value;
+            setter(output_info, id, value);
             *it = output_info;
             set_outputs(outputs_info);
             set_output_value();
@@ -189,7 +202,7 @@ public:
 
         // No entry yet, create one.
         auto output_info = Output_filer::create_info(output);
-        output_info[QString::fromStdString(id)] = value;
+        setter(output_info, id, value);
 
         outputs_info << output_info;
         set_outputs(outputs_info);

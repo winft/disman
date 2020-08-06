@@ -58,19 +58,23 @@ public:
     }
 
     template<typename T>
-    T get_value(std::string const& id, T default_value = T()) const
+    T get_value(std::string const& id,
+                T default_value,
+                std::function<T(OutputPtr const&, QVariant const&, T)> getter) const
     {
         auto const val = m_info[QString::fromStdString(id)];
-        return Filer_helpers::from_variant(val, default_value);
+        return getter(m_output, val, default_value);
     }
 
     template<typename T>
-    void set_value(std::string const& id, T value)
+    void set_value(std::string const& id,
+                   T value,
+                   std::function<void(QVariantMap&, std::string const&, T)> setter)
     {
         if (m_info.isEmpty()) {
             m_info = create_info(m_output);
         }
-        m_info[QString::fromStdString(id)] = value;
+        setter(m_info, id, value);
     }
 
     static QVariantMap create_info(OutputPtr const& output)
