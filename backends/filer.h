@@ -80,14 +80,28 @@ public:
                 output, "retention", static_cast<int>(Output::Retention::Undefined), nullptr);
             output->set_retention(convert_int_to_retention(retention));
 
+            output->setPosition(
+                get_value(output, "pos", QPointF(0, 0), nullptr, std::function{get_pos}));
             get_replication_source(output, outputs);
 
             auto filer = get_output_filer(output);
             assert(filer);
 
+            if (auto mode = get_value(output, "mode", ModePtr(), filer, std::function{get_mode})) {
+                output->set_mode(mode);
+            } else {
+                // Set an invalid commanded mode.
+                output->set_resolution(QSize());
+                output->set_refresh_rate(0);
+            }
+
             if (config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling)) {
                 output->setScale(get_value(output, "scale", 1., filer));
             }
+
+            auto const rotation
+                = get_value(output, "rotation", static_cast<int>(Output::Rotation::None), filer);
+            output->setRotation(convert_int_to_rotation(rotation));
 
             output->set_auto_resolution(get_value(output, "auto-resolution", true, filer));
             output->set_auto_refresh_rate(get_value(output, "auto-refresh-rate", true, filer));
@@ -115,12 +129,15 @@ public:
             }
 
             set_value(output, "retention", static_cast<int>(output->retention()), nullptr);
-
             set_replication_source(output, config);
+            set_value(output, "pos", output->position(), nullptr, std::function{set_pos});
+
+            set_value(output, "mode", output->auto_mode(), filer, std::function{set_mode});
 
             if (config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling)) {
                 set_value(output, "scale", output->scale(), filer);
             }
+            set_value(output, "rotation", static_cast<int>(output->rotation()), filer);
 
             set_value(output, "auto-resolution", output->auto_resolution(), filer);
             set_value(output, "auto-refresh-rate", output->auto_refresh_rate(), filer);
@@ -209,6 +226,132 @@ public:
         set_output_value();
     }
 
+    static QPointF
+    get_pos([[maybe_unused]] OutputPtr const& output, QVariant const& val, QPointF default_value)
+    {
+        auto const val_map = val.toMap();
+
+        bool success = true;
+        auto get_coordinate = [&val_map, &success](QString axis) {
+            if (!val_map.contains(axis)) {
+                success = false;
+                return 0.;
+            }
+            bool ok;
+            auto const coord = val_map[axis].toDouble(&ok);
+            success &= ok;
+            return coord;
+        };
+
+        auto const x = get_coordinate(QStringLiteral("x"));
+        auto const y = get_coordinate(QStringLiteral("y"));
+
+        return success ? QPointF(x, y) : default_value;
+    }
+
+    static void set_pos(QVariantMap& info, [[maybe_unused]] std::string const& id, QPointF pos)
+    {
+        assert(id == "pos");
+
+        auto pos_info = [&pos]() {
+            QVariantMap info;
+            info[QStringLiteral("x")] = pos.x();
+            info[QStringLiteral("y")] = pos.y();
+            return info;
+        };
+
+        info[QStringLiteral("pos")] = pos_info();
+    }
+
+    static ModePtr get_mode(OutputPtr const& output, QVariant const& val, ModePtr default_value)
+    {
+        auto const val_map = val.toMap();
+
+        bool success = true;
+
+        auto get_resolution = [&val_map, &success]() {
+            auto const key = QStringLiteral("resolution");
+
+            if (!val_map.contains(key)) {
+                success = false;
+                return QSize();
+            }
+
+            auto const resolution_map = val_map[key].toMap();
+
+            auto get_length = [&resolution_map, &success](QString axis) {
+                if (!resolution_map.contains(axis)) {
+                    success = false;
+                    return 0.;
+                }
+                bool ok;
+                auto const coord = resolution_map[axis].toDouble(&ok);
+                success &= ok;
+                return coord;
+            };
+
+            auto const width = get_length(QStringLiteral("width"));
+            auto const height = get_length(QStringLiteral("height"));
+            return QSize(width, height);
+        };
+
+        if (!val_map.contains(QStringLiteral("mode"))) {
+            return default_value;
+        }
+
+        auto const resolution = get_resolution();
+
+        auto get_refresh_rate = [&val_map, &success]() -> double {
+            auto const key = QStringLiteral("refresh");
+
+            if (!val_map.contains(key)) {
+                success = false;
+                return 0;
+            }
+
+            bool ok;
+            auto const refresh = val_map[key].toDouble(&ok);
+            success &= ok;
+            return refresh;
+        };
+
+        auto const refresh = get_refresh_rate();
+        if (!success) {
+            qCWarning(DISMAN_BACKEND) << "Mode entry broken for:" << output;
+            return default_value;
+        }
+
+        for (auto const& mode : output->modes()) {
+            if (mode->size() == resolution && mode->refreshRate() == refresh) {
+                return mode;
+            }
+        }
+        return default_value;
+    }
+
+    static void
+    set_mode(QVariantMap& info, [[maybe_unused]] std::string const& id, Disman::ModePtr mode)
+    {
+        assert(id == "mode");
+
+        auto size_info = [&mode]() {
+            QVariantMap info;
+            info[QStringLiteral("width")] = mode->size().width();
+            info[QStringLiteral("height")] = mode->size().height();
+            return info;
+        };
+
+        auto mode_info = [&mode, size_info]() {
+            QVariantMap info;
+            info[QStringLiteral("refresh")] = mode->refreshRate();
+            info[QStringLiteral("resolution")] = size_info();
+
+            return info;
+        };
+
+        info[QStringLiteral("mode")] = mode_info();
+    }
+
     void get_replication_source(OutputPtr& output, OutputList const& outputs) const
     {
         auto replicate_hash = get_value(output, "replicate", QString(), nullptr);
@@ -280,6 +423,21 @@ public:
             return Output::Retention::Individual;
         }
         return Output::Retention::Undefined;
+    }
+
+    static Output::Rotation convert_int_to_rotation(int val)
+    {
+        auto const rotation = static_cast<Output::Rotation>(val);
+        switch (rotation) {
+        case Output::Rotation::Left:
+            return rotation;
+        case Output::Rotation::Right:
+            return rotation;
+        case Output::Rotation::Inverted:
+            return rotation;
+        default:
+            return Output::Rotation::None;
+        }
     }
 
     ConfigPtr config() const
