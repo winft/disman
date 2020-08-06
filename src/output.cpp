@@ -30,6 +30,8 @@
 #include <QScopedPointer>
 #include <QStringList>
 
+#include <sstream>
+
 namespace Disman
 {
 
@@ -501,13 +503,34 @@ void Output::apply(const OutputPtr& other)
 QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 {
     if (output) {
-        dbg << "Disman::Output(" << output->id() << " " << output->name()
-            << (output->isEnabled() ? "enabled" : "disabled")
-            << (output->isPrimary() ? "primary" : "") << "geometry:" << output->geometry()
-            << "scale:" << output->scale() << "mode:" << output->auto_mode()
-            << "followPreferredMode:" << output->followPreferredMode() << ")";
+        auto stream_rect = [](QRectF const& rect) {
+            std::stringstream ss;
+            ss << "top-left(" << rect.x() << "," << rect.y() << ") size(" << rect.size().width()
+               << "x" << rect.size().height() << ")";
+            return ss.str();
+        };
+
+        std::stringstream ss;
+
+        ss << "{" << output->id() << " "
+           << output->name().toStdString()
+
+           // basic properties
+           << (output->isEnabled() ? " [enabled]" : "[disabled]")
+           << (output->isPrimary() ? " [primary]" : "")
+           << (output->followPreferredMode() ? " [hotplug-mode-update (QXL/SPICE)]" : "")
+           << (output->auto_resolution() ? " [auto resolution]" : "")
+           << (output->auto_refresh_rate() ? " [auto refresh rate]" : "")
+
+           // geometry
+           << " | physical size[mm]: " << output->sizeMm().width() << "x"
+           << output->sizeMm().height() << " | mode: " << output->auto_mode()
+           << " | geometry: " << stream_rect(output->geometry()) << " | scale: " << output->scale()
+           << " | hash: " << output->hash().toStdString() << "}";
+
+        dbg << QString::fromStdString(ss.str());
     } else {
-        dbg << "Disman::Output(NULL)";
+        dbg << "{null}";
     }
     return dbg;
 }
