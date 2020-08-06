@@ -377,7 +377,6 @@ void Output::setReplicationSource(int source)
 
 void Output::setEdid(const QByteArray& rawData)
 {
-    Q_ASSERT(d->edid.isNull());
     d->edid.reset(new Edid(rawData));
 }
 
