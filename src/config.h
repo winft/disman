@@ -203,6 +203,14 @@ public:
      */
     void setTabletModeEngaged(bool engaged);
 
+    /**
+     * Returns the Output @param output replicates if @param output is a replica, otherwise null.
+     *
+     * @param output to find replication source for
+     * @return replication source or null
+     */
+    OutputPtr replication_source(OutputPtr const& output);
+
 Q_SIGNALS:
     void outputAdded(const Disman::OutputPtr& output);
     void outputRemoved(int outputId);

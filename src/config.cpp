@@ -340,6 +340,18 @@ void Config::setPrimaryOutput(const OutputPtr& newPrimary)
     Q_EMIT primaryOutputChanged(newPrimary);
 }
 
+OutputPtr Config::replication_source(OutputPtr const& output)
+{
+    if (auto source_id = output->replicationSource()) {
+        for (auto const& output : d->outputs) {
+            if (output->id() == source_id) {
+                return output;
+            }
+        }
+    }
+    return nullptr;
+}
+
 void Config::addOutput(const OutputPtr& output)
 {
     d->outputs.insert(output->id(), output);
