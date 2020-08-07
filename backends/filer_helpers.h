@@ -32,6 +32,10 @@ namespace Disman::Filer_helpers
 static void read_file(QFileInfo const& file_info, QVariantMap& info)
 {
     QFile file(file_info.filePath());
+    if (!file.exists()) {
+        return;
+    }
+
     if (file.open(QIODevice::ReadOnly)) {
         // This might not be reached, bus this is ok. The control file will
         // eventually be created on first write later on.
