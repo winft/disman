@@ -29,22 +29,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace Disman::Filer_helpers
 {
 
-static void read_file(QFileInfo const& file_info, QVariantMap& info)
+static bool read_file(QFileInfo const& file_info, QVariantMap& info)
 {
     QFile file(file_info.filePath());
     if (!file.exists()) {
-        return;
+        return false;
     }
 
-    if (file.open(QIODevice::ReadOnly)) {
-        // This might not be reached, bus this is ok. The control file will
-        // eventually be created on first write later on.
-        QJsonDocument parser;
-        info = parser.fromJson(file.readAll()).toVariant().toMap();
-    } else {
+    if (!file.open(QIODevice::ReadOnly)) {
         qCWarning(DISMAN_BACKEND) << "Failed to open config control file for reading."
                                   << file.errorString();
+        return false;
     }
+
+    QJsonDocument parser;
+    info = parser.fromJson(file.readAll()).toVariant().toMap();
+    return true;
 }
 
 static QFileInfo file_info(std::string const& dir_path, QString const& hash)

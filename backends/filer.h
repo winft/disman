@@ -48,7 +48,7 @@ public:
         m_dir_path = QString(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
                              % QStringLiteral("/disman/control/"))
                          .toStdString();
-        read_file();
+        m_read_success = read_file();
 
         // As global outputs are indexed by a hash of their edid, which is not unique,
         // to be able to tell apart multiple identical outputs, these need special treatment
@@ -69,7 +69,7 @@ public:
         }
     }
 
-    void get_values(ConfigPtr& config)
+    bool get_values(ConfigPtr& config)
     {
         auto outputs = config->outputs();
 
@@ -114,6 +114,8 @@ public:
                 }
             }
         }
+
+        return m_read_success;
     }
 
     void set_values(ConfigPtr const& config)
@@ -384,9 +386,9 @@ public:
         return Filer_helpers::file_info(m_dir_path + "configs/", m_config->connectedOutputsHash());
     }
 
-    void read_file()
+    bool read_file()
     {
-        Filer_helpers::read_file(file_info(), m_info);
+        return Filer_helpers::read_file(file_info(), m_info);
     }
 
     bool write(ConfigPtr const& config)
@@ -499,6 +501,7 @@ private:
 
     std::string m_dir_path;
     QVariantMap m_info;
+    bool m_read_success{false};
 };
 
 }

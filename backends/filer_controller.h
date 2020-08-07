@@ -40,7 +40,21 @@ public:
     explicit Filer_controller(QObject* parent = nullptr);
     ~Filer_controller() override;
 
-    void read(ConfigPtr& config);
+    /**
+     * Read in currently stored configuration in file on disk. If no configuration control file was
+     * found false is returned but the outputs might still be adapted to global output presets.
+     *
+     * @param config the object to save the configuration in
+     * @return true when a configuration file was found, otherwise false
+     */
+    bool read(ConfigPtr& config);
+
+    /**
+     * Write @param config to file on disk.
+     *
+     * @param config provides configuration data to write
+     * @return true if write successful, otherwise false
+     */
     bool write(ConfigPtr const& config);
 
 private:

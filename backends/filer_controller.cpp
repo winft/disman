@@ -30,7 +30,7 @@ Filer_controller::Filer_controller(QObject* parent)
 
 Filer_controller::~Filer_controller() = default;
 
-void Filer_controller::read(ConfigPtr& config)
+bool Filer_controller::read(ConfigPtr& config)
 {
     if (m_filer) {
         if (m_filer->config()->connectedOutputsHash() != config->connectedOutputsHash()) {
@@ -41,7 +41,7 @@ void Filer_controller::read(ConfigPtr& config)
         reset_filer(config);
     }
 
-    m_filer->get_values(config);
+    return m_filer->get_values(config);
 }
 
 bool Filer_controller::write(ConfigPtr const& config)
