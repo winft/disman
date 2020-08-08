@@ -49,6 +49,13 @@ class DISMAN_EXPORT Config : public QObject
     Q_PROPERTY(OutputList outputs READ outputs)
 
 public:
+    enum class Origin {
+        unknown,
+        file,
+        generated,
+        interactive,
+    };
+
     enum class ValidityFlag {
         None = 0x0,
         RequireAtLeastOneEnabledScreen = 0x1,
@@ -109,6 +116,7 @@ public:
      * whatever you need.
      */
     explicit Config();
+    explicit Config(Origin origin);
     ~Config() override;
 
     /**
@@ -129,6 +137,9 @@ public:
      * @since 5.15
      */
     QString connectedOutputsHash() const;
+
+    Origin origin() const;
+    void set_origin(Origin origin);
 
     ScreenPtr screen() const;
     void setScreen(const ScreenPtr& screen);

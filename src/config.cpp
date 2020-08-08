@@ -33,12 +33,13 @@ class Q_DECL_HIDDEN Config::Private : public QObject
 {
     Q_OBJECT
 public:
-    Private(Config* parent)
+    Private(Config* parent, Origin origin)
         : QObject(parent)
         , valid(true)
         , supportedFeatures(Config::Feature::None)
         , tabletModeAvailable(false)
         , tabletModeEngaged(false)
+        , origin{origin}
         , q(parent)
     {
     }
@@ -94,6 +95,7 @@ public:
     Features supportedFeatures;
     bool tabletModeAvailable;
     bool tabletModeEngaged;
+    Origin origin;
 
 private:
     Config* q;
@@ -201,8 +203,13 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
 }
 
 Config::Config()
+    : Config(Origin::unknown)
+{
+}
+
+Config::Config(Origin origin)
     : QObject(nullptr)
-    , d(new Private(this))
+    , d(new Private(this, origin))
 {
 }
 
@@ -213,7 +220,7 @@ Config::~Config()
 
 ConfigPtr Config::clone() const
 {
-    ConfigPtr newConfig(new Config());
+    ConfigPtr newConfig(new Config(origin()));
     newConfig->d->screen = d->screen->clone();
     for (const OutputPtr& ourOutput : d->outputs) {
         newConfig->addOutput(ourOutput->clone());
@@ -238,6 +245,16 @@ QString Config::connectedOutputsHash() const
     const auto hash = QCryptographicHash::hash(hashedOutputs.join(QString()).toLatin1(),
                                                QCryptographicHash::Md5);
     return QString::fromLatin1(hash.toHex());
+}
+
+Config::Origin Config::origin() const
+{
+    return d->origin;
+}
+
+void Config::set_origin(Origin origin)
+{
+    d->origin = origin;
 }
 
 ScreenPtr Config::screen() const

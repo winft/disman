@@ -41,7 +41,11 @@ bool Filer_controller::read(ConfigPtr& config)
         reset_filer(config);
     }
 
-    return m_filer->get_values(config);
+    auto const success = m_filer->get_values(config);
+    if (success) {
+        config->set_origin(Config::Origin::file);
+    }
+    return success;
 }
 
 bool Filer_controller::write(ConfigPtr const& config)

@@ -63,6 +63,7 @@ QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr& config)
         return obj;
     }
 
+    obj[QLatin1String("origin")] = static_cast<int>(config->origin());
     obj[QLatin1String("features")] = static_cast<int>(config->supportedFeatures());
 
     QJsonArray outputs;
@@ -234,7 +235,19 @@ QSizeF ConfigSerializer::deserializeSizeF(const QDBusArgument& arg)
 
 ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap& map)
 {
-    ConfigPtr config(new Config);
+    auto origin = static_cast<Config::Origin>(
+        map.value(QStringLiteral("origin"), static_cast<int>(Config::Origin::unknown)).toInt());
+    switch (origin) {
+    case Config::Origin::unknown:
+    case Config::Origin::generated:
+    case Config::Origin::file:
+        break;
+    default:
+        qCWarning(DISMAN) << "Deserialized config without valid origin value.";
+        origin = Config::Origin::unknown;
+    }
+
+    ConfigPtr config(new Config(origin));
 
     if (map.contains(QLatin1String("features"))) {
         config->setSupportedFeatures(
