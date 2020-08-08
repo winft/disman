@@ -325,6 +325,10 @@ QRectF Output::geometry() const
 {
     auto geo = QRectF(d->position, QSizeF());
 
+    if (d->enforced_geometry.isValid()) {
+        return d->enforced_geometry;
+    }
+
     auto const mode = auto_mode();
     if (!mode) {
         return geo;
@@ -341,6 +345,11 @@ QRectF Output::geometry() const
 
     geo.setSize(size / d->scale);
     return geo;
+}
+
+void Output::force_geometry(QRectF const& geo)
+{
+    d->enforced_geometry = geo;
 }
 
 QPointF Output::position() const
@@ -382,6 +391,10 @@ int Output::replicationSource() const
 void Output::setReplicationSource(int source)
 {
     d->replicationSource = source;
+
+    // Needs to be unset in case we run in-process. That value is not meant for consumption by
+    // the frontend anyway.
+    d->enforced_geometry = QRectF();
 }
 
 void Output::setEdid(const QByteArray& rawData)

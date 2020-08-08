@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "output.h"
 
+#include <QRectF>
 #include <QScopedPointer>
 #include <QStringList>
 
@@ -98,6 +99,7 @@ public:
     QStringList preferredModes;
     QSize sizeMm;
     QPointF position;
+    QRectF enforced_geometry;
     Rotation rotation;
     qreal scale;
     bool enabled;

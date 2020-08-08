@@ -244,6 +244,14 @@ public:
      */
     QRectF geometry() const;
 
+    /**
+     * Force a certain geometry. This function is meant to be used by the backend. Values written
+     * to it by frontend clients have no guarantee to be effective and might corrupt the config.
+     *
+     * @param geo to force
+     */
+    void force_geometry(QRectF const& geo);
+
     QPointF position() const;
     void setPosition(const QPointF& position);
 

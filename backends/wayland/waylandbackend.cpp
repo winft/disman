@@ -141,6 +141,15 @@ void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
         return;
     }
     m_filer_controller->write(newconfig);
+
+    auto outputs = newconfig->outputs();
+    for (auto output : outputs) {
+        if (auto source_id = output->replicationSource()) {
+            auto source = newconfig->output(source_id);
+            output->setPosition(source->position());
+            output->force_geometry(source->geometry());
+        }
+    }
     m_interface->applyConfig(newconfig);
 }
 
