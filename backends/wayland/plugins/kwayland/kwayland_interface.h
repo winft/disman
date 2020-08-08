@@ -59,7 +59,7 @@ public:
 
     QMap<int, WaylandOutput*> outputMap() const override;
 
-    void applyConfig(const Disman::ConfigPtr& newConfig) override;
+    bool applyConfig(const Disman::ConfigPtr& newConfig) override;
     void updateConfig(Disman::ConfigPtr& config) override;
 
 protected:

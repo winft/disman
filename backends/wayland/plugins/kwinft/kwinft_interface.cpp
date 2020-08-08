@@ -199,7 +199,7 @@ void KwinftInterface::tryPendingConfig()
     m_dismanPendingConfig = nullptr;
 }
 
-void KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
+bool KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
     using namespace Wrapland::Client;
 
@@ -212,7 +212,7 @@ void KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     if (signalsBlocked()) {
         /* Last apply still pending, remember new changes and apply afterwards */
         m_dismanPendingConfig = newConfig;
-        return;
+        return false;
     }
 
     for (const auto& output : newConfig->outputs()) {
@@ -220,7 +220,7 @@ void KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     }
 
     if (!changed) {
-        return;
+        return false;
     }
 
     // We now block changes in order to compress events while the compositor is doing its thing
@@ -242,4 +242,5 @@ void KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     // Now block signals and ask the compositor to apply the changes.
     blockSignals();
     wlConfig->apply();
+    return true;
 }

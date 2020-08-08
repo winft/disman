@@ -46,7 +46,7 @@ public:
     // Compositor side names as keys
     virtual QMap<int, WaylandOutput*> outputMap() const = 0;
 
-    virtual void applyConfig(const Disman::ConfigPtr& newConfig);
+    virtual bool applyConfig(const Disman::ConfigPtr& newConfig) = 0;
     virtual void updateConfig(Disman::ConfigPtr& config) = 0;
 
 Q_SIGNALS:

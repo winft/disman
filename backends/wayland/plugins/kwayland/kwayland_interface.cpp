@@ -202,7 +202,7 @@ void KWaylandInterface::tryPendingConfig()
     m_dismanPendingConfig = nullptr;
 }
 
-void KWaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
+bool KWaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
     using namespace KWayland::Client;
 
@@ -213,7 +213,7 @@ void KWaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     if (signalsBlocked()) {
         /* Last apply still pending, remember new changes and apply afterwards */
         m_dismanPendingConfig = newConfig;
-        return;
+        return false;
     }
 
     for (const auto& output : newConfig->outputs()) {
@@ -221,7 +221,7 @@ void KWaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     }
 
     if (!changed) {
-        return;
+        return false;
     }
 
     // We now block changes in order to compress events while the compositor is doing its thing
@@ -243,4 +243,5 @@ void KWaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     // Now block signals and ask the compositor to apply the changes.
     blockSignals();
     wlConfig->apply();
+    return true;
 }
