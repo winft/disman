@@ -73,6 +73,8 @@ testWaylandBackend::testWaylandBackend(QObject* parent)
 {
     qputenv("DISMAN_BACKEND_INPROCESS", "1");
     qputenv("DISMAN_LOGGING", "false");
+    QStandardPaths::setTestModeEnabled(true);
+
     m_server = new WaylandTestServer(this);
     m_server->setConfig(QLatin1String(TEST_DATA) + QLatin1String("multipleoutput.json"));
 }
@@ -96,6 +98,12 @@ void testWaylandBackend::cleanup()
 {
     Disman::BackendManager::instance()->shutdownBackend();
     m_server->stop();
+
+    // Make sure we did not accidentally unset test mode prior and delete our user configuration.
+    QStandardPaths::setTestModeEnabled(true);
+    QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+        % QStringLiteral("/disman/");
+    QVERIFY(QDir(path).removeRecursively());
 }
 
 void testWaylandBackend::loadConfig()
