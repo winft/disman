@@ -11,6 +11,7 @@ set(disman_SRCS
     setconfigoperation.cpp
     configmonitor.cpp
     configserializer.cpp
+    generator.cpp
     screen.cpp
     output.cpp
     edid.cpp
@@ -65,6 +66,7 @@ ecm_generate_headers(Disman_HEADERS
         Config
         ConfigMonitor
         ConfigOperation
+        Generator
         GetConfigOperation
         SetConfigOperation
         Types
