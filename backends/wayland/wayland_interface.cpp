@@ -120,8 +120,3 @@ bool WaylandInterface::isInitialized() const
 {
     return !m_blockSignals && m_initializingOutputs.isEmpty();
 }
-
-void WaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
-{
-    Q_UNUSED(newConfig)
-}

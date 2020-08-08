@@ -106,8 +106,7 @@ void TestKWaylandConfig::changeConfig()
 
     // The first output is currently disabled, let's try to enable it
     auto output = config->outputs().first();
-    QVERIFY(output->isEnabled() == false);
-    output->setEnabled(true);
+    QVERIFY(output->isEnabled());
     output->set_mode(output->mode(QStringLiteral("76")));
 
     auto output2 = config->outputs()[2]; // is this id stable enough?
@@ -299,6 +298,7 @@ void TestKWaylandConfig::testApplyOnPending()
     /* Apply next config */
 
     auto output2 = config2->outputs()[2]; // is this id stable enough?
+
     QCOMPARE(output2->scale(), 2.0);
     output2->setScale(3);
 
@@ -318,6 +318,7 @@ void TestKWaylandConfig::testApplyOnPending()
     QVERIFY(configSpy.wait());
     // check if the server changed
     QCOMPARE(serverSpy.count(), 2);
+
     QCOMPARE(configSpy.count(), 2);
     QCOMPARE(output2->scale(), 3.0);
 }

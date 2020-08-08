@@ -75,9 +75,11 @@ private:
     void takeInterface(const PendingInterface& pending);
     void rejectInterface(const PendingInterface& pending);
 
+    bool set_config_impl(Disman::ConfigPtr const& config);
+
     std::unique_ptr<Filer_controller> m_filer_controller;
 
-    Disman::ConfigPtr m_dismanConfig;
+    Disman::ConfigPtr m_config{nullptr};
     std::unique_ptr<WaylandScreen> m_screen;
     QPointer<WaylandInterface> m_interface;
     QThread* m_thread{nullptr};

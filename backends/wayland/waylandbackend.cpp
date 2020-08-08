@@ -30,6 +30,7 @@
 
 #include <config.h>
 #include <configmonitor.h>
+#include <generator.h>
 #include <mode.h>
 
 #include <KPluginLoader>
@@ -140,17 +141,22 @@ void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
     if (!newconfig) {
         return;
     }
-    m_filer_controller->write(newconfig);
+    set_config_impl(newconfig);
+}
 
-    auto outputs = newconfig->outputs();
+bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
+{
+    m_filer_controller->write(config);
+
+    auto outputs = config->outputs();
     for (auto output : outputs) {
         if (auto source_id = output->replicationSource()) {
-            auto source = newconfig->output(source_id);
+            auto source = config->output(source_id);
             output->setPosition(source->position());
             output->force_geometry(source->geometry());
         }
     }
-    m_interface->applyConfig(newconfig);
+    return m_interface->applyConfig(config);
 }
 
 QByteArray WaylandBackend::edid(int outputId) const
@@ -244,7 +250,6 @@ void WaylandBackend::queryInterface(KPluginMetaData* plugin)
         m_pendingInterfaces.clear();
 
         takeInterface(pending);
-        m_syncLoop.quit();
     });
 
     pending.interface->initConnection(pending.thread);
@@ -255,7 +260,32 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
     m_interface = pending.interface;
     m_thread = pending.thread;
     connect(m_interface, &WaylandInterface::configChanged, this, [this] {
-        Q_EMIT configChanged(config());
+        auto cfg = config();
+        if (!m_config || m_config->connectedOutputsHash() != cfg->connectedOutputsHash()) {
+            qCDebug(DISMAN_WAYLAND) << "Config with new output pattern received:" << cfg;
+
+            if (cfg->origin() == Config::Origin::unknown) {
+                qCDebug(DISMAN_WAYLAND)
+                    << "Config received that is unknown. Creating an optimized config now.";
+                Generator generator(cfg, m_config);
+                generator.optimize();
+                cfg = generator.config();
+            } else {
+                // We set the windowing system to our saved values. They were overriden before so
+                // re-read them.
+                m_filer_controller->read(cfg);
+            }
+
+            m_config = cfg;
+
+            if (set_config_impl(cfg)) {
+                qCDebug(DISMAN_WAYLAND) << "Config for new output pattern sent.";
+                return;
+            }
+        }
+
+        m_syncLoop.quit();
+        Q_EMIT configChanged(cfg);
     });
 
     setScreenOutputs();
