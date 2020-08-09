@@ -15,6 +15,23 @@ macro(DISMAN_ADD_TEST)
     endforeach(_testname)
 endmacro(DISMAN_ADD_TEST)
 
+macro(DISMAN_ADD_TEST2)
+    foreach(_testname ${ARGN})
+        set(test_SRCS ${_testname}.cpp ${DISMAN_WAYLAND_SRCS})
+        qt5_add_dbus_interface(test_SRCS
+            ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml fakebackendinterface)
+        add_executable(test-${_testname} ${test_SRCS})
+        target_link_libraries(test-${_testname}
+            Qt5::Core Qt5::Gui Qt5::Test Qt5::DBus
+            Disman ${DISMAN_WAYLAND_LIBS})
+        add_test(NAME disman-test-${_testname}
+                 COMMAND dbus-launch $<TARGET_FILE:test-${_testname}>
+        )
+        ecm_mark_as_test(test-${_testname})
+    endforeach(_testname)
+endmacro(DISMAN_ADD_TEST2)
+
+disman_add_test2(generator)
 disman_add_test(testscreenconfig)
 disman_add_test(testqscreenbackend)
 disman_add_test(testconfigserializer)
