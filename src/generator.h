@@ -37,7 +37,9 @@ public:
     };
 
     explicit Generator(ConfigPtr const& config);
+    Generator(ConfigPtr const& config, ConfigPtr const& predecessor);
 
+    void set_derived();
     void set_validities(Config::ValidityFlags validities);
 
     ConfigPtr config() const;
@@ -47,9 +49,9 @@ public:
     bool extend(OutputPtr const& first, Extend_direction direction);
     bool replicate();
 
-    OutputPtr primary() const;
+    OutputPtr primary(OutputList const& exclusions = OutputList()) const;
     OutputPtr embedded() const;
-    OutputPtr biggest() const;
+    OutputPtr biggest(OutputList const& exclusions = OutputList()) const;
 
     double best_scale(OutputPtr const& output);
 
@@ -59,17 +61,34 @@ private:
 
     ConfigPtr optimize_impl();
 
-    OutputPtr primary_impl(OutputList const& outputs) const;
-    OutputPtr embedded_impl(OutputList const& outputs) const;
-    OutputPtr biggest_impl(OutputList const& outputs, bool only_enabled) const;
-
     void single_output(ConfigPtr const& config);
+
     void extend_impl(ConfigPtr const& config, OutputPtr const& first, Extend_direction direction);
+    void
+    extend_derived(ConfigPtr const& config, OutputPtr const& first, Extend_direction direction);
+    void line_up(OutputPtr const& first,
+                 OutputList const& old_outputs,
+                 OutputList const& new_outputs,
+                 Extend_direction direction);
+
     void replicate_impl(ConfigPtr const& config);
+    void replicate_derived(ConfigPtr const& config, OutputPtr const& source);
 
     ConfigPtr multi_output_fallback(ConfigPtr const& config);
 
+    OutputPtr primary_impl(OutputList const& outputs, OutputList const& exclusions) const;
+    OutputPtr embedded_impl(OutputList const& outputs, OutputList const& exclusions) const;
+    OutputPtr
+    biggest_impl(OutputList const& outputs, bool only_enabled, OutputList const& exclusions) const;
+
+    void get_outputs_division(OutputPtr const& first,
+                              const ConfigPtr& config,
+                              OutputList& old_outputs,
+                              OutputList& new_outputs);
+
     ConfigPtr m_config;
+    ConfigPtr m_predecessor_config;
+    bool m_derived{false};
     Config::ValidityFlags m_validities;
 };
 

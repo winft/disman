@@ -28,8 +28,32 @@ namespace Disman
 
 Generator::Generator(ConfigPtr const& config)
     : m_config{config->clone()}
+    , m_predecessor_config{config}
 {
     prepare_config();
+}
+
+Generator::Generator(ConfigPtr const& config, ConfigPtr const& predecessor)
+    : m_config{config->clone()}
+    , m_predecessor_config{predecessor}
+{
+    prepare_config();
+    set_derived();
+}
+
+void Generator::set_derived()
+{
+    if (!m_predecessor_config) {
+        return;
+    }
+
+    m_derived = true;
+
+    for (auto output : m_config->outputs()) {
+        if (auto predecessor_output = m_predecessor_config->output(output->id())) {
+            output->apply(predecessor_output);
+        }
+    }
 }
 
 void Generator::prepare_config()
@@ -188,26 +212,98 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    auto start_output = first ? first : primary_impl(outputs);
-    assert(start_output);
+    auto start_output = first ? first : primary_impl(outputs, OutputList());
+    if (!start_output) {
+        qCDebug(DISMAN) << "No displays enabled. Nothing to generate.";
+        return;
+    }
 
-    start_output->setEnabled(true);
-    start_output->setPrimary(true);
-    start_output->setPosition(QPointF(0, 0));
+    if (m_derived) {
+        extend_derived(config, start_output, direction);
+        return;
+    }
 
-    double globalWidth = start_output->geometry().width();
+    line_up(start_output, OutputList(), outputs, direction);
+}
 
-    for (auto& output : outputs) {
-        if (output == start_output) {
+void Generator::extend_derived(ConfigPtr const& config,
+                               OutputPtr const& first,
+                               Extend_direction direction)
+{
+    OutputList old_outputs;
+    OutputList new_outputs;
+
+    get_outputs_division(first, config, old_outputs, new_outputs);
+    line_up(first, old_outputs, new_outputs, direction);
+}
+
+void Generator::get_outputs_division(OutputPtr const& first,
+                                     ConfigPtr const& config,
+                                     OutputList& old_outputs,
+                                     OutputList& new_outputs)
+{
+    OutputPtr recent_output;
+
+    for (auto output : config->outputs()) {
+        if (output == first) {
             continue;
         }
-        output->setEnabled(true);
-        output->setPrimary(false);
-        output->setPosition(QPointF(globalWidth, 0));
+        if (m_predecessor_config->output(output->id())) {
+            old_outputs[output->id()] = output;
+        } else {
+            new_outputs[output->id()] = output;
+        }
+        if (!recent_output || recent_output->id() < output->id()) {
+            recent_output = output;
+        }
+    }
+
+    if (!new_outputs.size()) {
+        // If we have no new outputs we assume the last one added (not the one designated as being
+        // first) should be extended in the given direction.
+        new_outputs[recent_output->id()] = recent_output;
+        old_outputs.remove(recent_output->id());
+    }
+}
+
+void Generator::line_up(OutputPtr const& first,
+                        OutputList const& old_outputs,
+                        OutputList const& new_outputs,
+                        Extend_direction direction)
+{
+    first->setPrimary(true);
+    first->setPosition(QPointF(0, 0));
+
+    double globalWidth
+        = direction == Extend_direction::right ? first->geometry().width() : first->position().x();
+
+    for (auto& output : old_outputs) {
+        if (direction == Extend_direction::left) {
+            auto const left = output->position().x();
+            if (left < globalWidth) {
+                globalWidth = left;
+            }
+        } else if (direction == Extend_direction::right) {
+            auto const right = output->position().x() + output->geometry().width();
+            if (right > globalWidth) {
+                globalWidth = right;
+            }
+        } else {
+            // We only have two directions at the moment.
+            assert(false);
+        }
+    }
+
+    for (auto& output : new_outputs) {
+        if (output->id() == first->id()) {
+            continue;
+        }
 
         if (direction == Extend_direction::left) {
             globalWidth -= output->geometry().width();
+            output->setPosition(QPointF(globalWidth, 0));
         } else if (direction == Extend_direction::right) {
+            output->setPosition(QPointF(globalWidth, 0));
             globalWidth += output->geometry().width();
         } else {
             // We only have two directions at the moment.
@@ -220,8 +316,13 @@ void Generator::replicate_impl(const ConfigPtr& config)
 {
     auto outputs = config->outputs();
 
-    auto source = primary_impl(outputs);
+    auto source = primary_impl(outputs, OutputList());
     source->setPrimary(true);
+
+    if (m_derived) {
+        replicate_derived(config, source);
+        return;
+    }
 
     qCDebug(DISMAN) << "Generate multi-output config by replicating" << source << "on"
                     << outputs.count() - 1 << "other outputs.";
@@ -230,6 +331,18 @@ void Generator::replicate_impl(const ConfigPtr& config)
         if (output == source) {
             continue;
         }
+        output->setReplicationSource(source->id());
+    }
+}
+
+void Generator::replicate_derived(ConfigPtr const& config, OutputPtr const& source)
+{
+    OutputList old_outputs;
+    OutputList new_outputs;
+
+    get_outputs_division(source, config, old_outputs, new_outputs);
+
+    for (auto output : new_outputs) {
         output->setReplicationSource(source->id());
     }
 }
@@ -259,46 +372,57 @@ bool Generator::check_config(ConfigPtr const& config)
     return true;
 }
 
-OutputPtr Generator::primary() const
+OutputPtr Generator::primary(OutputList const& exclusions) const
 {
-    return primary_impl(m_config->outputs());
+    return primary_impl(m_config->outputs(), exclusions);
 }
 
 OutputPtr Generator::embedded() const
 {
-    return embedded_impl(m_config->outputs());
+    return embedded_impl(m_config->outputs(), OutputList());
 }
 
-OutputPtr Generator::biggest() const
+OutputPtr Generator::biggest(OutputList const& exclusions) const
 {
-    return biggest_impl(m_config->outputs(), false);
+    return biggest_impl(m_config->outputs(), false, exclusions);
 }
 
-OutputPtr Generator::primary_impl(OutputList const& outputs) const
+OutputPtr Generator::primary_impl(OutputList const& outputs, OutputList const& exclusions) const
 {
+    if (auto output = m_config->primaryOutput()) {
+        if (m_derived && !exclusions.contains(output->id())) {
+            return output;
+        }
+    }
     // If one of the outputs is a embedded (panel) display, then we take this one as primary.
-    if (auto output = embedded_impl(outputs)) {
+    if (auto output = embedded_impl(outputs, exclusions)) {
         if (output->isEnabled()) {
             return output;
         }
     }
-    return biggest_impl(outputs, true);
+    return biggest_impl(outputs, true, exclusions);
 }
 
-OutputPtr Generator::embedded_impl(OutputList const& outputs) const
+OutputPtr Generator::embedded_impl(OutputList const& outputs, OutputList const& exclusions) const
 {
-    auto it = std::find_if(outputs.constBegin(), outputs.constEnd(), [](OutputPtr const& output) {
-        return output->type() == Output::Panel;
-    });
+    auto it = std::find_if(
+        outputs.constBegin(), outputs.constEnd(), [&exclusions](OutputPtr const& output) {
+            return output->type() == Output::Panel && !exclusions.contains(output->id());
+        });
     return it != outputs.constEnd() ? *it : OutputPtr();
 }
 
-OutputPtr Generator::biggest_impl(OutputList const& outputs, bool only_enabled) const
+OutputPtr Generator::biggest_impl(OutputList const& outputs,
+                                  bool only_enabled,
+                                  const OutputList& exclusions) const
 {
     auto max_area = 0;
     OutputPtr biggest;
 
     for (auto const& output : outputs) {
+        if (exclusions.contains(output->id())) {
+            continue;
+        }
         auto const mode = output->best_mode();
         if (!mode) {
             continue;
