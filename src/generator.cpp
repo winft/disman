@@ -169,15 +169,29 @@ double Generator::best_scale(OutputPtr const& output)
     if (output->sizeMm().height() <= 0) {
         return 1.0;
     }
+
     const auto mode = output->auto_mode();
     const qreal dpi = mode->size().height() / (output->sizeMm().height() / 25.4);
 
-    // If reported DPI is closer to two times normal DPI, followed by a sanity check of having the
-    // sort of vertical resolution you'd find in a high res screen.
-    if (dpi > 96 * 1.5 && mode->size().height() >= 1440) {
-        return 2.0;
+    // We see 150 DPI as a good standard. That corresponds to 1440p at 20" and 2160p/UHD at 30".
+    // This is smaller than usual but with high dpi screens this is often easily possible and
+    // otherwise we just don't scale at the moment.
+    auto scale_factor = dpi / 150;
+
+    // We only auto-scale displays up.
+    if (scale_factor < 1) {
+        return 1.;
     }
-    return 1.0;
+
+    // We only auto-scale with one digit.
+    scale_factor = static_cast<int>(scale_factor * 10 + 0.5) / 10.;
+
+    // And only up to maximal 3 times.
+    if (scale_factor > 3) {
+        return 3.;
+    }
+
+    return scale_factor;
 }
 
 void Generator::single_output(ConfigPtr const& config)
