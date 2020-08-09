@@ -74,9 +74,12 @@ private:
 
     static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
 
+    bool set_config_impl(Disman::ConfigPtr const& config);
+
     static xcb_screen_t* s_screen;
     static xcb_window_t s_rootWindow;
     static XRandRConfig* s_internalConfig;
+    Disman::ConfigPtr m_config{nullptr};
 
     static int s_randrBase;
     static int s_randrError;

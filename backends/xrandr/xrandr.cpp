@@ -29,6 +29,7 @@
 
 #include "config.h"
 #include "edid.h"
+#include "generator.h"
 #include "output.h"
 
 #include <QRect>
@@ -125,8 +126,29 @@ XRandR::XRandR()
         m_configChangeCompressor = new QTimer(this);
         m_configChangeCompressor->setSingleShot(true);
         m_configChangeCompressor->setInterval(500);
-        connect(m_configChangeCompressor, &QTimer::timeout, [&]() {
-            qCDebug(DISMAN_XRANDR) << "Emitting configChanged()";
+        connect(m_configChangeCompressor, &QTimer::timeout, [this]() {
+            auto cfg = config();
+            if (!m_config || m_config->connectedOutputsHash() != cfg->connectedOutputsHash()) {
+                qCDebug(DISMAN_XRANDR) << "Config with new output pattern received:" << cfg;
+
+                if (cfg->origin() == Config::Origin::unknown) {
+                    qCDebug(DISMAN_XRANDR)
+                        << "Config received that is unknown. Creating an optimized config now.";
+                    Generator generator(cfg, m_config);
+                    generator.optimize();
+                    cfg = generator.config();
+                } else {
+                    m_filer_controller->read(cfg);
+                }
+
+                m_config = cfg;
+
+                if (set_config_impl(cfg)) {
+                    qCDebug(DISMAN_XRANDR) << "Config for new output pattern sent.";
+                    m_configChangeCompressor->start();
+                    return;
+                }
+            }
             Q_EMIT configChanged(config());
         });
 
@@ -228,11 +250,13 @@ void XRandR::setConfig(const ConfigPtr& config)
     if (!config) {
         return;
     }
+    set_config_impl(config);
+}
 
-    qCDebug(DISMAN_XRANDR) << "XRandR::setConfig";
+bool XRandR::set_config_impl(Disman::ConfigPtr const& config)
+{
     m_filer_controller->write(config);
-    s_internalConfig->applyDismanConfig(config);
-    qCDebug(DISMAN_XRANDR) << "XRandR::setConfig done!";
+    return s_internalConfig->applyDismanConfig(config);
 }
 
 QByteArray XRandR::edid(int outputId) const
