@@ -137,7 +137,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
     return config;
 }
 
-void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
+bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
 {
     const Disman::OutputList dismanOutputs = config->outputs();
 
@@ -249,7 +249,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         || newScreenSize.height() > dismanScreen->maxSize().height()) {
         qCDebug(DISMAN_XRANDR) << "The new screen size is too big - requested: " << newScreenSize
                                << ", maximum: " << dismanScreen->maxSize();
-        return;
+        return false;
     }
 
     qCDebug(DISMAN_XRANDR) << "Needed CRTCs: " << neededCrtcs;
@@ -260,7 +260,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     if (neededCrtcs > screenResources->num_crtcs) {
         qCDebug(DISMAN_XRANDR) << "We need more CRTCs than we have available - requested: "
                                << neededCrtcs << ", available: " << screenResources->num_crtcs;
-        return;
+        return false;
     }
 
     qCDebug(DISMAN_XRANDR) << "Actions to perform:"
@@ -303,7 +303,7 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         if (newScreenSize != currentScreenSize) {
             setScreenSize(newScreenSize);
         }
-        return;
+        return false;
     }
 
     for (const Disman::OutputPtr& output : toDisable) {
@@ -347,6 +347,8 @@ void XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         }
         setScreenSize(newSize);
     }
+
+    return true;
 }
 
 void XRandRConfig::printConfig(const ConfigPtr& config) const

@@ -50,7 +50,7 @@ public:
     void removeOutput(xcb_randr_output_t id);
 
     Disman::ConfigPtr update_config(Disman::ConfigPtr& config) const;
-    void applyDismanConfig(const Disman::ConfigPtr& config);
+    bool applyDismanConfig(const Disman::ConfigPtr& config);
 
 private:
     QSize screenSize(const Disman::ConfigPtr& config) const;
