@@ -146,9 +146,10 @@ public:
 
     OutputPtr output(int outputId) const;
     OutputList outputs() const;
-    OutputList connectedOutputs() const;
+
     OutputPtr primaryOutput() const;
     void setPrimaryOutput(const OutputPtr& output);
+
     void addOutput(const OutputPtr& output);
     void removeOutput(int outputId);
     void setOutputs(const OutputList& outputs);

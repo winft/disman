@@ -236,11 +236,10 @@ ConfigPtr Config::clone() const
 QString Config::connectedOutputsHash() const
 {
     QStringList hashedOutputs;
-
-    const auto outputs = connectedOutputs();
-    for (const OutputPtr& output : outputs) {
+    for (OutputPtr const& output : d->outputs) {
         hashedOutputs << output->hash();
     }
+
     std::sort(hashedOutputs.begin(), hashedOutputs.end());
     const auto hash = QCryptographicHash::hash(hashedOutputs.join(QString()).toLatin1(),
                                                QCryptographicHash::Md5);
@@ -305,16 +304,6 @@ void Config::setTabletModeEngaged(bool engaged)
 OutputList Config::outputs() const
 {
     return d->outputs;
-}
-
-OutputList Config::connectedOutputs() const
-{
-    OutputList outputs;
-    Q_FOREACH (const OutputPtr& output, d->outputs) {
-        outputs.insert(output->id(), output);
-    }
-
-    return outputs;
 }
 
 OutputPtr Config::primaryOutput() const

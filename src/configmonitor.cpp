@@ -119,7 +119,7 @@ void ConfigMonitor::Private::backendConfigChanged(const QVariantMap& configMap)
         return;
     }
 
-    Q_FOREACH (OutputPtr output, newConfig->connectedOutputs()) {
+    for (auto const& output : newConfig->outputs()) {
         if (!output->edid()) {
             QDBusPendingReply<QByteArray> reply = mBackend->getEdid(output->id());
             mPendingEDIDRequests[newConfig].append(output->id());
