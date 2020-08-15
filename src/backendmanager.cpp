@@ -148,11 +148,11 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
             return env_select;
         }
 
+        if (!qgetenv("WAYLAND_DISPLAY").isEmpty()) {
+            return "wayland";
+        }
         if (QX11Info::isPlatformX11()) {
             return "randr";
-        }
-        if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
-            return "wayland";
         }
         return "qscreen";
     };
