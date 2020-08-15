@@ -126,46 +126,53 @@ BackendManager::~BackendManager()
     }
 }
 
-QFileInfo BackendManager::preferredBackend(const QString& backend)
+QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
 {
-    /** this is the logic to pick a backend, in order of priority
-     *
-     * - backend argument is used if not empty
-     * - env var DISMAN_BACKEND is considered
-     * - if platform is X11, the XRandR backend is picked
-     * - if platform is wayland, KWayland backend is picked
-     * - if neither is the case, QScreen backend is picked
-     * - the QScreen backend is also used as fallback
-     *
+    /**
+     * Logic to pick a backend. It does this in order of priority:
+     *   - pre_select argument is used if not empty,
+     *   - env var DISMAN_BACKEND is considered,
+     *   - if platform is X11, the XRandR backend is picked,
+     *   - if platform is wayland, Wayland backend is picked,
+     *   - if neither is the case, QScreen backend is picked,
+     *   - the QScreen backend is also used as fallback.
      */
-    QString backendFilter;
-    const auto env_disman_backend = QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
-    if (!backend.isEmpty()) {
-        backendFilter = backend;
-    } else if (!env_disman_backend.isEmpty()) {
-        backendFilter = env_disman_backend;
-    } else {
-        if (QX11Info::isPlatformX11()) {
-            backendFilter = QStringLiteral("randr");
-        } else if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
-            backendFilter = QStringLiteral("wayland");
-        } else {
-            backendFilter = QStringLiteral("qscreen");
+
+    auto env_select = qgetenv("DISMAN_BACKEND").toStdString();
+
+    auto get_selection = [&]() -> std::string {
+        if (pre_select.size()) {
+            return pre_select;
         }
-    }
+        if (env_select.size()) {
+            return env_select;
+        }
+
+        if (QX11Info::isPlatformX11()) {
+            return "randr";
+        }
+        if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
+            return "wayland";
+        }
+        return "qscreen";
+    };
+    auto const select = get_selection();
 
     QFileInfo fallback;
-    Q_FOREACH (const QFileInfo& f, listBackends()) {
+    for (auto const& file_info : listBackends()) {
         // Here's the part where we do the match case-insensitive
-        if (f.baseName().toLower() == QStringLiteral("%1").arg(backendFilter.toLower())) {
-            return f;
+        if (file_info.baseName().toLower()
+            == QStringLiteral("%1").arg(QString::fromStdString(select).toLower())) {
+            return file_info;
         }
-        if (f.baseName() == QLatin1String("qscreen")) {
-            fallback = f;
+        if (file_info.baseName() == QLatin1String("qscreen")) {
+            fallback = file_info;
         }
     }
-    //     qCWarning(DISMAN) << "No preferred backend found. DISMAN_BACKEND is set to " <<
-    //     env_disman_backend; qCWarning(DISMAN) << "falling back to " << fallback.fileName();
+    qCWarning(DISMAN) << "No preferred backend found. Env var DISMAN_BACKEND was"
+                      << (env_select.size() ? (std::string("set to:") + env_select).c_str()
+                                            : "not set.")
+                      << "Falling back to:" << fallback.fileName();
     return fallback;
 }
 
@@ -189,7 +196,7 @@ Disman::AbstractBackend* BackendManager::loadBackendPlugin(QPluginLoader* loader
                                                            const QString& name,
                                                            const QVariantMap& arguments)
 {
-    const auto finfo = preferredBackend(name);
+    const auto finfo = preferred_backend(name.toStdString());
     loader->setFileName(finfo.filePath());
     QObject* instance = loader->instance();
     if (!instance) {

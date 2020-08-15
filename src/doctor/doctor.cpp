@@ -170,7 +170,7 @@ void Doctor::showBackends() const
                                         : QStringLiteral("[logging disabled]"))
          << Qt::endl;
     auto backends = BackendManager::instance()->listBackends();
-    auto preferred = BackendManager::instance()->preferredBackend();
+    auto preferred = BackendManager::instance()->preferred_backend();
     cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << Qt::endl;
     cout << "Available Disman backends:" << Qt::endl;
     Q_FOREACH (const QFileInfo f, backends) {

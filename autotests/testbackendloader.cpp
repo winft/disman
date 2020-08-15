@@ -65,9 +65,9 @@ void TestBackendLoader::testPreferredBackend()
 {
     auto backends = BackendManager::instance()->listBackends();
     QVERIFY(!backends.isEmpty());
-    auto preferred = BackendManager::instance()->preferredBackend();
+    auto preferred = BackendManager::instance()->preferred_backend();
     QVERIFY(preferred.exists());
-    auto fake = BackendManager::instance()->preferredBackend(QStringLiteral("fake"));
+    auto fake = BackendManager::instance()->preferred_backend("fake");
     QVERIFY(fake.fileName().startsWith(QLatin1String("fake")));
 }
 
@@ -99,14 +99,14 @@ void TestBackendLoader::testEnv()
     QFETCH(QString, var);
     QFETCH(QString, backend);
     qputenv("DISMAN_BACKEND", var.toLocal8Bit());
-    auto preferred = BackendManager::instance()->preferredBackend();
+    auto preferred = BackendManager::instance()->preferred_backend();
     QVERIFY(preferred.fileName().startsWith(backend));
 }
 
 void TestBackendLoader::testFallback()
 {
     qputenv("DISMAN_BACKEND", "nonsense");
-    auto preferred = BackendManager::instance()->preferredBackend();
+    auto preferred = BackendManager::instance()->preferred_backend();
     QVERIFY(preferred.fileName().startsWith(QLatin1String("qscreen")));
 }
 

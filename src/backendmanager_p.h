@@ -34,6 +34,8 @@
 #include <QProcess>
 #include <QTimer>
 
+#include <string>
+
 #include "disman_export.h"
 #include "types.h"
 
@@ -61,7 +63,7 @@ public:
     /** Choose which backend to use
      *
      * This method uses a couple of heuristics to pick the backend to be loaded:
-     * - If the @p backend argument is specified and not empty it's used to filter the
+     * - If the @p pre_select argument is specified and not empty it's used to filter the
      *   available backend list
      * - If specified, the DISMAN_BACKEND env var is considered (case insensitive)
      * - Otherwise, the wayland backend is picked when the runtime platform is Wayland
@@ -73,7 +75,7 @@ public:
      * @return the backend plugin to load
      * @since 5.7
      */
-    static QFileInfo preferredBackend(const QString& backend = QString());
+    static QFileInfo preferred_backend(std::string const& pre_select = "");
 
     /** List installed backends
      * @return a list of installed backend plugins
