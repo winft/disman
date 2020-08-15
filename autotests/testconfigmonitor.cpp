@@ -54,7 +54,7 @@ private Q_SLOTS:
     void initTestCase()
     {
         qputenv("DISMAN_LOGGING", "false");
-        qputenv("DISMAN_BACKEND", "Fake");
+        qputenv("DISMAN_BACKEND", "fake");
         // This particular test is only useful for out of process operation, so enforce that
         qputenv("DISMAN_BACKEND_INPROCESS", "0");
         Disman::BackendManager::instance()->shutdownBackend();

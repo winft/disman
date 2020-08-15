@@ -50,7 +50,7 @@ private:
 void TestGenerator::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
 }
 
 void TestGenerator::cleanupTestCase()

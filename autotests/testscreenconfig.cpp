@@ -65,7 +65,7 @@ ConfigPtr testScreenConfig::getConfig()
 void testScreenConfig::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
 }
 
 void testScreenConfig::cleanupTestCase()

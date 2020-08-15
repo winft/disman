@@ -76,15 +76,8 @@ void TestBackendLoader::testEnv_data()
     QTest::addColumn<QString>("var");
     QTest::addColumn<QString>("backend");
 
-    QTest::newRow("all lower") << "wayland"
-                               << "wayland";
-    QTest::newRow("camel case") << "Wayland"
-                                << "wayland";
-    QTest::newRow("all upper") << "WAYLAND"
-                               << "wayland";
-    QTest::newRow("mixed") << "wAYlaND"
-                           << "wayland";
-
+    QTest::newRow("wayland") << "wayland"
+                             << "wayland";
     QTest::newRow("randr") << "randr"
                            << "randr";
     QTest::newRow("qscreen") << "qscreen"
