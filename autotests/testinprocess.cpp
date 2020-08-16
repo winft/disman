@@ -86,7 +86,7 @@ void TestInProcess::init()
 {
     qputenv("DISMAN_LOGGING", "false");
     // Make sure we do everything in-process
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     // Use Fake backend with one of the json configs
     qputenv("DISMAN_BACKEND", "fake");
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
@@ -101,7 +101,7 @@ void TestInProcess::cleanup()
 
 void TestInProcess::loadConfig()
 {
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     BackendManager::instance()->setMethod(BackendManager::InProcess);
 
     auto* op = new GetConfigOperation();
@@ -139,7 +139,7 @@ void TestInProcess::testModeSwitching()
         qDebug() << "TT xrandr out-of-process";
         // Load the xrandr backend out-of-process
         qputenv("DISMAN_BACKEND", "qscreen");
-        qputenv("DISMAN_BACKEND_INPROCESS", "0");
+        qputenv("DISMAN_IN_PROCESS", "0");
         BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
         auto xp = new GetConfigOperation();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
@@ -152,7 +152,7 @@ void TestInProcess::testModeSwitching()
 
     qDebug() << "TT fake in-process";
 
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     // Load the Fake backend in-process
     qputenv("DISMAN_BACKEND", "fake");
@@ -218,7 +218,7 @@ void TestInProcess::testBackendCaching()
 
     if (m_backendServiceInstalled) {
         // qputenv("DISMAN_BACKEND", "qscreen");
-        qputenv("DISMAN_BACKEND_INPROCESS", "0");
+        qputenv("DISMAN_IN_PROCESS", "0");
         BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
         int t_x_cold;

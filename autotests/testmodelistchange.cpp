@@ -53,7 +53,7 @@ private Q_SLOTS:
 
 ConfigPtr TestModeListChange::getConfig()
 {
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     auto* op = new GetConfigOperation();
     if (!op->exec()) {
         qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));

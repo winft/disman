@@ -47,7 +47,7 @@ Fake::Fake()
 {
     QLoggingCategory::setFilterRules(QStringLiteral("disman.fake.debug = true"));
 
-    if (qgetenv("DISMAN_BACKEND_INPROCESS") != QByteArray("1")) {
+    if (qgetenv("DISMAN_IN_PROCESS") != QByteArray("1")) {
         QTimer::singleShot(0, this, &Fake::delayedInit);
     }
 }

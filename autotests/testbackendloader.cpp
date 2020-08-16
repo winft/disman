@@ -47,7 +47,7 @@ TestBackendLoader::TestBackendLoader(QObject* parent)
     : QObject(parent)
 {
     qputenv("DISMAN_LOGGING", "false");
-    qputenv("DISMAN_BACKEND_INPROCESS", QByteArray());
+    qputenv("DISMAN_IN_PROCESS", QByteArray());
     qputenv("DISMAN_BACKEND", QByteArray());
 }
 

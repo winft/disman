@@ -60,7 +60,7 @@ void TestGenerator::cleanupTestCase()
 
 Disman::ConfigPtr TestGenerator::load_config(const QByteArray& file_name)
 {
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     auto path = "TEST_DATA=" TEST_DATA;
     qputenv("DISMAN_BACKEND_ARGS", path + file_name);
 

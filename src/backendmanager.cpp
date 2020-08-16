@@ -68,12 +68,12 @@ BackendManager::BackendManager()
     Log::instance();
     // Decide whether to run in, or out-of-process
 
-    // if DISMAN_BACKEND_INPROCESS is set explicitly, we respect that
-    const auto _inprocess = qgetenv("DISMAN_BACKEND_INPROCESS");
-    if (!_inprocess.isEmpty()) {
+    // if DISMAN_IN_PROCESS is set explicitly, we respect that
+    auto const in_process = qgetenv("DISMAN_IN_PROCESS");
+    if (!in_process.isEmpty()) {
 
         const QByteArrayList falses({QByteArray("0"), QByteArray("false")});
-        if (!falses.contains(_inprocess.toLower())) {
+        if (!falses.contains(in_process.toLower())) {
             mMethod = InProcess;
         } else {
             mMethod = OutOfProcess;

@@ -71,7 +71,7 @@ testWaylandBackend::testWaylandBackend(QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
 {
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     qputenv("DISMAN_LOGGING", "false");
     QStandardPaths::setTestModeEnabled(true);
 

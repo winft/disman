@@ -55,7 +55,7 @@ void testQScreenBackend::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
     qputenv("DISMAN_BACKEND", "qscreen");
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     Disman::BackendManager::instance()->shutdownBackend();
 
     m_backend = QString::fromLocal8Bit(qgetenv("DISMAN_BACKEND"));

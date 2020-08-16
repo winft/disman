@@ -156,10 +156,10 @@ void Doctor::showBackends() const
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
     cout << "  * DISMAN_BACKEND           : " << env_disman_backend << Qt::endl;
-    auto env_disman_backend_inprocess = (qgetenv("DISMAN_BACKEND_INPROCESS").isEmpty())
+    auto env_disman_backend_inprocess = (qgetenv("DISMAN_IN_PROCESS").isEmpty())
         ? QStringLiteral("[not set]")
-        : QString::fromUtf8(qgetenv("DISMAN_BACKEND_INPROCESS"));
-    cout << "  * DISMAN_BACKEND_INPROCESS : " << env_disman_backend_inprocess << Qt::endl;
+        : QString::fromUtf8(qgetenv("DISMAN_IN_PROCESS"));
+    cout << "  * DISMAN_IN_PROCESS : " << env_disman_backend_inprocess << Qt::endl;
     auto env_disman_logging = (qgetenv("DISMAN_LOGGING").isEmpty())
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_LOGGING"));
