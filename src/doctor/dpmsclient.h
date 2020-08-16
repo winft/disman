@@ -15,24 +15,24 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef DISMAN_DPMSCLIENT_H
 #define DISMAN_DPMSCLIENT_H
 
+#include "../config.h"
 #include <QCommandLineParser>
 #include <QObject>
-#include "../config.h"
 
-#include <KWayland/Client/registry.h>
 #include <KWayland/Client/dpms.h>
+#include <KWayland/Client/registry.h>
 
 class QThread;
 
 namespace KWayland
 {
-    namespace Client {
-        class ConnectionThread;
-    }
+namespace Client
+{
+class ConnectionThread;
+}
 }
 
 namespace Disman
@@ -43,7 +43,7 @@ class DpmsClient : public QObject
     Q_OBJECT
 
 public:
-    explicit DpmsClient(QObject *parent = nullptr);
+    explicit DpmsClient(QObject* parent = nullptr);
     ~DpmsClient() override;
 
     void connect();
@@ -60,9 +60,9 @@ private Q_SLOTS:
 
 private:
     void changeMode(KWayland::Client::Dpms::Mode mode);
-    QThread *m_thread;
-    KWayland::Client::ConnectionThread *m_connection = nullptr;
-    KWayland::Client::DpmsManager *m_dpmsManager = nullptr;
+    QThread* m_thread;
+    KWayland::Client::ConnectionThread* m_connection = nullptr;
+    KWayland::Client::DpmsManager* m_dpmsManager = nullptr;
     KWayland::Client::Registry m_registry;
     bool m_setOff = true;
     bool m_setOn = false;

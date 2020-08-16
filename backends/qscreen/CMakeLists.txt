@@ -7,6 +7,16 @@ set(qscreen_SRCS
     qscreenconfig.cpp
     qscreenscreen.cpp
     qscreenoutput.cpp
+
+    ../filer_controller.cpp
+    ../logging.cpp
+)
+
+ecm_qt_declare_logging_category(
+    qscreen_SRCS
+    HEADER qscreen_logging.h
+    IDENTIFIER DISMAN_QSCREEN
+    CATEGORY_NAME disman.backend.qscreen
 )
 
 add_library(qscreen MODULE ${qscreen_SRCS})

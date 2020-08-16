@@ -23,10 +23,17 @@
 #include <QLoggingCategory>
 #include <QSize>
 
-#include "../xcbwrapper.h"
+#include "xcbwrapper.h"
+
+#include <memory>
 
 class QRect;
 class QTimer;
+
+namespace Disman
+{
+class Filer_controller;
+}
 
 class XCBEventListener;
 class XRandRConfig;
@@ -36,49 +43,53 @@ class XRandR : public Disman::AbstractBackend
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.randr")
 
-    public:
-        explicit XRandR();
-        ~XRandR() override;
+public:
+    explicit XRandR();
+    ~XRandR() override;
 
-        QString name() const override;
-        QString serviceName() const override;
-        Disman::ConfigPtr config() const override;
-        void setConfig(const Disman::ConfigPtr &config) override;
-        bool isValid() const override;
-        QByteArray edid(int outputId) const override;
+    QString name() const override;
+    QString serviceName() const override;
+    Disman::ConfigPtr config() const override;
+    void setConfig(const Disman::ConfigPtr& config) override;
+    bool isValid() const override;
+    QByteArray edid(int outputId) const override;
 
-        static QByteArray outputEdid(xcb_randr_output_t outputId);
-        static xcb_randr_get_screen_resources_reply_t* screenResources();
-        static xcb_screen_t* screen();
-        static xcb_window_t rootWindow();
+    static QByteArray outputEdid(xcb_randr_output_t outputId);
+    static xcb_randr_get_screen_resources_reply_t* screenResources();
+    static xcb_screen_t* screen();
+    static xcb_window_t rootWindow();
 
-        static bool hasProperty(xcb_randr_output_t outputId, const QByteArray &name);
+    static bool hasProperty(xcb_randr_output_t outputId, const QByteArray& name);
 
-    private:
-        void outputChanged(xcb_randr_output_t output, xcb_randr_crtc_t crtc, xcb_randr_mode_t mode,
-                           xcb_randr_connection_t connection);
-        void crtcChanged(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode,
-                         xcb_randr_rotation_t rotation, const QRect &geom);
-        void screenChanged(xcb_randr_rotation_t rotation, const QSize &sizePx, const QSize &sizeMm);
+private:
+    void outputChanged(xcb_randr_output_t output,
+                       xcb_randr_crtc_t crtc,
+                       xcb_randr_mode_t mode,
+                       xcb_randr_connection_t connection);
+    void crtcChanged(xcb_randr_crtc_t crtc,
+                     xcb_randr_mode_t mode,
+                     xcb_randr_rotation_t rotation,
+                     const QRect& geom);
+    void screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& sizeMm);
 
-        static quint8* getXProperty(xcb_randr_output_t output,
-                                    xcb_atom_t atom,
-                                    size_t &len);
+    static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
 
-        static xcb_screen_t *s_screen;
-        static xcb_window_t s_rootWindow;
-        static XRandRConfig *s_internalConfig;
+    bool set_config_impl(Disman::ConfigPtr const& config);
 
-        static int s_randrBase;
-        static int s_randrError;
-        static bool s_monitorInitialized;
-        static bool s_has_1_3;
-        static bool s_xorgCacheInitialized;
+    static xcb_screen_t* s_screen;
+    static xcb_window_t s_rootWindow;
+    static XRandRConfig* s_internalConfig;
+    Disman::ConfigPtr m_config{nullptr};
 
-        XCBEventListener *m_x11Helper;
-        bool m_isValid;
+    static int s_randrBase;
+    static int s_randrError;
+    static bool s_monitorInitialized;
+    static bool s_has_1_3;
+    static bool s_xorgCacheInitialized;
 
-        QTimer *m_configChangeCompressor;
+    XCBEventListener* m_x11Helper;
+    bool m_isValid;
+
+    std::unique_ptr<Disman::Filer_controller> m_filer_controller;
+    QTimer* m_configChangeCompressor;
 };
-
-Q_DECLARE_LOGGING_CATEGORY(DISMAN_XRANDR)

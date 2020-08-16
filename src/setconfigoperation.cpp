@@ -16,19 +16,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include "setconfigoperation.h"
 
 #include "abstractbackend.h"
 #include "backendmanager_p.h"
-#include "configoperation_p.h"
 #include "config.h"
+#include "configoperation_p.h"
 #include "configserializer_p.h"
 #include "disman_debug.h"
 #include "output.h"
 
-#include <QDBusPendingCallWatcher>
 #include <QDBusPendingCall>
+#include <QDBusPendingCallWatcher>
 
 using namespace Disman;
 
@@ -40,10 +39,10 @@ class SetConfigOperationPrivate : public ConfigOperationPrivate
     Q_OBJECT
 
 public:
-    explicit SetConfigOperationPrivate(const Disman::ConfigPtr &config, ConfigOperation* qq);
+    explicit SetConfigOperationPrivate(const Disman::ConfigPtr& config, ConfigOperation* qq);
 
     void backendReady(org::kwinft::disman::backend* backend) override;
-    void onConfigSet(QDBusPendingCallWatcher *watcher);
+    void onConfigSet(QDBusPendingCallWatcher* watcher);
     void normalizeOutputPositions();
 
     Disman::ConfigPtr config;
@@ -54,7 +53,7 @@ private:
 
 }
 
-SetConfigOperationPrivate::SetConfigOperationPrivate(const ConfigPtr &config, ConfigOperation* qq)
+SetConfigOperationPrivate::SetConfigOperationPrivate(const ConfigPtr& config, ConfigOperation* qq)
     : ConfigOperationPrivate(qq)
     , config(config)
 {
@@ -79,12 +78,12 @@ void SetConfigOperationPrivate::backendReady(org::kwinft::disman::backend* backe
         return;
     }
 
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(backend->setConfig(map), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished,
-            this, &SetConfigOperationPrivate::onConfigSet);
+    QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(backend->setConfig(map), this);
+    connect(
+        watcher, &QDBusPendingCallWatcher::finished, this, &SetConfigOperationPrivate::onConfigSet);
 }
 
-void SetConfigOperationPrivate::onConfigSet(QDBusPendingCallWatcher *watcher)
+void SetConfigOperationPrivate::onConfigSet(QDBusPendingCallWatcher* watcher)
 {
     Q_Q(SetConfigOperation);
 
@@ -105,7 +104,7 @@ void SetConfigOperationPrivate::onConfigSet(QDBusPendingCallWatcher *watcher)
     q->emitResult();
 }
 
-SetConfigOperation::SetConfigOperation(const ConfigPtr &config, QObject* parent)
+SetConfigOperation::SetConfigOperation(const ConfigPtr& config, QObject* parent)
     : ConfigOperation(new SetConfigOperationPrivate(config, this), parent)
 {
 }
@@ -140,7 +139,7 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     }
     double offsetX = INT_MAX;
     double offsetY = INT_MAX;
-    Q_FOREACH (const Disman::OutputPtr &output, config->outputs()) {
+    Q_FOREACH (const Disman::OutputPtr& output, config->outputs()) {
         if (!output->isPositionable()) {
             continue;
         }
@@ -152,11 +151,12 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
         return;
     }
     qCDebug(DISMAN) << "Correcting output positions by:" << QPoint(offsetX, offsetY);
-    Q_FOREACH (const Disman::OutputPtr &output, config->outputs()) {
-        if (!output->isConnected() || !output->isEnabled()) {
+    Q_FOREACH (const Disman::OutputPtr& output, config->outputs()) {
+        if (!output->isEnabled()) {
             continue;
         }
-        auto newPos = QPointF(output->geometry().left() - offsetX, output->geometry().top() - offsetY);
+        auto newPos
+            = QPointF(output->geometry().left() - offsetX, output->geometry().top() - offsetY);
         qCDebug(DISMAN) << "Moved output from" << output->geometry().topLeft() << "to" << newPos;
         output->setPosition(newPos);
     }

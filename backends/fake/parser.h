@@ -15,35 +15,34 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef PARSER_H
 #define PARSER_H
 
 #include <QByteArray>
+#include <QPoint>
+#include <QRect>
+#include <QSize>
 #include <QString>
 #include <QVariant>
-#include <QSize>
-#include <QRect>
-#include <QPoint>
 
 #include "types.h"
 
 class Parser
 {
-    public:
-        static Disman::ConfigPtr fromJson(const QByteArray &data);
-        static Disman::ConfigPtr fromJson(const QString &path);
-        static bool validate(const QByteArray &data);
-        static bool validate(const QString &data);
+public:
+    static Disman::ConfigPtr fromJson(const QByteArray& data);
+    static Disman::ConfigPtr fromJson(const QString& path);
+    static bool validate(const QByteArray& data);
+    static bool validate(const QString& data);
 
-    private:
-        static void qvariant2qobject(const QVariantMap& variant, QObject* object);
-        static Disman::ScreenPtr screenFromJson(const QMap<QString, QVariant>& data);
-        static Disman::OutputPtr outputFromJson(QMap<QString, QVariant> data /* sic */);
-        static Disman::ModePtr modeFromJson(const QVariant& data);
-        static QSize sizeFromJson(const QVariant& data);
-        static QRect rectFromJson(const QVariant& data);
-        static QPoint pointFromJson(const QVariant& data);
+private:
+    static void qvariant2qobject(const QVariantMap& variant, QObject* object);
+    static Disman::ScreenPtr screenFromJson(const QMap<QString, QVariant>& data);
+    static Disman::OutputPtr outputFromJson(QMap<QString, QVariant> data /* sic */);
+    static Disman::ModePtr modeFromJson(const QVariant& data);
+    static QSize sizeFromJson(const QVariant& data);
+    static QRect rectFromJson(const QVariant& data);
+    static QPoint pointFromJson(const QVariant& data);
 };
 
-#endif //PARSER_H
+#endif

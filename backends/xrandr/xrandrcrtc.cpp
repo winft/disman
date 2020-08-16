@@ -20,12 +20,13 @@
  */
 #include "xrandrcrtc.h"
 
+#include "xcbwrapper.h"
 #include "xrandr.h"
 #include "xrandrconfig.h"
 
-#include "../xcbwrapper.h"
+#include "xrandr_logging.h"
 
-XRandRCrtc::XRandRCrtc(xcb_randr_crtc_t crtc, XRandRConfig *config)
+XRandRCrtc::XRandRCrtc(xcb_randr_crtc_t crtc, XRandRConfig* config)
     : QObject(config)
     , m_crtc(crtc)
     , m_mode(0)
@@ -70,8 +71,8 @@ bool XRandRCrtc::connectOutput(xcb_randr_output_t output)
     qCDebug(DISMAN_XRANDR) << "Connected output" << output << "to CRTC" << m_crtc;
 
     if (!m_possibleOutputs.contains(output)) {
-        qCDebug(DISMAN_XRANDR) << "Output" << output
-                                << "is not an allowed output for CRTC" << m_crtc;
+        qCDebug(DISMAN_XRANDR) << "Output" << output << "is not an allowed output for CRTC"
+                               << m_crtc;
         return false;
     }
 
@@ -103,27 +104,26 @@ void XRandRCrtc::update()
     m_mode = crtcInfo->mode;
 
     m_geometry = QRect(crtcInfo->x, crtcInfo->y, crtcInfo->width, crtcInfo->height);
-    m_rotation = (xcb_randr_rotation_t) crtcInfo->rotation;
+    m_rotation = (xcb_randr_rotation_t)crtcInfo->rotation;
 
     m_possibleOutputs.clear();
     m_possibleOutputs.reserve(crtcInfo->num_possible_outputs);
 
-    xcb_randr_output_t *possible = xcb_randr_get_crtc_info_possible(crtcInfo);
+    xcb_randr_output_t* possible = xcb_randr_get_crtc_info_possible(crtcInfo);
     for (int i = 0; i < crtcInfo->num_possible_outputs; ++i) {
         m_possibleOutputs.append(possible[i]);
     }
 
     m_outputs.clear();
-    xcb_randr_output_t *outputs = xcb_randr_get_crtc_info_outputs(crtcInfo);
+    xcb_randr_output_t* outputs = xcb_randr_get_crtc_info_outputs(crtcInfo);
     for (int i = 0; i < crtcInfo->num_outputs; ++i) {
         m_outputs.append(outputs[i]);
     }
 }
 
-void XRandRCrtc::update(xcb_randr_mode_t mode, xcb_randr_rotation_t rotation, const QRect &geom)
+void XRandRCrtc::update(xcb_randr_mode_t mode, xcb_randr_rotation_t rotation, const QRect& geom)
 {
     m_mode = mode;
     m_geometry = geom;
     m_rotation = rotation;
 }
-

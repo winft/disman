@@ -18,18 +18,23 @@
  *************************************************************************************/
 #include "xrandr.h"
 
+#include "xcbeventlistener.h"
+#include "xcbwrapper.h"
 #include "xrandrconfig.h"
 #include "xrandrscreen.h"
-#include "../xcbwrapper.h"
-#include "../xcbeventlistener.h"
+
+#include "xrandr_logging.h"
+
+#include "../filer_controller.h"
 
 #include "config.h"
 #include "edid.h"
+#include "generator.h"
 #include "output.h"
 
 #include <QRect>
-#include <QTimer>
 #include <QTime>
+#include <QTimer>
 
 #include <QX11Info>
 
@@ -43,8 +48,6 @@ bool XRandR::s_has_1_3 = false;
 bool XRandR::s_xorgCacheInitialized = false;
 
 using namespace Disman;
-
-Q_LOGGING_CATEGORY(DISMAN_XRANDR, "disman.xrandr")
 
 XRandR::XRandR()
     : Disman::AbstractBackend()
@@ -60,7 +63,7 @@ XRandR::XRandR()
 
     // Use our own connection to make sure that we won't mess up Qt's connection
     // if something goes wrong on our side.
-    xcb_generic_error_t *error = nullptr;
+    xcb_generic_error_t* error = nullptr;
     xcb_randr_query_version_reply_t* version;
     XCB::connection();
     version = xcb_randr_query_version_reply(XCB::connection(),
@@ -74,8 +77,8 @@ XRandR::XRandR()
         return;
     }
 
-    if ((version->major_version > 1) ||
-            ((version->major_version == 1) && (version->minor_version >= 2))) {
+    if ((version->major_version > 1)
+        || ((version->major_version == 1) && (version->minor_version >= 2))) {
         m_isValid = true;
     } else {
         XCB::closeConnection();
@@ -83,18 +86,20 @@ XRandR::XRandR()
         return;
     }
 
+    m_filer_controller.reset(new Filer_controller);
+
     if (s_screen == nullptr) {
         s_screen = XCB::screenOfDisplay(XCB::connection(), QX11Info::appScreen());
         s_rootWindow = s_screen->root;
 
         xcb_prefetch_extension_data(XCB::connection(), &xcb_randr_id);
-        auto  reply = xcb_get_extension_data(XCB::connection(), &xcb_randr_id);
+        auto reply = xcb_get_extension_data(XCB::connection(), &xcb_randr_id);
         s_randrBase = reply->first_event;
         s_randrError = reply->first_error;
     }
 
-    XRandR::s_has_1_3 = (version->major_version > 1 ||
-                        (version->major_version == 1 && version->minor_version >= 3));
+    XRandR::s_has_1_3 = (version->major_version > 1
+                         || (version->major_version == 1 && version->minor_version >= 3));
 
     if (s_internalConfig == nullptr) {
         s_internalConfig = new XRandRConfig();
@@ -102,24 +107,50 @@ XRandR::XRandR()
 
     if (!s_monitorInitialized) {
         m_x11Helper = new XCBEventListener();
-        connect(m_x11Helper, &XCBEventListener::outputChanged,
-                this, &XRandR::outputChanged,
+        connect(m_x11Helper,
+                &XCBEventListener::outputChanged,
+                this,
+                &XRandR::outputChanged,
                 Qt::QueuedConnection);
-        connect(m_x11Helper, &XCBEventListener::crtcChanged,
-                this, &XRandR::crtcChanged,
+        connect(m_x11Helper,
+                &XCBEventListener::crtcChanged,
+                this,
+                &XRandR::crtcChanged,
                 Qt::QueuedConnection);
-        connect(m_x11Helper, &XCBEventListener::screenChanged,
-                this, &XRandR::screenChanged,
+        connect(m_x11Helper,
+                &XCBEventListener::screenChanged,
+                this,
+                &XRandR::screenChanged,
                 Qt::QueuedConnection);
 
         m_configChangeCompressor = new QTimer(this);
         m_configChangeCompressor->setSingleShot(true);
         m_configChangeCompressor->setInterval(500);
-        connect(m_configChangeCompressor, &QTimer::timeout,
-                [&]() {
-                    qCDebug(DISMAN_XRANDR) << "Emitting configChanged()";
-                    Q_EMIT configChanged(config());
-                });
+        connect(m_configChangeCompressor, &QTimer::timeout, [this]() {
+            auto cfg = config();
+            if (!m_config || m_config->connectedOutputsHash() != cfg->connectedOutputsHash()) {
+                qCDebug(DISMAN_XRANDR) << "Config with new output pattern received:" << cfg;
+
+                if (cfg->origin() == Config::Origin::unknown) {
+                    qCDebug(DISMAN_XRANDR)
+                        << "Config received that is unknown. Creating an optimized config now.";
+                    Generator generator(cfg, m_config);
+                    generator.optimize();
+                    cfg = generator.config();
+                } else {
+                    m_filer_controller->read(cfg);
+                }
+
+                m_config = cfg;
+
+                if (set_config_impl(cfg)) {
+                    qCDebug(DISMAN_XRANDR) << "Config for new output pattern sent.";
+                    m_configChangeCompressor->start();
+                    return;
+                }
+            }
+            Q_EMIT configChanged(config());
+        });
 
         s_monitorInitialized = true;
     }
@@ -140,13 +171,14 @@ QString XRandR::serviceName() const
     return QStringLiteral("org.kde.Disman.Backend.XRandR");
 }
 
-
-void XRandR::outputChanged(xcb_randr_output_t output, xcb_randr_crtc_t crtc,
-                           xcb_randr_mode_t mode, xcb_randr_connection_t connection)
+void XRandR::outputChanged(xcb_randr_output_t output,
+                           xcb_randr_crtc_t crtc,
+                           xcb_randr_mode_t mode,
+                           xcb_randr_connection_t connection)
 {
     m_configChangeCompressor->start();
 
-    XRandROutput *xOutput = s_internalConfig->output(output);
+    XRandROutput* xOutput = s_internalConfig->output(output);
     if (!xOutput) {
         s_internalConfig->addNewOutput(output);
         return;
@@ -165,14 +197,16 @@ void XRandR::outputChanged(xcb_randr_output_t output, xcb_randr_crtc_t crtc,
 
     XCB::PrimaryOutput primary(XRandR::rootWindow());
     xOutput->update(crtc, mode, connection, (primary->output == output));
-    qCDebug(DISMAN_XRANDR) << "Output" << xOutput->id() << ": connected ="
-                            << xOutput->isConnected() << ", enabled =" << xOutput->isEnabled();
+    qCDebug(DISMAN_XRANDR) << "Output" << xOutput->id() << ": connected =" << xOutput->isConnected()
+                           << ", enabled =" << xOutput->isEnabled();
 }
 
-void XRandR::crtcChanged(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode,
-                         xcb_randr_rotation_t rotation, const QRect& geom)
+void XRandR::crtcChanged(xcb_randr_crtc_t crtc,
+                         xcb_randr_mode_t mode,
+                         xcb_randr_rotation_t rotation,
+                         const QRect& geom)
 {
-    XRandRCrtc *xCrtc = s_internalConfig->crtc(crtc);
+    XRandRCrtc* xCrtc = s_internalConfig->crtc(crtc);
     if (!xCrtc) {
         s_internalConfig->addNewCrtc(crtc);
     } else {
@@ -182,8 +216,7 @@ void XRandR::crtcChanged(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode,
     m_configChangeCompressor->start();
 }
 
-void XRandR::screenChanged(xcb_randr_rotation_t rotation,
-                           const QSize &sizePx, const QSize &sizeMm)
+void XRandR::screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& sizeMm)
 {
     Q_UNUSED(sizeMm);
 
@@ -192,33 +225,43 @@ void XRandR::screenChanged(xcb_randr_rotation_t rotation,
         newSizePx.transpose();
     }
 
-    XRandRScreen *xScreen = s_internalConfig->screen();
+    XRandRScreen* xScreen = s_internalConfig->screen();
     Q_ASSERT(xScreen);
     xScreen->update(newSizePx);
 
     m_configChangeCompressor->start();
 }
 
+// TODO: read from control file!
 
 ConfigPtr XRandR::config() const
 {
-    return s_internalConfig->toDismanConfig();
+    Disman::ConfigPtr config(new Disman::Config);
+
+    s_internalConfig->update_config(config);
+    m_filer_controller->read(config);
+    s_internalConfig->update_config(config);
+
+    return config;
 }
 
-void XRandR::setConfig(const ConfigPtr &config)
+void XRandR::setConfig(const ConfigPtr& config)
 {
     if (!config) {
         return;
     }
+    set_config_impl(config);
+}
 
-    qCDebug(DISMAN_XRANDR) << "XRandR::setConfig";
-    s_internalConfig->applyDismanConfig(config);
-    qCDebug(DISMAN_XRANDR) << "XRandR::setConfig done!";
+bool XRandR::set_config_impl(Disman::ConfigPtr const& config)
+{
+    m_filer_controller->write(config);
+    return s_internalConfig->applyDismanConfig(config);
 }
 
 QByteArray XRandR::edid(int outputId) const
 {
-    const XRandROutput *output = s_internalConfig->output(outputId);
+    const XRandROutput* output = s_internalConfig->output(outputId);
     if (!output) {
         return QByteArray();
     }
@@ -231,13 +274,12 @@ bool XRandR::isValid() const
     return m_isValid;
 }
 
-quint8* XRandR::getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t &len)
+quint8* XRandR::getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len)
 {
-    quint8 *result;
+    quint8* result;
 
-    auto cookie = xcb_randr_get_output_property(XCB::connection(), output, atom,
-                                                XCB_ATOM_ANY,
-                                                0, 100, false, false);
+    auto cookie = xcb_randr_get_output_property(
+        XCB::connection(), output, atom, XCB_ATOM_ANY, 0, 100, false, false);
     auto reply = xcb_randr_get_output_property_reply(XCB::connection(), cookie, nullptr);
 
     if (reply->type == XCB_ATOM_INTEGER && reply->format == 8) {
@@ -255,7 +297,7 @@ quint8* XRandR::getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t 
 QByteArray XRandR::outputEdid(xcb_randr_output_t outputId)
 {
     size_t len = 0;
-    quint8 *result;
+    quint8* result;
 
     auto edid_atom = XCB::InternAtom(false, 4, "EDID")->atom;
     result = XRandR::getXProperty(outputId, edid_atom, len);
@@ -271,7 +313,7 @@ QByteArray XRandR::outputEdid(xcb_randr_output_t outputId)
     QByteArray edid;
     if (result != nullptr) {
         if (len % 128 == 0) {
-            edid = QByteArray(reinterpret_cast<const char *>(result), len);
+            edid = QByteArray(reinterpret_cast<const char*>(result), len);
         }
         delete[] result;
     }
@@ -280,12 +322,12 @@ QByteArray XRandR::outputEdid(xcb_randr_output_t outputId)
 
 bool XRandR::hasProperty(xcb_randr_output_t output, const QByteArray& name)
 {
-    xcb_generic_error_t *error = nullptr;
+    xcb_generic_error_t* error = nullptr;
     auto atom = XCB::InternAtom(false, name.length(), name.constData())->atom;
 
-    auto cookie = xcb_randr_get_output_property(XCB::connection(), output, atom, XCB_ATOM_ANY,
-                                                0, 1, false, false);
-    auto prop_reply = xcb_randr_get_output_property_reply (XCB::connection(), cookie, &error);
+    auto cookie = xcb_randr_get_output_property(
+        XCB::connection(), output, atom, XCB_ATOM_ANY, 0, 1, false, false);
+    auto prop_reply = xcb_randr_get_output_property_reply(XCB::connection(), cookie, &error);
 
     const bool ret = prop_reply->num_items == 1;
     free(prop_reply);
@@ -299,10 +341,10 @@ xcb_randr_get_screen_resources_reply_t* XRandR::screenResources()
             // HACK: This abuses the fact that xcb_randr_get_screen_resources_reply_t
             // and xcb_randr_get_screen_resources_current_reply_t are the same
             return reinterpret_cast<xcb_randr_get_screen_resources_reply_t*>(
-                xcb_randr_get_screen_resources_current_reply(XCB::connection(),
-                                                             xcb_randr_get_screen_resources_current(
-                                                                 XCB::connection(),
-                                                                 XRandR::rootWindow()), nullptr));
+                xcb_randr_get_screen_resources_current_reply(
+                    XCB::connection(),
+                    xcb_randr_get_screen_resources_current(XCB::connection(), XRandR::rootWindow()),
+                    nullptr));
         } else {
             /* XRRGetScreenResourcesCurrent is faster then XRRGetScreenResources
              * because it returns cached values. However the cached values are not
@@ -312,11 +354,10 @@ xcb_randr_get_screen_resources_reply_t* XRandR::screenResources()
         }
     }
 
-    return xcb_randr_get_screen_resources_reply(XCB::connection(),
-                                                xcb_randr_get_screen_resources(
-                                                    XCB::connection(),
-                                                    XRandR::rootWindow()),
-                                                nullptr);
+    return xcb_randr_get_screen_resources_reply(
+        XCB::connection(),
+        xcb_randr_get_screen_resources(XCB::connection(), XRandR::rootWindow()),
+        nullptr);
 }
 
 xcb_window_t XRandR::rootWindow()

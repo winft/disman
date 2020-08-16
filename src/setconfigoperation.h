@@ -16,15 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #ifndef DISMAN_SETCONFIGOPERATION_H
 #define DISMAN_SETCONFIGOPERATION_H
 
 #include "configoperation.h"
-#include "types.h"
 #include "disman_export.h"
+#include "types.h"
 
-namespace Disman {
+namespace Disman
+{
 
 class SetConfigOperationPrivate;
 
@@ -32,7 +32,7 @@ class DISMAN_EXPORT SetConfigOperation : public Disman::ConfigOperation
 {
     Q_OBJECT
 public:
-    explicit SetConfigOperation(const Disman::ConfigPtr &config, QObject* parent = nullptr);
+    explicit SetConfigOperation(const Disman::ConfigPtr& config, QObject* parent = nullptr);
     ~SetConfigOperation() override;
 
     Disman::ConfigPtr config() const override;
@@ -46,4 +46,4 @@ private:
 
 }
 
-#endif // DISMAN_SETCONFIGOPERATION_H
+#endif

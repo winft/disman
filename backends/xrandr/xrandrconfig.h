@@ -24,7 +24,8 @@
 #include "xrandroutput.h"
 
 class XRandRScreen;
-namespace Disman {
+namespace Disman
+{
 class Config;
 }
 
@@ -37,40 +38,40 @@ public:
     ~XRandRConfig() override;
 
     XRandROutput::Map outputs() const;
-    XRandROutput *output(xcb_randr_output_t output) const;
+    XRandROutput* output(xcb_randr_output_t output) const;
 
     XRandRCrtc::Map crtcs() const;
-    XRandRCrtc *crtc(xcb_randr_crtc_t crtc) const;
+    XRandRCrtc* crtc(xcb_randr_crtc_t crtc) const;
 
-    XRandRScreen *screen() const;
+    XRandRScreen* screen() const;
 
     void addNewOutput(xcb_randr_output_t id);
     void addNewCrtc(xcb_randr_crtc_t crtc);
     void removeOutput(xcb_randr_output_t id);
 
-    Disman::ConfigPtr toDismanConfig() const;
-    void applyDismanConfig(const Disman::ConfigPtr &config);
+    Disman::ConfigPtr update_config(Disman::ConfigPtr& config) const;
+    bool applyDismanConfig(const Disman::ConfigPtr& config);
 
 private:
-    QSize screenSize(const Disman::ConfigPtr &config) const;
-    bool setScreenSize(const QSize &size) const;
+    QSize screenSize(const Disman::ConfigPtr& config) const;
+    bool setScreenSize(const QSize& size) const;
 
     void setPrimaryOutput(xcb_randr_output_t outputId) const;
 
-    bool disableOutput(const Disman::OutputPtr &output) const;
-    bool enableOutput(const Disman::OutputPtr &output) const;
-    bool changeOutput(const Disman::OutputPtr &output) const;
+    bool disableOutput(const Disman::OutputPtr& output) const;
+    bool enableOutput(const Disman::OutputPtr& output) const;
+    bool changeOutput(const Disman::OutputPtr& output) const;
 
-    bool sendConfig(const Disman::OutputPtr &dismanOutput, XRandRCrtc *crtc) const;
+    bool sendConfig(const Disman::OutputPtr& dismanOutput, XRandRCrtc* crtc) const;
 
     /**
      * We need to print stuff to discover the damn bug
      * where currentMode is null
      */
-    void printConfig(const Disman::ConfigPtr &config) const;
+    void printConfig(const Disman::ConfigPtr& config) const;
     void printInternalCond() const;
 
     XRandROutput::Map m_outputs;
     XRandRCrtc::Map m_crtcs;
-    XRandRScreen *m_screen;
+    XRandRScreen* m_screen;
 };

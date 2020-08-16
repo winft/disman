@@ -1,12 +1,52 @@
 # Contributing to Disman
 
+ - [Logging and Debugging](#logging-and-debugging)
+     - [Runtime logging](#runtime-logging)
+     - [Disman's D-Bus backend service](#dismans-d-bus-backend-service)
  - [Submission Guideline](#submission-guideline)
  - [Commit Message Guideline](#commit-message-guideline)
  - [Contact](#contact)
 
+## Logging and Debugging
+The first step in contributing to the project
+by either providing meaningful feedback
+or by sending in patches
+is always the analysis of the runtime behavior of a program
+that makes use of Disman.
+This means studying the debug log
+of the program.
+
+### Runtime logging
+*KDisplay* with its daemon module and KCM is a program that makes use of Disman.
+For further information on how to log and debug KDisplay and by that also Disman
+see the respective chapter [Logging and Debugging][kdisplay-log-debug]
+in KDisplay's Contributing document.
+
+### Disman's D-Bus backend service
+Disman is primarily a library that other programs like KDisplay can link against to make use
+of additional functionality.
+
+But Disman also contains a second component that runs on its own:
+a D-Bus service that acts as a backend launcher.
+Under normal operation this service is always launched *once per session*
+when an arbitrary program that uses Disman is executed.
+By this the service provides a single shared backend connection
+for all programs that make use of Disman.
+
+To view the log of the service you must find the location of the service binary file.
+This is normally found at some path like `/usr/lib/libexec/disman_backend_launcher` and then you
+can simply kill and restart the service with the command:
+
+    killall -9 disman_backend_launcher ; /usr/lib/libexec/disman_backend_launcher
+
+Note that afterwards you need to restart all programs that made use of the old
+instance of the service to be able to connect to the new one.
+When you start another program that makes use of Disman
+it will automatically connect to this new service instance.
+
 ## Submission Guideline
-Contributions to Disman are very welcome but follow a strict process that is layed out in detail in
-Wrapland's [contributing document][wrapland-submissions].
+Code contributions to Disman are very welcome but follow a strict process that is layed out in
+detail in Wrapland's [Contributing document][wrapland-submissions].
 
 *Summarizing the main points:*
 
@@ -55,6 +95,7 @@ See [Wrapland's documentation][wrapland-contact] for contact information.
 [conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0/#specification
 [frameworks-style]: https://community.kde.org/Policies/Frameworks_Coding_Style
 [issue]: https://gitlab.com/kwinft/disman/-/issues
+[kdisplay-log-debug]: https://gitlab.com/kwinft/kdisplay/-/blob/master/CONTRIBUTING.md#logging-and-debugging
 [merge-request]: https://gitlab.com/kwinft/disman/-/merge_requests
 [plasma-schedule]: https://community.kde.org/Schedules/Plasma_5
 [wrapland-contact]: https://gitlab.com/kwinft/wrapland/-/blob/master/CONTRIBUTING.md#contact

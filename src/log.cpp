@@ -15,7 +15,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include "log.h"
 
 #include <QDateTime>
@@ -24,12 +23,13 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 
-namespace Disman {
+namespace Disman
+{
 
 Log* Log::sInstance = nullptr;
 QtMessageHandler sDefaultMessageHandler = nullptr;
 
-void dismanLogOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+void dismanLogOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
     auto category = QString::fromLocal8Bit(context.category);
     if (category.startsWith(QLatin1String("disman"))) {
@@ -55,27 +55,29 @@ Log* Log::instance()
 using namespace Disman;
 class Q_DECL_HIDDEN Log::Private
 {
-  public:
-      QString context;
-      bool enabled = false;
-      QString logFile;
+public:
+    QString context;
+    bool enabled = false;
+    QString logFile;
 };
 
-Log::Log() :
-   d(new Private)
+Log::Log()
+    : d(new Private)
 {
     const char* logging_env = "DISMAN_LOGGING";
 
     if (qEnvironmentVariableIsSet(logging_env)) {
         const QString logging_env_value = QString::fromUtf8(qgetenv(logging_env));
-        if (logging_env_value != QLatin1Char('0') && logging_env_value.toLower() != QLatin1String("false")) {
+        if (logging_env_value != QLatin1Char('0')
+            && logging_env_value.toLower() != QLatin1String("false")) {
             d->enabled = true;
         }
     }
     if (!d->enabled) {
-         return;
+        return;
     }
-    d->logFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/disman/disman.log");
+    d->logFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+        + QLatin1String("/disman/disman.log");
 
     QLoggingCategory::setFilterRules(QStringLiteral("disman.*=true"));
     QFileInfo fi(d->logFile);
@@ -88,8 +90,8 @@ Log::Log() :
     }
 }
 
-Log::Log(Log::Private *dd) :
-   d(dd)
+Log::Log(Log::Private* dd)
+    : d(dd)
 {
 }
 
@@ -119,15 +121,17 @@ QString Log::logFile() const
     return d->logFile;
 }
 
-void Log::log(const QString &msg, const QString &category)
+void Log::log(const QString& msg, const QString& category)
 {
     if (!instance()->enabled()) {
         return;
     }
     auto _cat = category;
     _cat.remove(QStringLiteral("disman."));
-    const QString timestamp = QDateTime::currentDateTime().toString(QStringLiteral("dd.MM.yyyy hh:mm:ss.zzz"));
-    QString logMessage = QStringLiteral("\n%1 ; %2 ; %3 : %4").arg(timestamp, _cat, instance()->context(), msg);
+    const QString timestamp
+        = QDateTime::currentDateTime().toString(QStringLiteral("dd.MM.yyyy hh:mm:ss.zzz"));
+    QString logMessage
+        = QStringLiteral("\n%1 ; %2 ; %3 : %4").arg(timestamp, _cat, instance()->context(), msg);
     QFile file(instance()->logFile());
     if (!file.open(QIODevice::Append | QIODevice::Text)) {
         return;

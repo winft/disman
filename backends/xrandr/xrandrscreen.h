@@ -34,14 +34,14 @@ class XRandRScreen : public QObject
     Q_OBJECT
 
 public:
-    explicit XRandRScreen(XRandRConfig *config = nullptr);
+    explicit XRandRScreen(XRandRConfig* config = nullptr);
     ~XRandRScreen() override;
 
     Disman::ScreenPtr toDismanScreen() const;
-    void updateDismanScreen(Disman::ScreenPtr &screen) const;
+    void updateDismanScreen(Disman::ScreenPtr& screen) const;
 
     void update();
-    void update(const QSize &size);
+    void update(const QSize& size);
     QSize currentSize();
 
 private:

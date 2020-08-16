@@ -15,20 +15,18 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
-#include <QtTest>
 #include <QObject>
+#include <QtTest>
 
+#include "../src/backendmanager_p.h"
 #include "../src/config.h"
 #include "../src/configmonitor.h"
-#include "../src/output.h"
-#include "../src/mode.h"
 #include "../src/getconfigoperation.h"
+#include "../src/mode.h"
+#include "../src/output.h"
 #include "../src/setconfigoperation.h"
-#include "../src/backendmanager_p.h"
 
 using namespace Disman;
-
 
 class TestModeListChange : public QObject
 {
@@ -37,7 +35,7 @@ class TestModeListChange : public QObject
 private:
     Disman::ConfigPtr getConfig();
     Disman::ModeList createModeList();
-    bool compareModeList(Disman::ModeList before, Disman::ModeList &after);
+    bool compareModeList(Disman::ModeList before, Disman::ModeList& after);
 
     QSize s0 = QSize(1920, 1080);
     QSize s1 = QSize(1600, 1200);
@@ -55,8 +53,8 @@ private Q_SLOTS:
 
 ConfigPtr TestModeListChange::getConfig()
 {
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
-    auto *op = new GetConfigOperation();
+    qputenv("DISMAN_IN_PROCESS", "1");
+    auto* op = new GetConfigOperation();
     if (!op->exec()) {
         qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
         BackendManager::instance()->shutdownBackend();
@@ -102,7 +100,6 @@ Disman::ModeList TestModeListChange::createModeList()
     return newmodes;
 }
 
-
 void TestModeListChange::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
@@ -116,7 +113,7 @@ void TestModeListChange::cleanupTestCase()
 
 void TestModeListChange::modeListChange()
 {
-    //json file for the fake backend
+    // json file for the fake backend
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
     const ConfigPtr config = getConfig();
@@ -136,18 +133,11 @@ void TestModeListChange::modeListChange()
     QVERIFY(!modelist.isEmpty());
 
     ConfigMonitor::instance()->addConfig(config);
-    QSignalSpy outputChangedSpy(output.data(), &Output::outputChanged);
-    QVERIFY(outputChangedSpy.isValid());
-    QSignalSpy modesChangedSpy(output.data(), &Output::modesChanged);
-    QVERIFY(modesChangedSpy.isValid());
 
     auto before = createModeList();
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 1);
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 1);
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 1);
     QCOMPARE(output->modes().first()->size(), s0);
     QCOMPARE(output->modes().first()->id(), QStringLiteral("11"));
 
@@ -159,7 +149,6 @@ void TestModeListChange::modeListChange()
     firstmode->setSize(snew);
     firstmode->setId(idnew);
     output->setModes(after);
-    QCOMPARE(modesChangedSpy.count(), 2);
 
     QString _id = QString::number(11);
     Disman::ModePtr dismanMode(new Disman::Mode);
@@ -169,10 +158,19 @@ void TestModeListChange::modeListChange()
     dismanMode->setRefreshRate(60);
     before.insert(_id, dismanMode);
     output->setModes(before);
-    QCOMPARE(modesChangedSpy.count(), 3);
-    QCOMPARE(outputChangedSpy.count(), modesChangedSpy.count());
-}
+    QCOMPARE(output->modes().size(), 3);
 
+    QString _id2 = QString::number(999);
+    Disman::ModePtr dismanMode2(new Disman::Mode);
+    dismanMode2->setId(_id2);
+    dismanMode2->setName(_id2);
+    dismanMode2->setSize(s0);
+    dismanMode2->setRefreshRate(60);
+    before.insert(_id2, dismanMode2);
+    output->setModes(before);
+    QCOMPARE(output->modes().size(), 4);
+    QCOMPARE(output->modes()[_id2]->id(), _id2);
+}
 
 QTEST_MAIN(TestModeListChange)
 

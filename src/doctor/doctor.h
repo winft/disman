@@ -15,13 +15,12 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef DISMAN_DOCTOR_H
 #define DISMAN_DOCTOR_H
 
+#include "../config.h"
 #include <QCommandLineParser>
 #include <QObject>
-#include "../config.h"
 
 #include <Disman/Output>
 
@@ -35,12 +34,12 @@ class Doctor : public QObject
     Q_OBJECT
 
 public:
-    explicit Doctor(QObject *parent = nullptr);
+    explicit Doctor(QObject* parent = nullptr);
     ~Doctor() override;
 
-    void setOptionList(const QStringList &positionalArgs);
-    void start(QCommandLineParser *m_parser);
-    void configReceived(Disman::ConfigOperation *op);
+    void setOptionList(const QStringList& positionalArgs);
+    void start(QCommandLineParser* m_parser);
+    void configReceived(Disman::ConfigOperation* op);
 
     void showDpms();
 
@@ -48,11 +47,11 @@ public:
     void showOutputs() const;
     void showJson() const;
     int outputCount() const;
-    void setDpms(const QString &dpmsArg);
+    void setDpms(const QString& dpmsArg);
 
     bool setEnabled(int id, bool enabled);
-    bool setPosition(int id, const QPoint &pos);
-    bool setMode(int id, const QString &mode_id);
+    bool setPosition(int id, const QPoint& pos);
+    bool setMode(int id, const QString& mode_id);
     bool setScale(int id, qreal scale);
     bool setRotation(int id, Disman::Output::Rotation rot);
 
@@ -62,17 +61,16 @@ Q_SIGNALS:
     void configChanged();
 
 private:
-    //static QString modeString(KWayland::Server::OutputDeviceInterface* outputdevice, int mid);
     void applyConfig();
     void parsePositionalArgs();
-    int parseInt(const QString &str, bool &ok) const;
+    int parseInt(const QString& str, bool& ok) const;
     Disman::ConfigPtr m_config;
     QCommandLineParser* m_parser;
     bool m_changed;
     QStringList m_positionalArgs;
-    DpmsClient *m_dpmsClient;
+    DpmsClient* m_dpmsClient;
 };
 
-} // namespace
+}
 
-#endif // DISMAN_WAYLAND_SCREEN_H
+#endif

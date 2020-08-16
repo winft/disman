@@ -16,19 +16,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include <QObject>
-#include <QtTest>
 #include <QSignalSpy>
+#include <QtTest>
 
 #include "../src/backendmanager_p.h"
 #include "../src/config.h"
-#include "../src/output.h"
 #include "../src/configmonitor.h"
 #include "../src/configoperation.h"
 #include "../src/getconfigoperation.h"
+#include "../src/output.h"
 #include "../src/setconfigoperation.h"
-#include "../src/backendmanager_p.h"
 #include <QSignalSpy>
 
 #include "fakebackendinterface.h"
@@ -56,9 +54,9 @@ private Q_SLOTS:
     void initTestCase()
     {
         qputenv("DISMAN_LOGGING", "false");
-        qputenv("DISMAN_BACKEND", "Fake");
+        qputenv("DISMAN_BACKEND", "fake");
         // This particular test is only useful for out of process operation, so enforce that
-        qputenv("DISMAN_BACKEND_INPROCESS", "0");
+        qputenv("DISMAN_IN_PROCESS", "0");
         Disman::BackendManager::instance()->shutdownBackend();
     }
 
@@ -69,20 +67,19 @@ private Q_SLOTS:
 
     void testChangeNotifyInProcess()
     {
-        qputenv("DISMAN_BACKEND_INPROCESS", "1");
+        qputenv("DISMAN_IN_PROCESS", "1");
         Disman::BackendManager::instance()->shutdownBackend();
         Disman::BackendManager::instance()->setMethod(Disman::BackendManager::InProcess);
-        //json file for the fake backend
+        // json file for the fake backend
         qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
         // Prepare monitor
-        Disman::ConfigMonitor *monitor = Disman::ConfigMonitor::instance();
+        Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
         QSignalSpy spy(monitor, SIGNAL(configurationChanged()));
 
         // Get config and monitor it for changes
         Disman::ConfigPtr config = getConfig();
         monitor->addConfig(config);
-        QSignalSpy enabledSpy(config->outputs().first().data(), SIGNAL(isEnabledChanged()));
 
         auto output = config->outputs().first();
 
@@ -93,7 +90,6 @@ private Q_SLOTS:
         QTRY_VERIFY(!spy.isEmpty());
 
         QCOMPARE(spy.size(), 1);
-        QCOMPARE(enabledSpy.size(), 1);
         QCOMPARE(config->output(1)->isEnabled(), false);
 
         output->setEnabled(false);
@@ -103,7 +99,6 @@ private Q_SLOTS:
         QTRY_VERIFY(!spy.isEmpty());
         QCOMPARE(spy.size(), 2);
     }
-
 };
 
 QTEST_MAIN(TestConfigMonitor)

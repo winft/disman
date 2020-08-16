@@ -16,15 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include "getconfigoperation.h"
-#include "configoperation_p.h"
-#include "config.h"
-#include "output.h"
-#include "log.h"
-#include "backendmanager_p.h"
-#include "configserializer_p.h"
 #include "backendinterface.h"
+#include "backendmanager_p.h"
+#include "config.h"
+#include "configoperation_p.h"
+#include "configserializer_p.h"
+#include "log.h"
+#include "output.h"
 
 using namespace Disman;
 
@@ -36,11 +35,11 @@ class GetConfigOperationPrivate : public ConfigOperationPrivate
     Q_OBJECT
 
 public:
-    GetConfigOperationPrivate(GetConfigOperation::Options options, GetConfigOperation *qq);
+    GetConfigOperationPrivate(GetConfigOperation::Options options, GetConfigOperation* qq);
 
     void backendReady(org::kwinft::disman::backend* backend) override;
-    void onConfigReceived(QDBusPendingCallWatcher *watcher);
-    void onEDIDReceived(QDBusPendingCallWatcher *watcher);
+    void onConfigReceived(QDBusPendingCallWatcher* watcher);
+    void onEDIDReceived(QDBusPendingCallWatcher* watcher);
 
 public:
     GetConfigOperation::Options options;
@@ -58,13 +57,14 @@ private:
 
 }
 
-GetConfigOperationPrivate::GetConfigOperationPrivate(GetConfigOperation::Options options, GetConfigOperation* qq)
+GetConfigOperationPrivate::GetConfigOperationPrivate(GetConfigOperation::Options options,
+                                                     GetConfigOperation* qq)
     : ConfigOperationPrivate(qq)
     , options(options)
 {
 }
 
-void GetConfigOperationPrivate::backendReady(org::kwinft::disman::backend *backend)
+void GetConfigOperationPrivate::backendReady(org::kwinft::disman::backend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     ConfigOperationPrivate::backendReady(backend);
@@ -78,12 +78,14 @@ void GetConfigOperationPrivate::backendReady(org::kwinft::disman::backend *backe
     }
 
     mBackend = backend;
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(mBackend->getConfig(), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished,
-            this, &GetConfigOperationPrivate::onConfigReceived);
+    QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(mBackend->getConfig(), this);
+    connect(watcher,
+            &QDBusPendingCallWatcher::finished,
+            this,
+            &GetConfigOperationPrivate::onConfigReceived);
 }
 
-void GetConfigOperationPrivate::onConfigReceived(QDBusPendingCallWatcher *watcher)
+void GetConfigOperationPrivate::onConfigReceived(QDBusPendingCallWatcher* watcher)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     Q_Q(GetConfigOperation);
@@ -114,15 +116,14 @@ void GetConfigOperationPrivate::onConfigReceived(QDBusPendingCallWatcher *watche
         q->emitResult();
         return;
     }
-    Q_FOREACH (const OutputPtr &output, config->outputs()) {
-        if (!output->isConnected()) {
-            continue;
-        }
-
-        QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(mBackend->getEdid(output->id()), this);
+    Q_FOREACH (const OutputPtr& output, config->outputs()) {
+        QDBusPendingCallWatcher* watcher
+            = new QDBusPendingCallWatcher(mBackend->getEdid(output->id()), this);
         watcher->setProperty("outputId", output->id());
-        connect(watcher, &QDBusPendingCallWatcher::finished,
-                this, &GetConfigOperationPrivate::onEDIDReceived);
+        connect(watcher,
+                &QDBusPendingCallWatcher::finished,
+                this,
+                &GetConfigOperationPrivate::onEDIDReceived);
         ++pendingEDIDs;
     }
 }
@@ -148,8 +149,6 @@ void GetConfigOperationPrivate::onEDIDReceived(QDBusPendingCallWatcher* watcher)
         q->emitResult();
     }
 }
-
-
 
 GetConfigOperation::GetConfigOperation(Options options, QObject* parent)
     : ConfigOperation(new GetConfigOperationPrivate(options, this), parent)
@@ -198,6 +197,5 @@ void GetConfigOperationPrivate::loadEdid(Disman::AbstractBackend* backend)
         }
     }
 }
-
 
 #include "getconfigoperation.moc"

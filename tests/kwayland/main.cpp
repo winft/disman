@@ -15,20 +15,21 @@
  *  along with this program; if not, write to the Free Software                      *
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA   *
  *************************************************************************************/
-
 #include "waylandtestserver.h"
 
-#include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QCoreApplication>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
 
     Disman::WaylandTestServer server;
 
-    QCommandLineOption config = QCommandLineOption(QStringList() << QStringLiteral("c") << QStringLiteral("config"),
-                                                  QStringLiteral("Config file"), QStringLiteral("config"));
+    QCommandLineOption config
+        = QCommandLineOption(QStringList() << QStringLiteral("c") << QStringLiteral("config"),
+                             QStringLiteral("Config file"),
+                             QStringLiteral("config"));
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addOption(config);

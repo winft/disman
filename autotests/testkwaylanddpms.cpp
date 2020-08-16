@@ -15,11 +15,10 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include <QCoreApplication>
-#include <QtTest>
 #include <QObject>
 #include <QSignalSpy>
+#include <QtTest>
 
 #include <KWayland/Client/connection_thread.h>
 #include <KWayland/Client/dpms.h>
@@ -27,9 +26,7 @@
 
 #include "waylandtestserver.h"
 
-
 static const QString s_socketName = QStringLiteral("disman-test-wayland-backend-0");
-// static const QString s_socketName = QStringLiteral("wayland-0");
 
 Q_LOGGING_CATEGORY(DISMAN, "disman")
 
@@ -40,11 +37,10 @@ class TestDpmsClient : public QObject
     Q_OBJECT
 
 public:
-    explicit TestDpmsClient(QObject *parent = nullptr);
+    explicit TestDpmsClient(QObject* parent = nullptr);
 
 Q_SIGNALS:
     void dpmsAnnounced();
-
 
 private Q_SLOTS:
 
@@ -53,14 +49,14 @@ private Q_SLOTS:
     void testDpmsConnect();
 
 private:
-    ConnectionThread *m_connection;
-    QThread *m_thread;
-    Registry *m_registry;
+    ConnectionThread* m_connection;
+    QThread* m_thread;
+    Registry* m_registry;
 
-    Disman::WaylandTestServer *m_server;
+    Disman::WaylandTestServer* m_server;
 };
 
-TestDpmsClient::TestDpmsClient(QObject *parent)
+TestDpmsClient::TestDpmsClient(QObject* parent)
     : QObject(parent)
     , m_server(nullptr)
 {
@@ -91,16 +87,15 @@ void TestDpmsClient::initTestCase()
 
     m_registry = new KWayland::Client::Registry;
     m_registry->create(m_connection);
-    QObject::connect(m_registry, &Registry::interfacesAnnounced, this,
-        [this] {
-            const bool hasDpms = m_registry->hasInterface(Registry::Interface::Dpms);
-            if (hasDpms) {
-                qDebug() << QStringLiteral("Compositor provides a DpmsManager");
-            } else {
-                qDebug() << QStringLiteral("Compositor does not provid a DpmsManager");
-            }
-            emit this->dpmsAnnounced();
-        });
+    QObject::connect(m_registry, &Registry::interfacesAnnounced, this, [this] {
+        const bool hasDpms = m_registry->hasInterface(Registry::Interface::Dpms);
+        if (hasDpms) {
+            qDebug() << QStringLiteral("Compositor provides a DpmsManager");
+        } else {
+            qDebug() << QStringLiteral("Compositor does not provid a DpmsManager");
+        }
+        emit this->dpmsAnnounced();
+    });
     m_registry->setup();
 
     QVERIFY(dpmsSpy.wait(100));
@@ -119,7 +114,6 @@ void TestDpmsClient::testDpmsConnect()
 {
     QVERIFY(m_registry->isValid());
 }
-
 
 QTEST_GUILESS_MAIN(TestDpmsClient)
 

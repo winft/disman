@@ -16,12 +16,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #ifndef BACKENDLAUNCHER_H
 #define BACKENDLAUNCHER_H
 
-#include <QObject>
 #include <QDBusContext>
+#include <QObject>
 
 namespace Disman
 {
@@ -31,8 +30,7 @@ class AbstractBackend;
 class QPluginLoader;
 class BackendDBusWrapper;
 
-class BackendLoader : public QObject
-                    , protected QDBusContext
+class BackendLoader : public QObject, protected QDBusContext
 {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.kwinft.disman")
@@ -44,15 +42,15 @@ public:
     bool init();
 
     Q_INVOKABLE QString backend() const;
-    Q_INVOKABLE bool requestBackend(const QString &name, const QVariantMap &arguments);
+    Q_INVOKABLE bool requestBackend(const QString& name, const QVariantMap& arguments);
     Q_INVOKABLE void quit();
 
 private:
-    Disman::AbstractBackend *loadBackend(const QString &name, const QVariantMap &arguments);
+    Disman::AbstractBackend* loadBackend(const QString& name, const QVariantMap& arguments);
 
 private:
-    QPluginLoader *mLoader = nullptr;
-    BackendDBusWrapper *mBackend = nullptr;
+    QPluginLoader* mLoader = nullptr;
+    BackendDBusWrapper* mBackend = nullptr;
 };
 
 #endif // BACKENDLAUNCHER_H

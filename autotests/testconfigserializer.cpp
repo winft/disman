@@ -16,15 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include <QObject>
 #include <QtTest>
 
-#include "../src/types.h"
 #include "../src/configserializer_p.h"
-#include "../src/screen.h"
 #include "../src/mode.h"
 #include "../src/output.h"
+#include "../src/screen.h"
+#include "../src/types.h"
 
 class TestConfigSerializer : public QObject
 {
@@ -34,7 +33,6 @@ public:
     TestConfigSerializer()
     {
     }
-
 
 private Q_SLOTS:
     void testSerializePoint()
@@ -62,10 +60,8 @@ private Q_SLOTS:
     void testSerializeList()
     {
         QStringList stringList;
-        stringList << QStringLiteral("Item 1")
-                   << QStringLiteral("Item 2")
-                   << QStringLiteral("Item 3")
-                   << QStringLiteral("Item 4");
+        stringList << QStringLiteral("Item 1") << QStringLiteral("Item 2")
+                   << QStringLiteral("Item 3") << QStringLiteral("Item 4");
 
         QJsonArray arr = Disman::ConfigSerializer::serializeList<QString>(stringList);
         QCOMPARE(arr.size(), stringList.size());
@@ -73,8 +69,6 @@ private Q_SLOTS:
         for (int i = 0; i < arr.size(); ++i) {
             QCOMPARE(arr.at(i).toString(), stringList.at(i));
         }
-
-
 
         QList<int> intList;
         intList << 4 << 3 << 2 << 1;
@@ -100,7 +94,8 @@ private Q_SLOTS:
         QVERIFY(!obj.isEmpty());
 
         QCOMPARE(obj[QLatin1String("id")].toInt(), screen->id());
-        QCOMPARE(obj[QLatin1String("maxActiveOutputsCount")].toInt(), screen->maxActiveOutputsCount());
+        QCOMPARE(obj[QLatin1String("maxActiveOutputsCount")].toInt(),
+                 screen->maxActiveOutputsCount());
         const QJsonObject minSize = obj[QLatin1String("minSize")].toObject();
         QCOMPARE(minSize[QLatin1String("width")].toInt(), screen->minSize().width());
         QCOMPARE(minSize[QLatin1String("height")].toInt(), screen->minSize().height());
@@ -125,7 +120,7 @@ private Q_SLOTS:
 
         QCOMPARE(obj[QLatin1String("id")].toString(), mode->id());
         QCOMPARE(obj[QLatin1String("name")].toString(), mode->name());
-        QCOMPARE((float) obj[QLatin1String("refreshRate")].toDouble(),  mode->refreshRate());
+        QCOMPARE((float)obj[QLatin1String("refreshRate")].toDouble(), mode->refreshRate());
         const QJsonObject size = obj[QLatin1String("size")].toObject();
         QCOMPARE(size[QLatin1String("width")].toInt(), mode->size().width());
         QCOMPARE(size[QLatin1String("height")].toInt(), mode->size().height());
@@ -149,12 +144,9 @@ private Q_SLOTS:
         output->setModes(modes);
         output->setPosition(QPoint(1280, 0));
         output->setRotation(Disman::Output::None);
-        output->setCurrentModeId(QStringLiteral("1"));
         output->setPreferredModes(QStringList() << QStringLiteral("1"));
-        output->setConnected(true);
         output->setEnabled(true);
         output->setPrimary(true);
-        output->setClones(QList<int>() << 50 << 60);
         output->setSizeMm(QSize(310, 250));
 
         const QJsonObject obj = Disman::ConfigSerializer::serializeOutput(output);
@@ -162,7 +154,8 @@ private Q_SLOTS:
 
         QCOMPARE(obj[QLatin1String("id")].toInt(), output->id());
         QCOMPARE(obj[QLatin1String("name")].toString(), output->name());
-        QCOMPARE(static_cast<Disman::Output::Type>(obj[QLatin1String("type")].toInt()), output->type());
+        QCOMPARE(static_cast<Disman::Output::Type>(obj[QLatin1String("type")].toInt()),
+                 output->type());
         QCOMPARE(obj[QLatin1String("icon")].toString(), output->icon());
         const QJsonArray arr = obj[QLatin1String("modes")].toArray();
         QCOMPARE(arr.size(), output->modes().count());
@@ -171,19 +164,28 @@ private Q_SLOTS:
         QCOMPARE(pos[QLatin1String("x")].toInt(), output->position().x());
         QCOMPARE(pos[QLatin1String("y")].toInt(), output->position().y());
 
-        QCOMPARE(static_cast<Disman::Output::Rotation>(obj[QLatin1String("rotation")].toInt()), output->rotation());
-        QCOMPARE(obj[QLatin1String("currentModeId")].toString(), output->currentModeId());
-        QCOMPARE(obj[QLatin1String("connected")].toBool(), output->isConnected());
+        QCOMPARE(static_cast<Disman::Output::Rotation>(obj[QLatin1String("rotation")].toInt()),
+                 output->rotation());
+
+        QVERIFY(!obj.contains(QStringLiteral("resolution")));
+        QVERIFY(!obj.contains(QStringLiteral("refresh_rate")));
+
         QCOMPARE(obj[QLatin1String("enabled")].toBool(), output->isEnabled());
         QCOMPARE(obj[QLatin1String("primary")].toBool(), output->isPrimary());
-        const QJsonArray clones = obj[QLatin1String("clones")].toArray();
-        QCOMPARE(clones.size(), output->clones().count());
-        for (int i = 0; i < clones.size(); ++i) {
-            QCOMPARE(clones[i].toInt(), output->clones()[i]);
-        }
         const QJsonObject sizeMm = obj[QLatin1String("sizeMM")].toObject();
         QCOMPARE(sizeMm[QLatin1String("width")].toInt(), output->sizeMm().width());
         QCOMPARE(sizeMm[QLatin1String("height")].toInt(), output->sizeMm().height());
+
+        output->set_mode(mode);
+
+        auto const obj2 = Disman::ConfigSerializer::serializeOutput(output);
+
+        auto const res = obj2[QStringLiteral("resolution")].toObject();
+        QCOMPARE(res[QStringLiteral("width")].toInt(), output->commanded_mode()->size().width());
+        QCOMPARE(res[QStringLiteral("height")].toInt(), output->commanded_mode()->size().height());
+
+        QCOMPARE(obj2[QStringLiteral("refresh_rate")].toDouble(),
+                 output->commanded_mode()->refreshRate());
     }
 };
 

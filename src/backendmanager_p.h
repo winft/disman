@@ -17,7 +17,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 /**
  * WARNING: This header is *not* part of public API and is subject to change.
  * There are not guarantees or API or ABI stability or compatibility between
@@ -27,21 +26,24 @@
 #ifndef DISMAN_BACKENDMANAGER_H
 #define DISMAN_BACKENDMANAGER_H
 
+#include <QDBusServiceWatcher>
+#include <QEventLoop>
+#include <QFileInfoList>
 #include <QObject>
 #include <QPluginLoader>
 #include <QProcess>
-#include <QDBusServiceWatcher>
-#include <QFileInfoList>
 #include <QTimer>
-#include <QEventLoop>
 
-#include "types.h"
+#include <string>
+
 #include "disman_export.h"
+#include "types.h"
 
 class QDBusPendingCallWatcher;
 class OrgKwinftDismanBackendInterface;
 
-namespace Disman {
+namespace Disman
+{
 
 class AbstractBackend;
 
@@ -50,12 +52,9 @@ class DISMAN_EXPORT BackendManager : public QObject
     Q_OBJECT
 
 public:
-    enum Method {
-        InProcess,
-        OutOfProcess
-    };
+    enum Method { InProcess, OutOfProcess };
 
-    static BackendManager *instance();
+    static BackendManager* instance();
     ~BackendManager() override;
 
     Disman::ConfigPtr config() const;
@@ -64,7 +63,7 @@ public:
     /** Choose which backend to use
      *
      * This method uses a couple of heuristics to pick the backend to be loaded:
-     * - If the @p backend argument is specified and not empty it's used to filter the
+     * - If the @p pre_select argument is specified and not empty it's used to filter the
      *   available backend list
      * - If specified, the DISMAN_BACKEND env var is considered (case insensitive)
      * - Otherwise, the wayland backend is picked when the runtime platform is Wayland
@@ -76,7 +75,7 @@ public:
      * @return the backend plugin to load
      * @since 5.7
      */
-    static QFileInfo preferredBackend(const QString &backend = QString());
+    static QFileInfo preferred_backend(std::string const& pre_select = "");
 
     /** List installed backends
      * @return a list of installed backend plugins
@@ -93,11 +92,10 @@ public:
      * @return a pointer to the backend loaded from the plugin
      * @since 5.6
      */
-    static Disman::AbstractBackend *loadBackendPlugin(QPluginLoader *loader,
-                                                 const QString &name,
-                                                 const QVariantMap &arguments);
+    static Disman::AbstractBackend*
+    loadBackendPlugin(QPluginLoader* loader, const QString& name, const QVariantMap& arguments);
 
-    Disman::AbstractBackend *loadBackendInProcess(const QString &name);
+    Disman::AbstractBackend* loadBackendInProcess(const QString& name);
 
     BackendManager::Method method() const;
     void setMethod(BackendManager::Method m);
@@ -107,16 +105,16 @@ public:
     void shutdownBackend();
 
 Q_SIGNALS:
-    void backendReady(OrgKwinftDismanBackendInterface *backend);
+    void backendReady(OrgKwinftDismanBackendInterface* backend);
 
 private Q_SLOTS:
     void emitBackendReady();
 
-    void startBackend(const QString &backend = QString(),
-                      const QVariantMap &arguments = QVariantMap());
-    void onBackendRequestDone(QDBusPendingCallWatcher *watcher);
+    void startBackend(const QString& backend = QString(),
+                      const QVariantMap& arguments = QVariantMap());
+    void onBackendRequestDone(QDBusPendingCallWatcher* watcher);
 
-    void backendServiceUnregistered(const QString &serviceName);
+    void backendServiceUnregistered(const QString& serviceName);
 
 private:
     friend class SetInProcessOperation;
@@ -125,7 +123,7 @@ private:
     friend class SetConfigOperationPrivate;
 
     explicit BackendManager();
-    static BackendManager *sInstance;
+    static BackendManager* sInstance;
 
     void initMethod();
 
@@ -134,7 +132,7 @@ private:
     void backendServiceReady();
 
     static const int sMaxCrashCount;
-    OrgKwinftDismanBackendInterface *mInterface;
+    OrgKwinftDismanBackendInterface* mInterface;
     int mCrashCount;
 
     QString mBackendService;
@@ -146,7 +144,7 @@ private:
     QEventLoop mShutdownLoop;
 
     // For in-process operation
-    QPluginLoader *mLoader;
+    QPluginLoader* mLoader;
     QPair<Disman::AbstractBackend*, QVariantMap> m_inProcessBackend;
 
     Method mMethod;
@@ -154,4 +152,4 @@ private:
 
 }
 
-#endif // DISMAN_BACKENDMANAGER_H
+#endif

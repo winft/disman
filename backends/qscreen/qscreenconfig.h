@@ -15,7 +15,6 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef QSCREEN_CONFIG_H
 #define QSCREEN_CONFIG_H
 
@@ -34,29 +33,28 @@ class QScreenConfig : public QObject
     Q_OBJECT
 
 public:
-    explicit QScreenConfig(QObject *parent = nullptr);
+    explicit QScreenConfig(QObject* parent = nullptr);
     ~QScreenConfig() override;
 
-    Disman::ConfigPtr toDismanConfig() const;
-    void updateDismanConfig(Disman::ConfigPtr &config) const;
+    void update_config(ConfigPtr& config) const;
 
-    QMap<int, QScreenOutput *> outputMap() const;
-    int outputId(const QScreen *qscreen);
+    QMap<int, QScreenOutput*> outputMap() const;
+    int outputId(const QScreen* qscreen);
 
 private Q_SLOTS:
-    void screenAdded(const QScreen *qscreen);
-    void screenRemoved(QScreen *qscreen);
+    void screenAdded(const QScreen* qscreen);
+    void screenRemoved(QScreen* qscreen);
 
 Q_SIGNALS:
-    void configChanged(const Disman::ConfigPtr &config);
+    void configChanged();
 
 private:
-    QMap<int, QScreenOutput *> m_outputMap;
-    QScreenScreen *m_screen;
+    QMap<int, QScreenOutput*> m_outputMap;
+    QScreenScreen* m_screen;
     int m_lastOutputId = -1;
     bool m_blockSignals;
 };
 
-} // namespace
+}
 
-#endif // QSCREEN_CONFIG_H
+#endif

@@ -16,18 +16,18 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef ABSTRACT_BACKEND_H
 #define ABSTRACT_BACKEND_H
 
 #include "disman_export.h"
 #include "types.h"
 
-#include <QString>
 #include <QObject>
+#include <QString>
 
-namespace Disman {
-    class Config;
+namespace Disman
+{
+class Config;
 
 /**
  * Abstract class for backends.
@@ -37,7 +37,9 @@ class DISMAN_EXPORT AbstractBackend : public QObject
     Q_OBJECT
 
 public:
-    ~AbstractBackend() override {}
+    ~AbstractBackend() override
+    {
+    }
 
     /**
      * This is where the backend should perform all initialization. This method
@@ -47,7 +49,7 @@ public:
      *
      * @p arguments Optional arguments passed by caller. Used mostly for unit-testing.
      */
-    virtual void init(const QVariantMap &arguments);
+    virtual void init(const QVariantMap& arguments);
 
     /**
      * Returns a user-friendly name of the backend.
@@ -75,7 +77,7 @@ public:
      *
      * @param config Configuration to apply
      */
-    virtual void setConfig(const Disman::ConfigPtr &config) = 0;
+    virtual void setConfig(const Disman::ConfigPtr& config) = 0;
 
     /**
      * Returns whether the backend is in valid state.
@@ -105,10 +107,9 @@ Q_SIGNALS:
      *
      * @param config New configuration
      */
-    void configChanged(const Disman::ConfigPtr &config);
-
+    void configChanged(const Disman::ConfigPtr& config);
 };
 
-} // namespace Disman
+}
 
-#endif //ABSTRACT_BACKEND_H
+#endif

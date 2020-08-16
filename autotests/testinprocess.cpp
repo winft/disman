@@ -15,21 +15,20 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #include <QCoreApplication>
-#include <QtTest>
+#include <QDBusConnectionInterface>
 #include <QObject>
 #include <QSignalSpy>
-#include <QDBusConnectionInterface>
+#include <QtTest>
 
 #include "../src/backendmanager_p.h"
-#include "../src/getconfigoperation.h"
-#include "../src/setconfigoperation.h"
 #include "../src/config.h"
 #include "../src/configmonitor.h"
-#include "../src/output.h"
-#include "../src/mode.h"
 #include "../src/edid.h"
+#include "../src/getconfigoperation.h"
+#include "../src/mode.h"
+#include "../src/output.h"
+#include "../src/setconfigoperation.h"
 
 Q_LOGGING_CATEGORY(DISMAN, "disman")
 
@@ -40,7 +39,7 @@ class TestInProcess : public QObject
     Q_OBJECT
 
 public:
-    explicit TestInProcess(QObject *parent = nullptr);
+    explicit TestInProcess(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void initTestCase();
@@ -58,13 +57,11 @@ private Q_SLOTS:
     void testConfigMonitor();
 
 private:
-
     ConfigPtr m_config;
     bool m_backendServiceInstalled = false;
-
 };
 
-TestInProcess::TestInProcess(QObject *parent)
+TestInProcess::TestInProcess(QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
 {
@@ -75,7 +72,7 @@ void TestInProcess::initTestCase()
     m_backendServiceInstalled = true;
 
     const QString dismanServiceName = QStringLiteral("Disman");
-    QDBusConnectionInterface *bus = QDBusConnection::sessionBus().interface();
+    QDBusConnectionInterface* bus = QDBusConnection::sessionBus().interface();
     if (!bus->isServiceRegistered(dismanServiceName)) {
         auto reply = bus->startService(dismanServiceName);
         if (!reply.isValid()) {
@@ -89,9 +86,9 @@ void TestInProcess::init()
 {
     qputenv("DISMAN_LOGGING", "false");
     // Make sure we do everything in-process
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     // Use Fake backend with one of the json configs
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
     Disman::BackendManager::instance()->shutdownBackend();
@@ -104,10 +101,10 @@ void TestInProcess::cleanup()
 
 void TestInProcess::loadConfig()
 {
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     BackendManager::instance()->setMethod(BackendManager::InProcess);
 
-    auto *op = new GetConfigOperation();
+    auto* op = new GetConfigOperation();
     QVERIFY(op->exec());
     m_config = op->config();
     QVERIFY(m_config);
@@ -120,7 +117,7 @@ void TestInProcess::testModeSwitching()
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     // Load QScreen backend in-process
     qDebug() << "TT qscreen in-process";
-    qputenv("DISMAN_BACKEND", "QScreen");
+    qputenv("DISMAN_BACKEND", "qscreen");
     auto op = new GetConfigOperation();
     QVERIFY(op->exec());
     auto oc = op->config();
@@ -129,7 +126,7 @@ void TestInProcess::testModeSwitching()
 
     qDebug() << "TT fake in-process";
     // Load the Fake backend in-process
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
     auto ip = new GetConfigOperation();
     QVERIFY(ip->exec());
     auto ic = ip->config();
@@ -141,8 +138,8 @@ void TestInProcess::testModeSwitching()
     if (m_backendServiceInstalled) {
         qDebug() << "TT xrandr out-of-process";
         // Load the xrandr backend out-of-process
-        qputenv("DISMAN_BACKEND", "QScreen");
-        qputenv("DISMAN_BACKEND_INPROCESS", "0");
+        qputenv("DISMAN_BACKEND", "qscreen");
+        qputenv("DISMAN_IN_PROCESS", "0");
         BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
         auto xp = new GetConfigOperation();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
@@ -155,10 +152,10 @@ void TestInProcess::testModeSwitching()
 
     qDebug() << "TT fake in-process";
 
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     // Load the Fake backend in-process
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
     auto fp = new GetConfigOperation();
     QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
     QVERIFY(fp->exec());
@@ -178,7 +175,7 @@ void TestInProcess::testModeSwitching()
 void TestInProcess::testBackendCaching()
 {
     Disman::BackendManager::instance()->shutdownBackend();
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
     QElapsedTimer t;
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
@@ -196,7 +193,7 @@ void TestInProcess::testBackendCaching()
         QVERIFY(cc->outputs().count());
     }
     {
-        //Disman::BackendManager::instance()->shutdownBackend();
+        // Disman::BackendManager::instance()->shutdownBackend();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
         t.start();
         auto cp = new GetConfigOperation();
@@ -220,8 +217,8 @@ void TestInProcess::testBackendCaching()
     Disman::BackendManager::instance()->shutdownBackend();
 
     if (m_backendServiceInstalled) {
-        //qputenv("DISMAN_BACKEND", "QScreen");
-        qputenv("DISMAN_BACKEND_INPROCESS", "0");
+        // qputenv("DISMAN_BACKEND", "qscreen");
+        qputenv("DISMAN_IN_PROCESS", "0");
         BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
         int t_x_cold;
@@ -287,19 +284,19 @@ void TestInProcess::testCreateJob()
 
 void TestInProcess::testConfigApply()
 {
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
     Disman::BackendManager::instance()->shutdownBackend();
     BackendManager::instance()->setMethod(BackendManager::InProcess);
     auto op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
-//     qDebug() << "op:" << config->outputs().count();
+    //     qDebug() << "op:" << config->outputs().count();
     auto output = config->outputs().first();
-//     qDebug() << "res:" << output->geometry();
-//     qDebug() << "modes:" << output->modes();
+    //     qDebug() << "res:" << output->geometry();
+    //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().first();
-    //qDebug() << "m0:" << m0->id() << m0;
-    output->setCurrentModeId(m0->id());
+    // qDebug() << "m0:" << m0->id() << m0;
+    output->set_mode(m0);
     QVERIFY(Config::canBeApplied(config));
 
     // expected to fail, SetConfigOperation is out-of-process only
@@ -312,7 +309,7 @@ void TestInProcess::testConfigApply()
 
 void TestInProcess::testConfigMonitor()
 {
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
 
     Disman::BackendManager::instance()->shutdownBackend();
     BackendManager::instance()->setMethod(BackendManager::InProcess);
@@ -324,8 +321,8 @@ void TestInProcess::testConfigMonitor()
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().first();
-    //qDebug() << "m0:" << m0->id() << m0;
-    output->setCurrentModeId(m0->id());
+    // qDebug() << "m0:" << m0->id() << m0;
+    output->set_mode(m0);
     QVERIFY(Config::canBeApplied(config));
 
     QSignalSpy monitorSpy(ConfigMonitor::instance(), &ConfigMonitor::configurationChanged);
@@ -337,7 +334,6 @@ void TestInProcess::testConfigMonitor()
     // do not cal setop->exec(), this must not block as the signalspy already blocks
     QVERIFY(monitorSpy.wait(500));
 }
-
 
 QTEST_GUILESS_MAIN(TestInProcess)
 

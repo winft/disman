@@ -17,10 +17,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include "configoperation.h"
-#include "configoperation_p.h"
 #include "backendmanager_p.h"
+#include "configoperation_p.h"
 
 #include "disman_debug.h"
 
@@ -40,18 +39,22 @@ ConfigOperationPrivate::~ConfigOperationPrivate()
 void ConfigOperationPrivate::requestBackend()
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
-    connect(BackendManager::instance(), &BackendManager::backendReady,
-            this, &ConfigOperationPrivate::backendReady);
+    connect(BackendManager::instance(),
+            &BackendManager::backendReady,
+            this,
+            &ConfigOperationPrivate::backendReady);
     BackendManager::instance()->requestBackend();
 }
 
-void ConfigOperationPrivate::backendReady(org::kwinft::disman::backend *backend)
+void ConfigOperationPrivate::backendReady(org::kwinft::disman::backend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     Q_UNUSED(backend);
 
-    disconnect(BackendManager::instance(), &BackendManager::backendReady,
-               this, &ConfigOperationPrivate::backendReady);
+    disconnect(BackendManager::instance(),
+               &BackendManager::backendReady,
+               this,
+               &ConfigOperationPrivate::backendReady);
 }
 
 void ConfigOperationPrivate::doEmitResult()
@@ -116,11 +119,10 @@ bool ConfigOperation::exec()
     Q_D(ConfigOperation);
 
     QEventLoop loop;
-    connect(this, &ConfigOperation::finished, this,
-            [&](ConfigOperation *op) {
-                Q_UNUSED(op);
-                loop.quit();
-            });
+    connect(this, &ConfigOperation::finished, this, [&](ConfigOperation* op) {
+        Q_UNUSED(op);
+        loop.quit();
+    });
 
     d->isExec = true;
     loop.exec(QEventLoop::ExcludeUserInputEvents);
@@ -134,10 +136,10 @@ Disman::AbstractBackend* ConfigOperationPrivate::loadBackend()
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
     Q_Q(ConfigOperation);
-    const QString &name = QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
+    const QString& name = QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
     auto backend = Disman::BackendManager::instance()->loadBackendInProcess(name);
     if (backend == nullptr) {
-        const QString &e = QStringLiteral("Plugin does not provide valid Disman backend");
+        const QString& e = QStringLiteral("Plugin does not provide valid Disman backend");
         qCDebug(DISMAN) << e;
         q->setError(e);
         q->emitResult();

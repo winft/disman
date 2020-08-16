@@ -16,17 +16,16 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
-#include <QtTest>
-#include <QObject>
 #include <QElapsedTimer>
+#include <QObject>
+#include <QtTest>
 
+#include "../src/backendmanager_p.h"
 #include "../src/config.h"
-#include "../src/output.h"
-#include "../src/mode.h"
 #include "../src/edid.h"
 #include "../src/getconfigoperation.h"
-#include "../src/backendmanager_p.h"
+#include "../src/mode.h"
+#include "../src/output.h"
 
 Q_LOGGING_CATEGORY(DISMAN_QSCREEN, "disman.qscreen")
 
@@ -56,14 +55,14 @@ void testQScreenBackend::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
     qputenv("DISMAN_BACKEND", "qscreen");
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
+    qputenv("DISMAN_IN_PROCESS", "1");
     Disman::BackendManager::instance()->shutdownBackend();
 
     m_backend = QString::fromLocal8Bit(qgetenv("DISMAN_BACKEND"));
 
     QElapsedTimer t;
     t.start();
-    auto *op = new GetConfigOperation();
+    auto* op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
     const int n = t.nsecsElapsed();
@@ -93,11 +92,10 @@ void testQScreenBackend::verifyScreen()
     QVERIFY(m_config->screen()->maxActiveOutputsCount() > 0);
 }
 
-
 void testQScreenBackend::verifyOutputs()
 {
     bool primaryFound = false;
-    foreach (const Disman::OutputPtr &op, m_config->outputs()) {
+    foreach (const Disman::OutputPtr& op, m_config->outputs()) {
         if (op->isPrimary()) {
             primaryFound = true;
         }
@@ -110,29 +108,26 @@ void testQScreenBackend::verifyOutputs()
 
     const Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary->isEnabled());
-    QVERIFY(primary->isConnected());
-    //qDebug() << "Primary geometry? " << primary->geometry();
-    //qDebug() << " prim modes: " << primary->modes();
-
+    // qDebug() << "Primary geometry? " << primary->geometry();
+    // qDebug() << " prim modes: " << primary->modes();
 
     QList<int> ids;
-    foreach (const Disman::OutputPtr &output, m_config->outputs()) {
+    foreach (const Disman::OutputPtr& output, m_config->outputs()) {
         qDebug() << " _____________________ Output: " << output;
         qDebug() << "   output name: " << output->name();
         qDebug() << "   output modes: " << output->modes().count() << output->modes();
         qDebug() << "   output enabled: " << output->isEnabled();
-        qDebug() << "   output connect: " << output->isConnected();
         qDebug() << "   output sizeMm : " << output->sizeMm();
         QVERIFY(!output->name().isEmpty());
         QVERIFY(output->id() > -1);
-        QVERIFY(output->isConnected());
         QVERIFY(output->isEnabled());
-        QVERIFY(output->geometry() != QRectF(1,1,1,1));
+        QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));
         QVERIFY(output->geometry() != QRectF());
 
         // Pass, but leave a note, when the x server doesn't report physical size
         if (!output->sizeMm().isValid()) {
-            QEXPECT_FAIL("", "The X server doesn't return a sensible physical output size", Continue);
+            QEXPECT_FAIL(
+                "", "The X server doesn't return a sensible physical output size", Continue);
             QVERIFY(output->sizeMm() != QSize());
         }
         QVERIFY(output->edid() != nullptr);
@@ -148,8 +143,8 @@ void testQScreenBackend::verifyModes()
     QVERIFY(primary);
     QVERIFY(primary->modes().count() > 0);
 
-    foreach (const Disman::OutputPtr &output, m_config->outputs()) {
-        foreach (const Disman::ModePtr &mode, output->modes()) {
+    foreach (const Disman::OutputPtr& output, m_config->outputs()) {
+        foreach (const Disman::ModePtr& mode, output->modes()) {
             qDebug() << "   Mode   : " << mode->name();
             QVERIFY(!mode->name().isEmpty());
             QVERIFY(mode->refreshRate() > 0);
@@ -160,17 +155,13 @@ void testQScreenBackend::verifyModes()
 
 void testQScreenBackend::commonUsagePattern()
 {
-    auto *op = new GetConfigOperation();
+    auto* op = new GetConfigOperation();
     op->exec();
 
     const Disman::OutputList outputs = op->config()->outputs();
 
     QVariantList outputList;
-    Q_FOREACH(const Disman::OutputPtr &output, outputs) {
-        if (!output->isConnected()) {
-            continue;
-        }
-
+    Q_FOREACH (const Disman::OutputPtr& output, outputs) {
         QVariantMap info;
         info[QStringLiteral("id")] = output->id();
         info[QStringLiteral("primary")] = output->isPrimary();
@@ -183,9 +174,9 @@ void testQScreenBackend::commonUsagePattern()
         info[QStringLiteral("pos")] = pos;
 
         if (output->isEnabled()) {
-            const Disman::ModePtr mode = output->currentMode();
+            const Disman::ModePtr mode = output->auto_mode();
             if (!mode) {
-                //qWarning() << "CurrentMode is null" << output->name();
+                // qWarning() << "CurrentMode is null" << output->name();
                 return;
             }
 
@@ -212,14 +203,13 @@ void testQScreenBackend::cleanupTestCase()
 
 void testQScreenBackend::verifyFeatures()
 {
-    GetConfigOperation *op = new GetConfigOperation();
+    GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
     QVERIFY(config->supportedFeatures().testFlag(Config::Feature::None));
     QVERIFY(!config->supportedFeatures().testFlag(Config::Feature::Writable));
     QVERIFY(!config->supportedFeatures().testFlag(Config::Feature::PrimaryDisplay));
 }
-
 
 QTEST_MAIN(testQScreenBackend)
 

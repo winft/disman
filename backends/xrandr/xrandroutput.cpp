@@ -22,19 +22,21 @@
 #include "xrandr.h"
 #include "xrandrconfig.h"
 #include "xrandrmode.h"
+
 #include "../utils.h"
+#include "xrandr_logging.h"
 
 #include <xcb/render.h>
 
 Q_DECLARE_METATYPE(QList<int>)
 
-#define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t) ((d) * 65536))
-#define FIXED_TO_DOUBLE(f) ((double) ((f) / 65536.0))
+#define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t)((d)*65536))
+#define FIXED_TO_DOUBLE(f) ((double)((f) / 65536.0))
 
 xcb_render_fixed_t fOne = DOUBLE_TO_FIXED(1);
 xcb_render_fixed_t fZero = DOUBLE_TO_FIXED(0);
 
-XRandROutput::XRandROutput(xcb_randr_output_t id, XRandRConfig *config)
+XRandROutput::XRandROutput(xcb_randr_output_t id, XRandRConfig* config)
     : QObject(config)
     , m_config(config)
     , m_id(id)
@@ -105,8 +107,8 @@ XRandRMode* XRandROutput::currentMode() const
 
 Disman::Output::Rotation XRandROutput::rotation() const
 {
-    return static_cast<Disman::Output::Rotation>(m_crtc ? m_crtc->rotation() :
-                                                           XCB_RANDR_ROTATION_ROTATE_0);
+    return static_cast<Disman::Output::Rotation>(m_crtc ? m_crtc->rotation()
+                                                        : XCB_RANDR_ROTATION_ROTATE_0);
 }
 
 bool XRandROutput::isHorizontal() const
@@ -133,16 +135,19 @@ void XRandROutput::update()
     init();
 }
 
-void XRandROutput::update(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_randr_connection_t conn,
+void XRandROutput::update(xcb_randr_crtc_t crtc,
+                          xcb_randr_mode_t mode,
+                          xcb_randr_connection_t conn,
                           bool primary)
 {
-    qCDebug(DISMAN_XRANDR) << "XRandROutput" << m_id << "update" << "\n"
-                            << "\tm_connected:" << m_connected << "\n"
-                            << "\tm_crtc" << m_crtc << "\n"
-                            << "\tCRTC:" << crtc << "\n"
-                            << "\tMODE:" << mode << "\n"
-                            << "\tConnection:" << conn << "\n"
-                            << "\tPrimary:" << primary;
+    qCDebug(DISMAN_XRANDR) << "XRandROutput" << m_id << "update"
+                           << "\n"
+                           << "\tm_connected:" << m_connected << "\n"
+                           << "\tm_crtc" << m_crtc << "\n"
+                           << "\tCRTC:" << crtc << "\n"
+                           << "\tMODE:" << mode << "\n"
+                           << "\tConnection:" << conn << "\n"
+                           << "\tPrimary:" << primary;
 
     // Connected or disconnected
     if (isConnected() != (conn == XCB_RANDR_CONNECTION_CONNECTED)) {
@@ -152,7 +157,6 @@ void XRandROutput::update(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_rand
         } else {
             // Disconnected
             m_connected = conn;
-            m_clones.clear();
             m_heightMm = 0;
             m_widthMm = 0;
             m_type = Disman::Output::Unknown;
@@ -197,7 +201,6 @@ void XRandROutput::setIsPrimary(bool primary)
     m_primary = primary;
 }
 
-
 void XRandROutput::init()
 {
     XCB::OutputInfo outputInfo(m_id, XCB_TIME_CURRENT_TIME);
@@ -208,17 +211,12 @@ void XRandROutput::init()
 
     XCB::PrimaryOutput primary(XRandR::rootWindow());
 
-    m_name = QString::fromUtf8((const char *) xcb_randr_get_output_info_name(outputInfo.data()),
+    m_name = QString::fromUtf8((const char*)xcb_randr_get_output_info_name(outputInfo.data()),
                                outputInfo->name_len);
     m_type = fetchOutputType(m_id, m_name);
     m_icon = QString();
-    m_connected = (xcb_randr_connection_t) outputInfo->connection;
+    m_connected = (xcb_randr_connection_t)outputInfo->connection;
     m_primary = (primary->output == m_id);
-
-    xcb_randr_output_t *clones = xcb_randr_get_output_info_clones(outputInfo.data());
-    for (int i = 0; i < outputInfo->num_clones; ++i) {
-        m_clones.append(clones[i]);
-    }
 
     m_widthMm = outputInfo->mm_width;
     m_heightMm = outputInfo->mm_height;
@@ -232,18 +230,18 @@ void XRandROutput::init()
     updateModes(outputInfo);
 }
 
-void XRandROutput::updateModes(const XCB::OutputInfo &outputInfo)
+void XRandROutput::updateModes(const XCB::OutputInfo& outputInfo)
 {
     /* Init modes */
-    XCB::ScopedPointer<xcb_randr_get_screen_resources_reply_t>
-            screenResources(XRandR::screenResources());
+    XCB::ScopedPointer<xcb_randr_get_screen_resources_reply_t> screenResources(
+        XRandR::screenResources());
 
     Q_ASSERT(screenResources);
     if (!screenResources) {
         return;
     }
-    xcb_randr_mode_info_t *modes = xcb_randr_get_screen_resources_modes(screenResources.data());
-    xcb_randr_mode_t *outputModes = xcb_randr_get_output_info_modes(outputInfo.data());
+    xcb_randr_mode_info_t* modes = xcb_randr_get_screen_resources_modes(screenResources.data());
+    xcb_randr_mode_t* outputModes = xcb_randr_get_output_info_modes(outputInfo.data());
 
     m_preferredModes.clear();
     qDeleteAll(m_modes);
@@ -256,7 +254,7 @@ void XRandROutput::updateModes(const XCB::OutputInfo &outputInfo)
                 continue;
             }
 
-            XRandRMode *mode = new XRandRMode(modes[j], this);
+            XRandRMode* mode = new XRandRMode(modes[j], this);
             m_modes.insert(mode->id(), mode);
 
             if (i < outputInfo->num_preferred) {
@@ -267,8 +265,7 @@ void XRandROutput::updateModes(const XCB::OutputInfo &outputInfo)
     }
 }
 
-Disman::Output::Type XRandROutput::fetchOutputType(xcb_randr_output_t outputId,
-                                                    const QString &name)
+Disman::Output::Type XRandROutput::fetchOutputType(xcb_randr_output_t outputId, const QString& name)
 {
     QString type = QString::fromUtf8(typeFromProperty(outputId));
     if (type.isEmpty()) {
@@ -287,10 +284,10 @@ QByteArray XRandROutput::typeFromProperty(xcb_randr_output_t outputId)
         return type;
     }
 
-    auto cookie = xcb_randr_get_output_property(XCB::connection(), outputId, atomType->atom,
-                                                XCB_ATOM_ANY, 0, 100, false, false);
-    XCB::ScopedPointer<xcb_randr_get_output_property_reply_t>
-            reply(xcb_randr_get_output_property_reply(XCB::connection(), cookie, nullptr));
+    auto cookie = xcb_randr_get_output_property(
+        XCB::connection(), outputId, atomType->atom, XCB_ATOM_ANY, 0, 100, false, false);
+    XCB::ScopedPointer<xcb_randr_get_output_property_reply_t> reply(
+        xcb_randr_get_output_property_reply(XCB::connection(), cookie, nullptr));
     if (!reply) {
         return type;
     }
@@ -299,13 +296,13 @@ QByteArray XRandROutput::typeFromProperty(xcb_randr_output_t outputId)
         return type;
     }
 
-    const uint8_t *prop = xcb_randr_get_output_property_data(reply.data());
+    const uint8_t* prop = xcb_randr_get_output_property_data(reply.data());
     XCB::AtomName atomName(*reinterpret_cast<const xcb_atom_t*>(prop));
     if (!atomName) {
         return type;
     }
 
-    char *connectorType = xcb_get_atom_name_name(atomName);
+    char* connectorType = xcb_get_atom_name_name(atomName);
     if (!connectorType) {
         return type;
     }
@@ -314,32 +311,44 @@ QByteArray XRandROutput::typeFromProperty(xcb_randr_output_t outputId)
     return type;
 }
 
-bool isScaling(const xcb_render_transform_t &tr)
+bool isScaling(const xcb_render_transform_t& tr)
 {
-    return tr.matrix11 != fZero && tr.matrix12 == fZero && tr.matrix13 == fZero &&
-           tr.matrix21 == fZero && tr.matrix22 != fZero && tr.matrix23 == fZero &&
-           tr.matrix31 == fZero && tr.matrix32 == fZero && tr.matrix33 == fOne;
+    return tr.matrix11 != fZero && tr.matrix12 == fZero && tr.matrix13 == fZero
+        && tr.matrix21 == fZero && tr.matrix22 != fZero && tr.matrix23 == fZero
+        && tr.matrix31 == fZero && tr.matrix32 == fZero && tr.matrix33 == fOne;
 }
 
 xcb_render_transform_t zeroTransform()
 {
-    return { DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0),
-             DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0),
-             DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0) };
+    return {DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0)};
 }
 
 xcb_render_transform_t unityTransform()
 {
-    return { DOUBLE_TO_FIXED(1), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0),
-             DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(1), DOUBLE_TO_FIXED(0),
-             DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(1) };
+    return {DOUBLE_TO_FIXED(1),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(1),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(0),
+            DOUBLE_TO_FIXED(1)};
 }
 
 xcb_render_transform_t XRandROutput::currentTransform() const
 {
     auto cookie = xcb_randr_get_crtc_transform(XCB::connection(), m_crtc->crtc());
-    xcb_generic_error_t *error = nullptr;
-    auto *reply = xcb_randr_get_crtc_transform_reply(XCB::connection(), cookie, &error);
+    xcb_generic_error_t* error = nullptr;
+    auto* reply = xcb_randr_get_crtc_transform_reply(XCB::connection(), cookie, &error);
     if (error) {
         return zeroTransform();
     }
@@ -363,7 +372,7 @@ QSizeF XRandROutput::logicalSize() const
     return QSizeF(width, height);
 }
 
-void XRandROutput::updateLogicalSize(const Disman::OutputPtr &output, XRandRCrtc *crtc)
+void XRandROutput::updateLogicalSize(const Disman::OutputPtr& output, XRandRCrtc* crtc)
 {
     if (!crtc) {
         // TODO: This is a workaround for now when updateLogicalSize is called on enabling the
@@ -374,8 +383,8 @@ void XRandROutput::updateLogicalSize(const Disman::OutputPtr &output, XRandRCrtc
     auto const logicalSize = output->geometry().size();
     xcb_render_transform_t transform = unityTransform();
 
-    Disman::ModePtr mode = output->currentMode() ? output->currentMode() : output->preferredMode();
-    if(mode && logicalSize.isValid()) {
+    auto mode = output->auto_mode() ? output->auto_mode() : output->preferred_mode();
+    if (mode && logicalSize.isValid()) {
         QSize modeSize = mode->size();
         if (!output->isHorizontal()) {
             modeSize.transpose();
@@ -392,19 +401,19 @@ void XRandROutput::updateLogicalSize(const Disman::OutputPtr &output, XRandRCrtc
     auto cookie = xcb_randr_set_crtc_transform_checked(XCB::connection(),
                                                        crtc->crtc(),
                                                        transform,
-                                                       filterName.size(), filterName.data(),
-                                                       0, nullptr);
-    xcb_generic_error_t *error = xcb_request_check(XCB::connection(), cookie);
+                                                       filterName.size(),
+                                                       filterName.data(),
+                                                       0,
+                                                       nullptr);
+    xcb_generic_error_t* error = xcb_request_check(XCB::connection(), cookie);
     if (error) {
         qCDebug(DISMAN_XRANDR) << "Error on logical size transformation!";
         free(error);
     }
 }
 
-Disman::OutputPtr XRandROutput::toDismanOutput() const
+void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 {
-    Disman::OutputPtr dismanOutput(new Disman::Output);
-
     const bool signalsBlocked = dismanOutput->signalsBlocked();
     dismanOutput->blockSignals(true);
     dismanOutput->setId(m_id);
@@ -412,38 +421,35 @@ Disman::OutputPtr XRandROutput::toDismanOutput() const
     dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
     dismanOutput->setName(m_name);
     dismanOutput->setIcon(m_icon);
+    dismanOutput->setEdid(m_edid);
 
-    //See https://bugzilla.redhat.com/show_bug.cgi?id=1290586
-    //QXL will be creating a new mode we need to jump to every time the display is resized
+    // See https://bugzilla.redhat.com/show_bug.cgi?id=1290586
+    // QXL will be creating a new mode we need to jump to every time the display is resized
     dismanOutput->setFollowPreferredMode(m_hotplugModeUpdate);
 
-    dismanOutput->setConnected(isConnected());
     if (isConnected()) {
         Disman::ModeList dismanModes;
         for (auto iter = m_modes.constBegin(), end = m_modes.constEnd(); iter != end; ++iter) {
-            XRandRMode *mode = iter.value();
+            XRandRMode* mode = iter.value();
             dismanModes.insert(QString::number(iter.key()), mode->toDismanMode());
         }
         dismanOutput->setModes(dismanModes);
         dismanOutput->setPreferredModes(m_preferredModes);
         dismanOutput->setPrimary(m_primary);
-        dismanOutput->setClones([](const QList<xcb_randr_output_t> &clones) {
-            QList<int> kclones;
-            kclones.reserve(clones.size());
-            for (xcb_randr_output_t o : clones) {
-                kclones.append(static_cast<int>(o));
-            }
-            return kclones;
-        }(m_clones));
         dismanOutput->setEnabled(isEnabled());
         if (isEnabled()) {
             dismanOutput->setPosition(position());
             dismanOutput->setRotation(rotation());
-            dismanOutput->setCurrentModeId(currentModeId());
+
+            auto cur_mode = currentMode();
+            if (cur_mode) {
+                dismanOutput->set_mode(dismanOutput->mode(QString::number(cur_mode->id())));
+                dismanOutput->set_resolution(cur_mode->size());
+                dismanOutput->set_refresh_rate(cur_mode->refreshRate());
+            }
         }
         // TODO: set logical size?
     }
 
     dismanOutput->blockSignals(signalsBlocked);
-    return dismanOutput;
 }

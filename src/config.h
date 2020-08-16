@@ -16,20 +16,19 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
 #ifndef DISMAN_CONFIG_H
 #define DISMAN_CONFIG_H
 
+#include "disman_export.h"
 #include "screen.h"
 #include "types.h"
-#include "disman_export.h"
 
 #include <QHash>
-#include <QObject>
 #include <QMetaType>
+#include <QObject>
 
-
-namespace Disman {
+namespace Disman
+{
 
 /**
  * Represents a (or the) screen configuration.
@@ -49,10 +48,17 @@ class DISMAN_EXPORT Config : public QObject
     Q_PROPERTY(ScreenPtr screen READ screen)
     Q_PROPERTY(OutputList outputs READ outputs)
 
-  public:
+public:
+    enum class Origin {
+        unknown,
+        file,
+        generated,
+        interactive,
+    };
+
     enum class ValidityFlag {
         None = 0x0,
-        RequireAtLeastOneEnabledScreen = 0x1
+        RequireAtLeastOneEnabledScreen = 0x1,
     };
     Q_DECLARE_FLAGS(ValidityFlags, ValidityFlag)
 
@@ -62,12 +68,13 @@ class DISMAN_EXPORT Config : public QObject
      * @since 5.7
      */
     enum class Feature {
-        None = 0, ///< None of the mentioned features are supported.
-        PrimaryDisplay = 1, ///< The backend knows about the concept of a primary display, this is mostly limited to X11.
-        Writable = 1 << 1, ///< The backend supports setting the config, it's not read-only.
-        PerOutputScaling = 1 << 2, ///< The backend supports scaling each output individually.
+        None = 0,           ///< None of the mentioned features are supported.
+        PrimaryDisplay = 1, ///< The backend knows about the concept of a primary display, this is
+                            ///< mostly limited to X11.
+        Writable = 1 << 1,  ///< The backend supports setting the config, it's not read-only.
+        PerOutputScaling = 1 << 2,  ///< The backend supports scaling each output individually.
         OutputReplication = 1 << 3, ///< The backend supports replication of outputs.
-        AutoRotation = 1 << 4, ///< The backend supports automatic rotation of outputs.
+        AutoRotation = 1 << 4,      ///< The backend supports automatic rotation of outputs.
         TabletMode = 1 << 5, ///< The backend supports querying if a device is in tablet mode.
     };
     Q_DECLARE_FLAGS(Features, Feature)
@@ -84,7 +91,7 @@ class DISMAN_EXPORT Config : public QObject
      * @return true if the configuration can be applied, false if not.
      * @since 5.3.0
      */
-    static bool canBeApplied(const ConfigPtr &config, ValidityFlags flags);
+    static bool canBeApplied(const ConfigPtr& config, ValidityFlags flags);
 
     /**
      * Validates that a config can be applied in the current system
@@ -96,7 +103,7 @@ class DISMAN_EXPORT Config : public QObject
      * @arg config to be checked
      * @return true if the configuration can be applied, false if not.
      */
-    static bool canBeApplied(const ConfigPtr &config);
+    static bool canBeApplied(const ConfigPtr& config);
 
     /**
      * Instantiate an empty config
@@ -109,6 +116,7 @@ class DISMAN_EXPORT Config : public QObject
      * whatever you need.
      */
     explicit Config();
+    explicit Config(Origin origin);
     ~Config() override;
 
     /**
@@ -130,22 +138,26 @@ class DISMAN_EXPORT Config : public QObject
      */
     QString connectedOutputsHash() const;
 
+    Origin origin() const;
+    void set_origin(Origin origin);
+
     ScreenPtr screen() const;
-    void setScreen(const ScreenPtr &screen);
+    void setScreen(const ScreenPtr& screen);
 
     OutputPtr output(int outputId) const;
     OutputList outputs() const;
-    OutputList connectedOutputs() const;
+
     OutputPtr primaryOutput() const;
-    void setPrimaryOutput(const OutputPtr &output);
-    void addOutput(const OutputPtr &output);
+    void setPrimaryOutput(const OutputPtr& output);
+
+    void addOutput(const OutputPtr& output);
     void removeOutput(int outputId);
-    void setOutputs(const OutputList &outputs);
+    void setOutputs(const OutputList& outputs);
 
     bool isValid() const;
     void setValid(bool valid);
 
-    void apply(const ConfigPtr &other);
+    void apply(const ConfigPtr& other);
 
     /** Indicates features supported by the backend. This exists to allow the user
      * to find out which of the features offered by disman are actually supported
@@ -165,7 +177,7 @@ class DISMAN_EXPORT Config : public QObject
      * @see supportedFeatures
      * @since 5.7
      */
-    void setSupportedFeatures(const Features &features);
+    void setSupportedFeatures(const Features& features);
 
     /**
      * Indicates that the device supports switching between a default and a tablet mode. This is
@@ -203,24 +215,30 @@ class DISMAN_EXPORT Config : public QObject
      */
     void setTabletModeEngaged(bool engaged);
 
-  Q_SIGNALS:
-      void outputAdded(const Disman::OutputPtr &output);
-      void outputRemoved(int outputId);
-      void primaryOutputChanged(const Disman::OutputPtr &output);
+    /**
+     * Returns the Output @param output replicates if @param output is a replica, otherwise null.
+     *
+     * @param output to find replication source for
+     * @return replication source or null
+     */
+    OutputPtr replication_source(OutputPtr const& output);
 
-  private:
+Q_SIGNALS:
+    void outputAdded(const Disman::OutputPtr& output);
+    void outputRemoved(int outputId);
+    void primaryOutputChanged(const Disman::OutputPtr& output);
+
+private:
     Q_DISABLE_COPY(Config)
 
     class Private;
-    Private * const d;
+    Private* const d;
 };
 
-} //Disman namespace
+}
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Disman::Config::Features)
 
-DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::ConfigPtr &config);
+DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config);
 
-
-
-#endif //DISMAN_CONFIG_H
+#endif

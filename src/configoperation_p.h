@@ -16,27 +16,25 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #include <QObject>
 
-#include "configoperation.h"
 #include "abstractbackend.h"
 #include "backendinterface.h"
+#include "configoperation.h"
 
 namespace Disman
 {
-
 class ConfigOperationPrivate : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ConfigOperationPrivate(ConfigOperation *qq);
+    explicit ConfigOperationPrivate(ConfigOperation* qq);
     ~ConfigOperationPrivate() override;
 
     // For out-of-process
     void requestBackend();
-    virtual void backendReady(org::kwinft::disman::backend *backend);
+    virtual void backendReady(org::kwinft::disman::backend* backend);
 
     // For in-process
     Disman::AbstractBackend* loadBackend();
@@ -49,9 +47,8 @@ private:
     bool isExec;
 
 protected:
-    ConfigOperation * const q_ptr;
+    ConfigOperation* const q_ptr;
     Q_DECLARE_PUBLIC(ConfigOperation)
-
 };
 
 }

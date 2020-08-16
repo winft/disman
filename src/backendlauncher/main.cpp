@@ -16,33 +16,32 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
-#include <QGuiApplication>
 #include <QDBusConnection>
+#include <QGuiApplication>
 #include <QSessionManager>
 
-#include "disman_backend_launcher_debug.h"
 #include "backendloader.h"
+#include "disman_backend_launcher_debug.h"
 #include "log.h"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     Disman::Log::instance();
     QGuiApplication::setDesktopSettingsAware(false);
     QGuiApplication app(argc, argv);
 
-    auto disableSessionManagement = [](QSessionManager &sm) {
-        sm.setRestartHint(QSessionManager::RestartNever);
-    };
+    auto disableSessionManagement
+        = [](QSessionManager& sm) { sm.setRestartHint(QSessionManager::RestartNever); };
     QObject::connect(&app, &QGuiApplication::commitDataRequest, disableSessionManagement);
     QObject::connect(&app, &QGuiApplication::saveStateRequest, disableSessionManagement);
 
     if (!QDBusConnection::sessionBus().registerService(QStringLiteral("org.kwinft.disman"))) {
-        qCWarning(DISMAN_BACKEND_LAUNCHER) << "Cannot register Disman service. Another launcher already running?";
+        qCWarning(DISMAN_BACKEND_LAUNCHER)
+            << "Cannot register Disman service. Another launcher already running?";
         return -1;
     }
 
-    BackendLoader *loader = new BackendLoader;
+    BackendLoader* loader = new BackendLoader;
     if (!loader->init()) {
         return -2;
     }

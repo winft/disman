@@ -1,6 +1,7 @@
 /*************************************************************************************
  *  Copyright (C) 2012 by Alejandro Fiestas Olivares <afiestas@kde.org>              *
  *  Copyright (C) 2014 by Daniel Vrátil <dvratil@redhat.com>                         *
+ *  Copyright © 2020 Roman Gilg <subdiff@gmail.com>                                  *
  *                                                                                   *
  *  This library is free software; you can redistribute it and/or                    *
  *  modify it under the terms of the GNU Lesser General Public                       *
@@ -16,89 +17,78 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
+#include "output_p.h"
 
-#include "output.h"
-#include "mode.h"
-#include "edid.h"
 #include "abstractbackend.h"
 #include "backendmanager_p.h"
 #include "disman_debug.h"
+#include "edid.h"
+#include "mode.h"
 
-#include <QStringList>
-#include <QScopedPointer>
-#include <QRect>
 #include <QCryptographicHash>
+#include <QRect>
+#include <QScopedPointer>
+#include <QStringList>
 
-using namespace Disman;
+#include <sstream>
 
-class Q_DECL_HIDDEN Output::Private
+namespace Disman
 {
-  public:
-    Private():
-        id(0),
-        type(Unknown),
-        replicationSource(0),
-        rotation(None),
-        scale(1.0),
-        connected(false),
-        enabled(false),
-        primary(false),
-        edid(nullptr)
-    {}
 
-    Private(const Private &other):
-        id(other.id),
-        name(other.name),
-        type(other.type),
-        icon(other.icon),
-        clones(other.clones),
-        replicationSource(other.replicationSource),
-        currentMode(other.currentMode),
-        preferredMode(other.preferredMode),
-        preferredModes(other.preferredModes),
-        sizeMm(other.sizeMm),
-        position(other.position),
-        rotation(other.rotation),
-        scale(other.scale),
-        connected(other.connected),
-        enabled(other.enabled),
-        primary(other.primary),
-        followPreferredMode(other.followPreferredMode)
-    {
-        Q_FOREACH (const ModePtr &otherMode, other.modeList) {
-            modeList.insert(otherMode->id(), otherMode->clone());
-        }
-        if (other.edid) {
-            edid.reset(other.edid->clone());
+Output::Private::Private()
+    : id(0)
+    , type(Unknown)
+    , replicationSource(0)
+    , rotation(None)
+    , scale(1.0)
+    , enabled(false)
+    , primary(false)
+    , edid(nullptr)
+{
+}
+
+Output::Private::Private(const Private& other)
+    : id(other.id)
+    , name(other.name)
+    , type(other.type)
+    , icon(other.icon)
+    , replicationSource(other.replicationSource)
+    , resolution(other.resolution)
+    , refresh_rate(other.refresh_rate)
+    , preferredMode(other.preferredMode)
+    , preferredModes(other.preferredModes)
+    , sizeMm(other.sizeMm)
+    , position(other.position)
+    , rotation(other.rotation)
+    , scale(other.scale)
+    , enabled(other.enabled)
+    , primary(other.primary)
+    , followPreferredMode(other.followPreferredMode)
+    , auto_resolution{other.auto_resolution}
+    , auto_refresh_rate{other.auto_refresh_rate}
+    , auto_rotate{other.auto_rotate}
+    , auto_rotate_only_in_tablet_mode{other.auto_rotate_only_in_tablet_mode}
+    , retention{other.retention}
+{
+    Q_FOREACH (const ModePtr& otherMode, other.modeList) {
+        modeList.insert(otherMode->id(), otherMode->clone());
+    }
+    if (other.edid) {
+        edid.reset(other.edid->clone());
+    }
+}
+
+ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) const
+{
+    for (auto mode : modeList) {
+        if (resolution == mode->size() && refresh_rate == mode->refreshRate()) {
+            return mode;
         }
     }
+    return ModePtr();
+}
 
-    QString biggestMode(const ModeList& modes) const;
-    bool compareModeList(const ModeList& before, const ModeList& after);
-
-    int id;
-    QString name;
-    Type type;
-    QString icon;
-    ModeList modeList;
-    QList<int> clones;
-    int replicationSource;
-    QString currentMode;
-    QString preferredMode;
-    QStringList preferredModes;
-    QSize sizeMm;
-    QPointF position;
-    Rotation rotation;
-    qreal scale;
-    bool connected;
-    bool enabled;
-    bool primary;
-    bool followPreferredMode = false;
-
-    QScopedPointer<Edid> edid;
-};
-
-bool Output::Private::compareModeList(const ModeList& before, const ModeList &after)
+bool Output::Private::compareModeList(const ModeList& before, const ModeList& after)
 {
     if (before.count() != after.count()) {
         return false;
@@ -109,8 +99,8 @@ bool Output::Private::compareModeList(const ModeList& before, const ModeList &af
         if (ita == after.constEnd()) {
             return false;
         }
-        const auto &mb = itb.value();
-        const auto &ma = ita.value();
+        const auto& mb = itb.value();
+        const auto& ma = ita.value();
         if (mb->id() != ma->id()) {
             return false;
         }
@@ -128,45 +118,15 @@ bool Output::Private::compareModeList(const ModeList& before, const ModeList &af
     return true;
 }
 
-
-QString Output::Private::biggestMode(const ModeList& modes) const
-{
-    int area, total = 0;
-    Disman::ModePtr biggest;
-    Q_FOREACH(const Disman::ModePtr &mode, modes) {
-        area = mode->size().width() * mode->size().height();
-        if (area < total) {
-            continue;
-        }
-        if (area == total && mode->refreshRate() < biggest->refreshRate()) {
-            continue;
-        }
-        if (area == total && mode->refreshRate() > biggest->refreshRate()) {
-            biggest = mode;
-            continue;
-        }
-
-        total = area;
-        biggest = mode;
-    }
-
-    if (!biggest) {
-        return QString();
-    }
-
-    return biggest->id();
-}
-
 Output::Output()
- : QObject(nullptr)
- , d(new Private())
+    : QObject(nullptr)
+    , d(new Private())
 {
-
 }
 
-Output::Output(Output::Private *dd)
- : QObject()
- , d(dd)
+Output::Output(Output::Private* dd)
+    : QObject()
+    , d(dd)
 {
 }
 
@@ -187,13 +147,7 @@ int Output::id() const
 
 void Output::setId(int id)
 {
-    if (d->id == id) {
-        return;
-    }
-
     d->id = id;
-
-    Q_EMIT outputChanged();
 }
 
 QString Output::name() const
@@ -203,31 +157,15 @@ QString Output::name() const
 
 void Output::setName(const QString& name)
 {
-    if (d->name == name) {
-        return;
-    }
-
     d->name = name;
-
-    Q_EMIT outputChanged();
 }
 
-// TODO KF6: remove this deprecated method
 QString Output::hash() const
 {
     if (edid() && edid()->isValid()) {
         return edid()->hash();
     }
-    return name();
-}
-
-QString Output::hashMd5() const
-{
-    if (edid() && edid()->isValid()) {
-        return edid()->hash();
-    }
-    const auto hash = QCryptographicHash::hash(name().toLatin1(),
-                                               QCryptographicHash::Md5);
+    const auto hash = QCryptographicHash::hash(name().toLatin1(), QCryptographicHash::Md5);
     return QString::fromLatin1(hash.toHex());
 }
 
@@ -238,13 +176,7 @@ Output::Type Output::type() const
 
 void Output::setType(Type type)
 {
-    if (d->type == type) {
-        return;
-    }
-
     d->type = type;
-
-    Q_EMIT outputChanged();
 }
 
 QString Output::icon() const
@@ -254,13 +186,7 @@ QString Output::icon() const
 
 void Output::setIcon(const QString& icon)
 {
-    if (d->icon == icon) {
-        return;
-    }
-
     d->icon = icon;
-
-    Q_EMIT outputChanged();
 }
 
 ModePtr Output::mode(const QString& id) const
@@ -277,38 +203,71 @@ ModeList Output::modes() const
     return d->modeList;
 }
 
-void Output::setModes(const ModeList &modes)
+void Output::setModes(const ModeList& modes)
 {
-    bool changed = !d->compareModeList(d->modeList, modes);
     d->modeList = modes;
-    if (changed) {
-        emit modesChanged();
-        emit outputChanged();
+}
+
+void Output::set_mode(ModePtr const& mode)
+{
+    set_resolution(mode->size());
+    set_refresh_rate(mode->refreshRate());
+}
+
+void Output::set_to_preferred_mode()
+{
+    set_mode(preferred_mode());
+}
+
+ModePtr Output::commanded_mode() const
+{
+    for (auto mode : d->modeList) {
+        if (mode->size() == d->resolution && mode->refreshRate() == d->refresh_rate) {
+            return mode;
+        }
     }
+    return ModePtr();
 }
 
-QString Output::currentModeId() const
+bool Output::set_resolution(QSize const& size)
 {
-    return d->currentMode;
+    d->resolution = size;
+    return !commanded_mode().isNull();
 }
 
-void Output::setCurrentModeId(const QString& mode)
+bool Output::set_refresh_rate(double rate)
 {
-    if (d->currentMode == mode) {
-        return;
+    d->refresh_rate = rate;
+    return !commanded_mode().isNull();
+}
+
+QSize Output::best_resolution() const
+{
+    return d->best_resolution(modes());
+}
+
+double Output::best_refresh_rate(QSize const& resolution) const
+{
+    return d->best_refresh_rate(modes(), resolution);
+}
+
+ModePtr Output::best_mode() const
+{
+    return d->best_mode(modes());
+}
+
+ModePtr Output::auto_mode() const
+{
+    auto const resolution = auto_resolution() ? best_resolution() : d->resolution;
+    auto const refresh_rate = auto_refresh_rate() ? best_refresh_rate(resolution) : d->refresh_rate;
+
+    if (auto mode = d->mode(resolution, refresh_rate)) {
+        return mode;
     }
-
-    d->currentMode = mode;
-
-    Q_EMIT currentModeIdChanged();
+    return preferred_mode();
 }
 
-ModePtr Output::currentMode() const
-{
-    return d->modeList.value(d->currentMode);
-}
-
-void Output::setPreferredModes(const QStringList &modes)
+void Output::setPreferredModes(const QStringList& modes)
 {
     d->preferredMode = QString();
     d->preferredModes = modes;
@@ -319,58 +278,29 @@ QStringList Output::preferredModes() const
     return d->preferredModes;
 }
 
-QString Output::preferredModeId() const
+ModePtr Output::preferred_mode() const
 {
     if (!d->preferredMode.isEmpty()) {
-        return d->preferredMode;
+        return d->modeList.value(d->preferredMode);
     }
     if (d->preferredModes.isEmpty()) {
-        return d->biggestMode(modes());
+        return d->best_mode(modes());
     }
 
-    int area, total = 0;
-    Disman::ModePtr biggest;
-    Disman::ModePtr candidateMode;
-    Q_FOREACH(const QString &modeId, d->preferredModes) {
-        candidateMode = mode(modeId);
-        area = candidateMode->size().width() * candidateMode->size().height();
-        if (area < total) {
-            continue;
-        }
-        if (area == total && biggest && candidateMode->refreshRate() < biggest->refreshRate()) {
-            continue;
-        }
-        if (area == total && biggest && candidateMode->refreshRate() > biggest->refreshRate()) {
-            biggest = candidateMode;
-            continue;
-        }
+    auto best = d->best_mode(d->preferredModes);
+    Q_ASSERT_X(best, "preferred_mode", "biggest mode must exist");
 
-        total = area;
-        biggest = candidateMode;
-    }
-
-    Q_ASSERT_X(biggest, "preferredModeId", "biggest mode must exist");
-
-    d->preferredMode = biggest->id();
-    return d->preferredMode;
-}
-
-ModePtr Output::preferredMode() const
-{
-    return d->modeList.value(preferredModeId());
+    d->preferredMode = best->id();
+    return best;
 }
 
 void Output::setPosition(const QPointF& position)
 {
-    if (d->position == position) {
-        return;
-    }
-
     d->position = position;
-    Q_EMIT geometryChanged();
 }
 
-// TODO KF6: make the Rotation enum an enum class and align values with Wayland transformation property
+// TODO KF6: make the Rotation enum an enum class and align values with Wayland transformation
+// property
 Output::Rotation Output::rotation() const
 {
     return d->rotation;
@@ -378,12 +308,7 @@ Output::Rotation Output::rotation() const
 
 void Output::setRotation(Output::Rotation rotation)
 {
-    if (d->rotation == rotation) {
-        return;
-    }
-
     d->rotation = rotation;
-    Q_EMIT geometryChanged();
 }
 
 double Output::scale() const
@@ -393,21 +318,27 @@ double Output::scale() const
 
 void Output::setScale(double scale)
 {
-    if (qFuzzyCompare(d->scale, scale)) {
-        return;
-    }
     d->scale = scale;
-    Q_EMIT geometryChanged();
 }
 
 QRectF Output::geometry() const
 {
     auto geo = QRectF(d->position, QSizeF());
 
-    auto size = enforcedModeSize();
+    if (d->enforced_geometry.isValid()) {
+        return d->enforced_geometry;
+    }
+
+    auto const mode = auto_mode();
+    if (!mode) {
+        return geo;
+    }
+
+    auto size = mode->size();
     if (!size.isValid()) {
         return geo;
     }
+
     if (!isHorizontal()) {
         size = size.transposed();
     }
@@ -416,25 +347,14 @@ QRectF Output::geometry() const
     return geo;
 }
 
+void Output::force_geometry(QRectF const& geo)
+{
+    d->enforced_geometry = geo;
+}
+
 QPointF Output::position() const
 {
     return d->position;
-}
-
-bool Output::isConnected() const
-{
-    return d->connected;
-}
-
-void Output::setConnected(bool connected)
-{
-    if (d->connected == connected) {
-        return;
-    }
-
-    d->connected = connected;
-
-    Q_EMIT isConnectedChanged();
 }
 
 bool Output::isEnabled() const
@@ -444,13 +364,7 @@ bool Output::isEnabled() const
 
 void Output::setEnabled(bool enabled)
 {
-    if (d->enabled == enabled) {
-        return;
-    }
-
     d->enabled = enabled;
-
-    Q_EMIT isEnabledChanged();
 }
 
 bool Output::isPrimary() const
@@ -469,22 +383,6 @@ void Output::setPrimary(bool primary)
     Q_EMIT isPrimaryChanged();
 }
 
-QList<int> Output::clones() const
-{
-    return d->clones;
-}
-
-void Output::setClones(const QList<int> &outputlist)
-{
-    if (d->clones == outputlist) {
-        return;
-    }
-
-    d->clones = outputlist;
-
-    Q_EMIT clonesChanged();
-}
-
 int Output::replicationSource() const
 {
     return d->replicationSource;
@@ -492,22 +390,19 @@ int Output::replicationSource() const
 
 void Output::setReplicationSource(int source)
 {
-    if (d->replicationSource == source) {
-        return;
-    }
-
     d->replicationSource = source;
 
-    Q_EMIT replicationSourceChanged();
+    // Needs to be unset in case we run in-process. That value is not meant for consumption by
+    // the frontend anyway.
+    d->enforced_geometry = QRectF();
 }
 
 void Output::setEdid(const QByteArray& rawData)
 {
-    Q_ASSERT(d->edid.isNull());
     d->edid.reset(new Edid(rawData));
 }
 
-Edid *Output::edid() const
+Edid* Output::edid() const
 {
     return d->edid.data();
 }
@@ -517,7 +412,7 @@ QSize Output::sizeMm() const
     return d->sizeMm;
 }
 
-void Output::setSizeMm(const QSize &size)
+void Output::setSizeMm(const QSize& size)
 {
     d->sizeMm = size;
 }
@@ -529,27 +424,62 @@ bool Disman::Output::followPreferredMode() const
 
 void Disman::Output::setFollowPreferredMode(bool follow)
 {
-    if (follow != d->followPreferredMode) {
-        d->followPreferredMode = follow;
-        Q_EMIT followPreferredModeChanged(follow);
-    }
+    d->followPreferredMode = follow;
+}
+
+bool Output::auto_resolution() const
+{
+    return d->auto_resolution;
+}
+
+void Output::set_auto_resolution(bool auto_res)
+{
+    d->auto_resolution = auto_res;
+}
+
+bool Output::auto_refresh_rate() const
+{
+    return d->auto_refresh_rate;
+}
+
+void Output::set_auto_refresh_rate(bool auto_rate)
+{
+    d->auto_refresh_rate = auto_rate;
+}
+
+bool Output::auto_rotate() const
+{
+    return d->auto_rotate;
+}
+
+void Output::set_auto_rotate(bool auto_rot)
+{
+    d->auto_rotate = auto_rot;
+}
+
+bool Output::auto_rotate_only_in_tablet_mode() const
+{
+    return d->auto_rotate_only_in_tablet_mode;
+}
+
+void Output::set_auto_rotate_only_in_tablet_mode(bool only)
+{
+    d->auto_rotate_only_in_tablet_mode = only;
+}
+
+Output::Retention Output::retention() const
+{
+    return d->retention;
+}
+
+void Output::set_retention(Retention retention)
+{
+    d->retention = retention;
 }
 
 bool Output::isPositionable() const
 {
-    return isConnected() && isEnabled() && !replicationSource();
-}
-
-QSize Output::enforcedModeSize() const
-{
-    if (const auto mode = currentMode()) {
-        return mode->size();
-    } else if (const auto mode = preferredMode()) {
-        return mode->size();
-    } else if (d->modeList.count() > 0) {
-        return d->modeList.first()->size();
-    }
-    return QSize();
+    return isEnabled() && !replicationSource();
 }
 
 void Output::apply(const OutputPtr& other)
@@ -562,62 +492,25 @@ void Output::apply(const OutputPtr& other)
     // outputs from intermediate change signals
     const bool keepBlocked = signalsBlocked();
     blockSignals(true);
-    if (d->name != other->d->name) {
-        changes << &Output::outputChanged;
-        setName(other->d->name);
-    }
-    if (d->type != other->d->type) {
-        changes << &Output::outputChanged;
-        setType(other->d->type);
-    }
-    if (d->icon != other->d->icon) {
-        changes << &Output::outputChanged;
-        setIcon(other->d->icon);
-    }
-    if (d->position != other->d->position) {
-        changes << &Output::geometryChanged;
-        setPosition(other->geometry().topLeft());
-    }
-    if (d->rotation != other->d->rotation) {
-        changes << &Output::rotationChanged;
-        setRotation(other->d->rotation);
-    }
-    if (!qFuzzyCompare(d->scale, other->d->scale)) {
-        changes << &Output::geometryChanged;
-        setScale(other->d->scale);
-    }
-    if (d->currentMode != other->d->currentMode) {
-        changes << &Output::currentModeIdChanged;
-        setCurrentModeId(other->d->currentMode);
-    }
-    if (d->connected != other->d->connected) {
-        changes << &Output::isConnectedChanged;
-        setConnected(other->d->connected);
-    }
-    if (d->enabled != other->d->enabled) {
-        changes << &Output::isEnabledChanged;
-        setEnabled(other->d->enabled);
-    }
+
+    setName(other->d->name);
+    setType(other->d->type);
+    setIcon(other->d->icon);
+    setPosition(other->geometry().topLeft());
+    setRotation(other->d->rotation);
+    setScale(other->d->scale);
+    setEnabled(other->d->enabled);
+
     if (d->primary != other->d->primary) {
         changes << &Output::isPrimaryChanged;
         setPrimary(other->d->primary);
     }
-    if (d->clones != other->d->clones) {
-        changes << &Output::clonesChanged;
-        setClones(other->d->clones);;
-    }
-    if (d->replicationSource != other->d->replicationSource) {
-        changes << &Output::replicationSourceChanged;
-        setReplicationSource(other->d->replicationSource);;
-    }
-    if (!d->compareModeList(d->modeList, other->d->modeList)) {
-        changes << &Output::outputChanged;
-        changes << &Output::modesChanged;
-    }
+
+    setReplicationSource(other->d->replicationSource);
 
     setPreferredModes(other->d->preferredModes);
     ModeList modes;
-    Q_FOREACH (const ModePtr &otherMode, other->modes()) {
+    Q_FOREACH (const ModePtr& otherMode, other->modes()) {
         modes.insert(otherMode->id(), otherMode->clone());
     }
     setModes(modes);
@@ -627,31 +520,67 @@ void Output::apply(const OutputPtr& other)
         d->edid.reset(other->d->edid->clone());
     }
 
+    set_resolution(other->d->resolution);
+    set_refresh_rate(other->d->refresh_rate);
+
+    set_auto_resolution(other->d->auto_resolution);
+    set_auto_refresh_rate(other->d->auto_refresh_rate);
+    set_auto_rotate(other->d->auto_rotate);
+    set_auto_rotate_only_in_tablet_mode(other->d->auto_rotate_only_in_tablet_mode);
+    set_retention(other->d->retention);
+
     blockSignals(keepBlocked);
 
     while (!changes.isEmpty()) {
-        const ChangeSignal &sig = changes.first();
-        Q_EMIT (this->*sig)();
+        const ChangeSignal& sig = changes.first();
+        Q_EMIT(this->*sig)();
         changes.removeAll(sig);
     }
+
+    Q_EMIT updated();
 }
 
-QDebug operator<<(QDebug dbg, const Disman::OutputPtr &output)
+}
+
+QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 {
-    if(output) {
-        dbg << "Disman::Output(" << output->id() << " "
-                                  << output->name()
-                                  << (output->isConnected() ? "connected" : "disconnected")
-                                  << (output->isEnabled() ? "enabled" : "disabled")
-                                  << (output->isPrimary() ? "primary" : "")
-                                  << "geometry:" << output->geometry()
-                                  << "scale:" << output->scale()
-                                  << "modeId:" << output->currentModeId()
-                                  << "clone:" << (output->clones().isEmpty() ? "no" : "yes")
-                                  << "followPreferredMode:" << output->followPreferredMode()
-                                  << ")";
+    if (output) {
+        auto stream_rect = [](QRectF const& rect) {
+            std::stringstream ss;
+            ss << "top-left(" << rect.x() << "," << rect.y() << ") size(" << rect.size().width()
+               << "x" << rect.size().height() << ")";
+            return ss.str();
+        };
+
+        std::stringstream ss;
+
+        ss << "{" << output->id() << " "
+           << output->name().toStdString()
+
+           // basic properties
+           << (output->isEnabled() ? " [enabled]" : "[disabled]")
+           << (output->isPrimary() ? " [primary]" : "")
+           << (output->retention() == Disman::Output::Retention::Global
+                   ? "[global retention]"
+                   : output->retention() == Disman::Output::Retention::Individual
+                       ? "[individual retention]"
+                       : "")
+           << (output->followPreferredMode() ? " [hotplug-mode-update (QXL/SPICE)]" : "")
+           << (output->auto_resolution() ? " [auto resolution]" : "")
+           << (output->auto_refresh_rate() ? " [auto refresh rate]" : "")
+           << (output->auto_rotate() ? " [auto rotate]" : "")
+           << (output->auto_rotate_only_in_tablet_mode() ? " [auto rotate only in tablet mode]"
+                                                         : "")
+
+           // geometry
+           << " | physical size[mm]: " << output->sizeMm().width() << "x"
+           << output->sizeMm().height() << " | mode: " << output->auto_mode()
+           << " | geometry: " << stream_rect(output->geometry()) << " | scale: " << output->scale()
+           << " | hash: " << output->hash().toStdString() << "}";
+
+        dbg << QString::fromStdString(ss.str());
     } else {
-        dbg << "Disman::Output(NULL)";
+        dbg << "{null}";
     }
     return dbg;
 }

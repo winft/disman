@@ -16,9 +16,9 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 #include <QCoreApplication>
-#include <QtTest>
 #include <QObject>
 #include <QSignalSpy>
+#include <QtTest>
 
 #include "../src/backendmanager_p.h"
 
@@ -31,7 +31,7 @@ class TestBackendLoader : public QObject
     Q_OBJECT
 
 public:
-    explicit TestBackendLoader(QObject *parent = nullptr);
+    explicit TestBackendLoader(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void initTestCase();
@@ -43,11 +43,11 @@ private Q_SLOTS:
     void testFallback();
 };
 
-TestBackendLoader::TestBackendLoader(QObject *parent)
+TestBackendLoader::TestBackendLoader(QObject* parent)
     : QObject(parent)
 {
     qputenv("DISMAN_LOGGING", "false");
-    qputenv("DISMAN_BACKEND_INPROCESS", QByteArray());
+    qputenv("DISMAN_IN_PROCESS", QByteArray());
     qputenv("DISMAN_BACKEND", QByteArray());
 }
 
@@ -65,9 +65,9 @@ void TestBackendLoader::testPreferredBackend()
 {
     auto backends = BackendManager::instance()->listBackends();
     QVERIFY(!backends.isEmpty());
-    auto preferred = BackendManager::instance()->preferredBackend();
+    auto preferred = BackendManager::instance()->preferred_backend();
     QVERIFY(preferred.exists());
-    auto fake = BackendManager::instance()->preferredBackend(QStringLiteral("fake"));
+    auto fake = BackendManager::instance()->preferred_backend("fake");
     QVERIFY(fake.fileName().startsWith(QLatin1String("fake")));
 }
 
@@ -76,14 +76,14 @@ void TestBackendLoader::testEnv_data()
     QTest::addColumn<QString>("var");
     QTest::addColumn<QString>("backend");
 
-    QTest::newRow("all lower") << "wayland" << "wayland";
-    QTest::newRow("camel case") << "Wayland" << "wayland";
-    QTest::newRow("all upper") << "WAYLAND" << "wayland";
-    QTest::newRow("mixed") << "wAYlaND" << "wayland";
-
-    QTest::newRow("randr 1.1") << "randr11" << "randr11";
-    QTest::newRow("qscreen") << "qscreen" << "qscreen";
-    QTest::newRow("mixed") << "fake" << "fake";
+    QTest::newRow("wayland") << "wayland"
+                             << "wayland";
+    QTest::newRow("randr") << "randr"
+                           << "randr";
+    QTest::newRow("qscreen") << "qscreen"
+                             << "qscreen";
+    QTest::newRow("mixed") << "fake"
+                           << "fake";
 }
 
 void TestBackendLoader::testEnv()
@@ -92,14 +92,14 @@ void TestBackendLoader::testEnv()
     QFETCH(QString, var);
     QFETCH(QString, backend);
     qputenv("DISMAN_BACKEND", var.toLocal8Bit());
-    auto preferred = BackendManager::instance()->preferredBackend();
+    auto preferred = BackendManager::instance()->preferred_backend();
     QVERIFY(preferred.fileName().startsWith(backend));
 }
 
 void TestBackendLoader::testFallback()
 {
     qputenv("DISMAN_BACKEND", "nonsense");
-    auto preferred = BackendManager::instance()->preferredBackend();
+    auto preferred = BackendManager::instance()->preferred_backend();
     QVERIFY(preferred.fileName().startsWith(QLatin1String("qscreen")));
 }
 

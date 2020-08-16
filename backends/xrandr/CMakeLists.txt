@@ -9,9 +9,19 @@ set(xrandr_SRCS
     xrandroutput.cpp
     xrandrmode.cpp
     xrandrscreen.cpp
-    ../xcbwrapper.cpp
-    ../xcbeventlistener.cpp
+    xcbwrapper.cpp
+    xcbeventlistener.cpp
+
+    ../filer_controller.cpp
+    ../logging.cpp
     ../utils.cpp
+)
+
+ecm_qt_declare_logging_category(
+    xrandr_SRCS
+    HEADER xrandr_logging.h
+    IDENTIFIER DISMAN_XRANDR
+    CATEGORY_NAME disman.backend.xrandr
 )
 
 add_library(randr MODULE ${xrandr_SRCS})

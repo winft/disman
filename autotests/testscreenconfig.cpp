@@ -15,17 +15,16 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-
-#include <QtTest>
 #include <QObject>
+#include <QtTest>
 
-#include "../src/screen.h"
-#include "../src/config.h"
-#include "../src/output.h"
-#include "../src/mode.h"
-#include "../src/getconfigoperation.h"
-#include "../src/setconfigoperation.h"
 #include "../src/backendmanager_p.h"
+#include "../src/config.h"
+#include "../src/getconfigoperation.h"
+#include "../src/mode.h"
+#include "../src/output.h"
+#include "../src/screen.h"
+#include "../src/setconfigoperation.h"
 
 using namespace Disman;
 
@@ -41,7 +40,6 @@ private Q_SLOTS:
     void singleOutput();
     void singleOutputWithoutPreferred();
     void multiOutput();
-    void clonesOutput();
     void configCanBeApplied();
     void supportedFeatures();
     void testInvalidMode();
@@ -51,8 +49,8 @@ private Q_SLOTS:
 
 ConfigPtr testScreenConfig::getConfig()
 {
-    qputenv("DISMAN_BACKEND_INPROCESS", "1");
-    auto *op = new GetConfigOperation();
+    qputenv("DISMAN_IN_PROCESS", "1");
+    auto* op = new GetConfigOperation();
     if (!op->exec()) {
         qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
         BackendManager::instance()->shutdownBackend();
@@ -64,11 +62,10 @@ ConfigPtr testScreenConfig::getConfig()
     return op->config();
 }
 
-
 void testScreenConfig::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
-    qputenv("DISMAN_BACKEND", "Fake");
+    qputenv("DISMAN_BACKEND", "fake");
 }
 
 void testScreenConfig::cleanupTestCase()
@@ -78,14 +75,8 @@ void testScreenConfig::cleanupTestCase()
 
 void testScreenConfig::singleOutput()
 {
-    //json file for the fake backend
+    // json file for the fake backend
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
-
-//     QVERIFY2(disman, Disman::errorString().toLatin1());
-
-//     QVERIFY2(!disman->backend().isEmpty(), "No backend loaded");
-
-
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
@@ -105,18 +96,16 @@ void testScreenConfig::singleOutput()
     QCOMPARE(output->type(), Output::Panel);
     QCOMPARE(output->modes().count(), 3);
     QCOMPARE(output->position(), QPoint(0, 0));
-    QCOMPARE(output->geometry(), QRect(0,0, 1280, 800));
-    QCOMPARE(output->currentModeId(), QLatin1String("3"));
-    QCOMPARE(output->preferredModeId(), QLatin1String("3"));
+    QCOMPARE(output->geometry(), QRect(0, 0, 1280, 800));
+    QCOMPARE(output->auto_mode()->id(), QLatin1String("3"));
+    QCOMPARE(output->preferred_mode()->id(), QLatin1String("3"));
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.0);
-    QCOMPARE(output->isConnected(), true);
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), true);
-    //QCOMPARE(output->isEmbedded(), true);
-    QVERIFY2(output->clones().isEmpty(), "In singleOutput is impossible to have clones");
+    // QCOMPARE(output->isEmbedded(), true);
 
-    const ModePtr mode = output->currentMode();
+    const ModePtr mode = output->auto_mode();
     QCOMPARE(mode->size(), QSize(1280, 800));
     QCOMPARE(mode->refreshRate(), (float)59.9);
 }
@@ -131,7 +120,7 @@ void testScreenConfig::singleOutputWithoutPreferred()
     QVERIFY(!output.isNull());
 
     QVERIFY(output->preferredModes().isEmpty());
-    QCOMPARE(output->preferredModeId(), QLatin1String("3"));
+    QCOMPARE(output->preferred_mode()->id(), QLatin1String("3"));
 }
 
 void testScreenConfig::multiOutput()
@@ -157,41 +146,17 @@ void testScreenConfig::multiOutput()
     QCOMPARE(output->modes().count(), 4);
     QCOMPARE(output->position(), QPoint(1280, 0));
     QCOMPARE(output->geometry(), QRect(1280, 0, 1920 / 1.4, 1080 / 1.4));
-    QCOMPARE(output->currentModeId(), QLatin1String("4"));
-    QCOMPARE(output->preferredModeId(), QLatin1String("4"));
+    QCOMPARE(output->auto_mode()->id(), QLatin1String("4"));
+    QCOMPARE(output->preferred_mode()->id(), QLatin1String("4"));
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.4);
-    QCOMPARE(output->isConnected(), true);
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->isPrimary(), false);
-    QVERIFY2(output->clones().isEmpty(), "This simulates extended output, no clones");
 
-    const ModePtr mode = output->currentMode();
+    const ModePtr mode = output->auto_mode();
     QVERIFY(!mode.isNull());
     QCOMPARE(mode->size(), QSize(1920, 1080));
     QCOMPARE(mode->refreshRate(), (float)60.0);
-}
-
-void testScreenConfig::clonesOutput()
-{
-    qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleclone.json");
-
-    const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
-    const ScreenPtr screen = config->screen();
-    QVERIFY(!screen.isNull());
-
-    QCOMPARE(screen->minSize(), QSize(320, 200));
-    QCOMPARE(screen->maxSize(), QSize(8192, 8192));
-    QCOMPARE(screen->currentSize(), QSize(1024, 768));
-
-    const OutputPtr one = config->outputs()[1];
-    const OutputPtr two = config->outputs()[2];
-
-    QCOMPARE(one->currentMode()->size(), two->currentMode()->size());
-    QCOMPARE(one->clones().count(), 1);
-    QCOMPARE(one->clones().first(), two->id());
-    QVERIFY2(two->clones().isEmpty(), "Output two should have no clones");
 }
 
 void testScreenConfig::configCanBeApplied()
@@ -210,24 +175,22 @@ void testScreenConfig::configCanBeApplied()
     QVERIFY(!Config::canBeApplied(brokenConfig));
     primaryBroken->setId(currentPrimary->id());
     QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->setConnected(currentPrimary->isConnected());
     QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->setCurrentModeId(QStringLiteral("42"));
+    primaryBroken->set_mode(primaryBroken->mode(QStringLiteral("42")));
     QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->setCurrentModeId(currentPrimary->currentModeId());
+    primaryBroken->set_mode(currentPrimary->auto_mode());
     QVERIFY(!Config::canBeApplied(brokenConfig));
     qDebug() << "brokenConfig.modes" << primaryBroken->mode(QStringLiteral("3"));
     primaryBroken->mode(QStringLiteral("3"))->setSize(QSize(1280, 800));
     qDebug() << "brokenConfig.modes" << primaryBroken->mode(QStringLiteral("3"));
     QVERIFY(Config::canBeApplied(brokenConfig));
 
-
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "tooManyOutputs.json");
     const ConfigPtr brokenConfig2 = getConfig();
     QVERIFY(!brokenConfig2.isNull());
 
     int enabledOutputsCount = 0;
-    Q_FOREACH (const OutputPtr &output, brokenConfig2->outputs()) {
+    Q_FOREACH (const OutputPtr& output, brokenConfig2->outputs()) {
         if (output->isEnabled()) {
             ++enabledOutputsCount;
         }
@@ -248,19 +211,23 @@ void testScreenConfig::supportedFeatures()
     QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
     QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
 
-    config->setSupportedFeatures(Disman::Config::Feature::Writable | Disman::Config::Feature::PrimaryDisplay);
+    config->setSupportedFeatures(Disman::Config::Feature::Writable
+                                 | Disman::Config::Feature::PrimaryDisplay);
     QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
     QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
 
     config->setSupportedFeatures(Disman::Config::Feature::None);
     QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::None));
 
-    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling | Disman::Config::Feature::Writable);
+    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling
+                                 | Disman::Config::Feature::Writable);
     QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::None));
     QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
     QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
 
-    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling | Disman::Config::Feature::Writable | Disman::Config::Feature::PrimaryDisplay);
+    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling
+                                 | Disman::Config::Feature::Writable
+                                 | Disman::Config::Feature::PrimaryDisplay);
     QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::None));
     QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
     QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
@@ -274,7 +241,7 @@ void testScreenConfig::testInvalidMode()
     QVERIFY(invalidMode.isNull());
 
     auto output = new Disman::Output();
-    auto currentMode = output->currentMode();
+    auto currentMode = output->auto_mode();
     QVERIFY(currentMode.isNull());
     QVERIFY(!currentMode);
     delete output;
@@ -319,7 +286,6 @@ void testScreenConfig::testOutputPositionNormalization()
     }
     QCOMPARE(right->position(), QPoint());
 }
-
 
 QTEST_MAIN(testScreenConfig)
 
