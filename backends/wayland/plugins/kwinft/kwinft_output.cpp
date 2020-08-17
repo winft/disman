@@ -125,10 +125,10 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
         mode->setSize(wlMode.size);
         mode->setName(name);
 
-        if (wlMode.flags.testFlag(Wl::OutputDeviceV1::Mode::Flag::Current)) {
+        if (wlMode == m_device->currentMode()) {
             current_mode = mode;
         }
-        if (wlMode.flags.testFlag(Wl::OutputDeviceV1::Mode::Flag::Preferred)) {
+        if (wlMode.preferred) {
             preferredModeIds << modeId;
         }
 
