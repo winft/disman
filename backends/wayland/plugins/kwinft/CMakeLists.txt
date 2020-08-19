@@ -7,7 +7,7 @@ ecm_qt_declare_logging_category(
     kwinft_SRCS
     HEADER kwinft_logging.h
     IDENTIFIER DISMAN_WAYLAND
-    CATEGORY_NAME org.kwinft.disman.wayland
+    CATEGORY_NAME disman.wayland.kwinft
 )
 
 add_library(kwinft MODULE ${kwinft_SRCS})

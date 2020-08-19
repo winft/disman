@@ -7,7 +7,7 @@ ecm_qt_declare_logging_category(
     wlroots_SRCS
     HEADER wlroots_logging.h
     IDENTIFIER DISMAN_WAYLAND
-    CATEGORY_NAME org.kwinft.disman.wayland
+    CATEGORY_NAME disman.wayland.wlroots
 )
 
 add_library(wlroots-wrapland MODULE ${wlroots_SRCS})
