@@ -203,6 +203,8 @@ bool KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
     using namespace Wrapland::Client;
 
+    qCDebug(DISMAN_WAYLAND) << "Applying config in KWinFT backend.";
+
     // Create a new configuration object
     auto* wlConfig = m_outputManagement->createConfiguration();
     wlConfig->setEventQueue(m_queue);
@@ -210,7 +212,8 @@ bool KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     bool changed = false;
 
     if (signalsBlocked()) {
-        /* Last apply still pending, remember new changes and apply afterwards */
+        qCDebug(DISMAN_WAYLAND)
+            << "Last apply still pending, remembering new changes and will apply afterwards.";
         m_dismanPendingConfig = newConfig;
         return false;
     }
@@ -220,6 +223,8 @@ bool KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     }
 
     if (!changed) {
+        qCDebug(DISMAN_WAYLAND)
+            << "New config equals compositor's current data. Aborting apply request.";
         return false;
     }
 
@@ -227,20 +232,22 @@ bool KwinftInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     // once it's done or failed, we'll trigger configChanged() only once, and not per individual
     // property change.
     connect(wlConfig, &OutputConfigurationV1::applied, this, [this, wlConfig] {
+        qCDebug(DISMAN_WAYLAND) << "Config applied successfully.";
         wlConfig->deleteLater();
         unblockSignals();
         Q_EMIT configChanged();
         tryPendingConfig();
     });
     connect(wlConfig, &OutputConfigurationV1::failed, this, [this, wlConfig] {
+        qCWarning(DISMAN_WAYLAND) << "Applying config failed.";
         wlConfig->deleteLater();
         unblockSignals();
         Q_EMIT configChanged();
         tryPendingConfig();
     });
 
-    // Now block signals and ask the compositor to apply the changes.
     blockSignals();
     wlConfig->apply();
+    qCDebug(DISMAN_WAYLAND) << "Config sent to compositor.";
     return true;
 }

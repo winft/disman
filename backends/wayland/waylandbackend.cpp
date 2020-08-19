@@ -146,6 +146,12 @@ void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
 
 bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
 {
+    if (QLoggingCategory category("disman.wayland"); category.isEnabled(QtDebugMsg)) {
+        qCDebug(DISMAN_WAYLAND) << "About to set config."
+                                << "\n  Previous config:" << this->config()
+                                << "\n  New config:" << config;
+    }
+
     m_filer_controller->write(config);
 
     auto outputs = config->outputs();
