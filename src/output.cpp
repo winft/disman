@@ -545,6 +545,16 @@ void Output::apply(const OutputPtr& other)
 QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 {
     if (output) {
+        auto stream_mode = [](Disman::ModePtr const& mode) {
+            std::stringstream ss;
+            if (mode) {
+                ss << "id " << mode->id().toStdString() << ", size " << mode->size().width() << "x"
+                   << mode->size().height() << "@" << mode->refreshRate();
+            } else {
+                ss << "null";
+            }
+            return ss.str();
+        };
         auto stream_rect = [](QRectF const& rect) {
             std::stringstream ss;
             ss << "top-left(" << rect.x() << "," << rect.y() << ") size(" << rect.size().width()
@@ -574,7 +584,7 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 
            // geometry
            << " | physical size[mm]: " << output->sizeMm().width() << "x"
-           << output->sizeMm().height() << " | mode: " << output->auto_mode()
+           << output->sizeMm().height() << " | mode: " << stream_mode(output->auto_mode())
            << " | geometry: " << stream_rect(output->geometry()) << " | scale: " << output->scale()
            << " | hash: " << output->hash().toStdString() << "}";
 

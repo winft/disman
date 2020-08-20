@@ -8,7 +8,7 @@ ecm_qt_declare_logging_category(
     kwayland_SRCS
     HEADER kwayland_logging.h
     IDENTIFIER DISMAN_WAYLAND
-    CATEGORY_NAME org.kwinft.disman.wayland
+    CATEGORY_NAME disman.wayland.kwayland
 )
 
 add_library(kwayland MODULE ${kwayland_SRCS})

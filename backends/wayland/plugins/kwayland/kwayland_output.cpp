@@ -109,7 +109,7 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
 
         QString modeId = QString::number(wlMode.id);
         if (modeId.isEmpty()) {
-            qCDebug(DISMAN_WAYLAND)
+            qCWarning(DISMAN_WAYLAND)
                 << "Could not create mode id from" << wlMode.id << ", using" << name << "instead.";
             modeId = name;
         }
