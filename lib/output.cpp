@@ -231,13 +231,13 @@ ModePtr Output::commanded_mode() const
 bool Output::set_resolution(QSize const& size)
 {
     d->resolution = size;
-    return !commanded_mode().isNull();
+    return commanded_mode() != nullptr;
 }
 
 bool Output::set_refresh_rate(double rate)
 {
     d->refresh_rate = rate;
-    return !commanded_mode().isNull();
+    return commanded_mode() != nullptr;
 }
 
 QSize Output::best_resolution() const

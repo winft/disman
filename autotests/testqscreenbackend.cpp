@@ -70,7 +70,7 @@ void testQScreenBackend::initTestCase()
 
 void testQScreenBackend::verifyConfig()
 {
-    QVERIFY(!m_config.isNull());
+    QVERIFY(m_config);
     if (!m_config) {
         QSKIP("QScreenbackend invalid", SkipAll);
     }

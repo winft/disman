@@ -117,7 +117,7 @@ bool Config::can_be_applied(const ConfigPtr& config, ValidityFlags flags)
         }
 
         // if there is no currentMode
-        if (output->auto_mode().isNull()) {
+        if (!output->auto_mode()) {
             qCDebug(DISMAN) << "can_be_applied: The output:" << output->id()
                             << "has no currentModeId";
             return false;

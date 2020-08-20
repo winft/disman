@@ -63,8 +63,8 @@ bool BackendDBusWrapper::init()
 
 QVariantMap BackendDBusWrapper::getConfig() const
 {
-    const Disman::ConfigPtr config = mBackend->config();
-    Q_ASSERT(!config.isNull());
+    auto const config = mBackend->config();
+    assert(config != nullptr);
     if (!config) {
         qCWarning(DISMAN_BACKEND_LAUNCHER) << "Backend provided an empty config!";
         return QVariantMap();
@@ -106,7 +106,7 @@ QByteArray BackendDBusWrapper::getEdid(int output) const
 
 void BackendDBusWrapper::backendConfigChanged(const Disman::ConfigPtr& config)
 {
-    Q_ASSERT(!config.isNull());
+    assert(config != nullptr);
     if (!config) {
         qCWarning(DISMAN_BACKEND_LAUNCHER) << "Backend provided an empty config!";
         return;
@@ -118,14 +118,14 @@ void BackendDBusWrapper::backendConfigChanged(const Disman::ConfigPtr& config)
 
 void BackendDBusWrapper::doEmitConfigChanged()
 {
-    Q_ASSERT(!mCurrentConfig.isNull());
-    if (mCurrentConfig.isNull()) {
+    assert(mCurrentConfig != nullptr);
+    if (!mCurrentConfig) {
         return;
     }
 
     const QJsonObject obj = Disman::ConfigSerializer::serialize_config(mCurrentConfig);
     Q_EMIT configChanged(obj.toVariantMap());
 
-    mCurrentConfig.clear();
+    mCurrentConfig.reset();
     mChangeCollector.stop();
 }

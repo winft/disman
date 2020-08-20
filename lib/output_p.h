@@ -124,7 +124,7 @@ ModePtr Output::Private::get_mode(std::string const& modeId) const
 
 template<>
 ModePtr
-Output::Private::get_mode(std::pair<std::string const, QSharedPointer<Mode>> const& mode) const
+Output::Private::get_mode(std::pair<std::string const, std::shared_ptr<Mode>> const& mode) const
 {
     return mode.second;
 }

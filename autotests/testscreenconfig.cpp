@@ -79,9 +79,9 @@ void testScreenConfig::singleOutput()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
     const ScreenPtr screen = config->screen();
-    QVERIFY(!screen.isNull());
+    QVERIFY(screen);
 
     QCOMPARE(screen->min_size(), QSize(320, 200));
     QCOMPARE(screen->max_size(), QSize(8192, 8192));
@@ -90,7 +90,7 @@ void testScreenConfig::singleOutput()
     QCOMPARE(config->outputs().size(), 1);
 
     const OutputPtr output = config->outputs().at(1);
-    QVERIFY(!output.isNull());
+    QVERIFY(output);
 
     QVERIFY(config->primary_output());
     QCOMPARE(config->primary_output()->id(), output->id());
@@ -117,9 +117,9 @@ void testScreenConfig::singleOutputWithoutPreferred()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleOutputWithoutPreferred.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
     const OutputPtr output = config->outputs().at(1);
-    QVERIFY(!output.isNull());
+    QVERIFY(output);
 
     QVERIFY(output->preferred_modes().empty());
     QCOMPARE(output->preferred_mode()->id(), "3");
@@ -130,9 +130,9 @@ void testScreenConfig::multiOutput()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
     const ScreenPtr screen = config->screen();
-    QVERIFY(!screen.isNull());
+    QVERIFY(screen);
 
     QCOMPARE(screen->min_size(), QSize(320, 200));
     QCOMPARE(screen->max_size(), QSize(8192, 8192));
@@ -141,7 +141,7 @@ void testScreenConfig::multiOutput()
     QCOMPARE(config->outputs().size(), 2);
 
     const OutputPtr output = config->outputs().at(2);
-    QVERIFY(!output.isNull());
+    QVERIFY(output);
 
     QVERIFY(config->primary_output());
     QVERIFY(config->primary_output()->id() != output->id());
@@ -158,7 +158,7 @@ void testScreenConfig::multiOutput()
     QCOMPARE(output->enabled(), true);
 
     const ModePtr mode = output->auto_mode();
-    QVERIFY(!mode.isNull());
+    QVERIFY(mode);
     QCOMPARE(mode->size(), QSize(1920, 1080));
     QCOMPARE(mode->refresh(), 60.0);
 }
@@ -170,11 +170,11 @@ void testScreenConfig::configCanBeApplied()
 
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
     const ConfigPtr currentConfig = getConfig();
-    QVERIFY(!currentConfig.isNull());
+    QVERIFY(currentConfig);
     const OutputPtr primaryBroken = brokenConfig->outputs()[2];
-    QVERIFY(!primaryBroken.isNull());
+    QVERIFY(primaryBroken);
     const OutputPtr currentPrimary = currentConfig->outputs()[1];
-    QVERIFY(!currentPrimary.isNull());
+    QVERIFY(currentPrimary);
 
     QVERIFY(!Config::can_be_applied(brokenConfig));
     primaryBroken->set_id(currentPrimary->id());
@@ -190,7 +190,7 @@ void testScreenConfig::configCanBeApplied()
 
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "tooManyOutputs.json");
     const ConfigPtr brokenConfig2 = getConfig();
-    QVERIFY(!brokenConfig2.isNull());
+    QVERIFY(brokenConfig2);
 
     int enabledOutputsCount = 0;
     for (auto const& [key, output] : brokenConfig2->outputs()) {
@@ -241,7 +241,6 @@ void testScreenConfig::testInvalidMode()
 {
     auto output = new Disman::Output();
     auto currentMode = output->auto_mode();
-    QVERIFY(currentMode.isNull());
     QVERIFY(!currentMode);
     delete output;
 }
@@ -251,11 +250,11 @@ void testScreenConfig::testOutputPositionNormalization()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
     auto left = config->outputs().begin()->second;
     auto right = config->outputs().rbegin()->second;
-    QVERIFY(!left.isNull());
-    QVERIFY(!right.isNull());
+    QVERIFY(left);
+    QVERIFY(right);
     left->set_position(QPoint(-5000, 700));
     right->set_position(QPoint(-3720, 666));
     QCOMPARE(left->position(), QPoint(-5000, 700));

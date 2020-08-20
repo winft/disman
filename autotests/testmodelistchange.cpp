@@ -117,10 +117,10 @@ void TestModeListChange::modeListChange()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
 
     auto output = config->outputs().begin()->second;
-    QVERIFY(!output.isNull());
+    QVERIFY(output);
     auto modelist = output->modes();
 
     auto mode = modelist.begin()->second;
@@ -143,7 +143,7 @@ void TestModeListChange::modeListChange()
 
     auto after = createModeList();
     auto firstmode = after.begin()->second;
-    QVERIFY(!firstmode.isNull());
+    QVERIFY(firstmode);
     QCOMPARE(firstmode->size(), s0);
     QCOMPARE(firstmode->id(), "11");
     firstmode->set_size(snew);

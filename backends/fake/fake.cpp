@@ -53,9 +53,7 @@ Fake::Fake()
 
 void Fake::init(const QVariantMap& arguments)
 {
-    if (!mConfig.isNull()) {
-        mConfig.clear();
-    }
+    mConfig.reset();
 
     mConfigFile = arguments[QStringLiteral("TEST_DATA")].toString();
     qCDebug(DISMAN_FAKE) << "Fake profile file:" << mConfigFile;
@@ -83,7 +81,7 @@ QString Fake::service_name() const
 
 ConfigPtr Fake::config() const
 {
-    if (mConfig.isNull()) {
+    if (!mConfig) {
         mConfig = Parser::fromJson(mConfigFile);
         m_filer_controller->read(mConfig);
         mConfig = Parser::fromJson(mConfigFile);

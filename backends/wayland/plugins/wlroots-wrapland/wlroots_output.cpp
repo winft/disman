@@ -165,7 +165,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->set_preferred_modes(preferredModeIds);
     output->set_modes(modeList);
 
-    if (current_mode.isNull()) {
+    if (!current_mode) {
         qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
         for (auto const& [key, mode] : modeList) {
             qCWarning(DISMAN_WAYLAND) << "  " << mode;

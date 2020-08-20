@@ -204,7 +204,7 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
     // Remove some extra properties that we do not want or need special treatment
     map.remove(QStringLiteral("edid"));
 
-    Parser::qvariant2qobject(map, output.data());
+    Parser::qvariant2qobject(map, output.get());
     return output;
 }
 

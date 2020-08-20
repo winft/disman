@@ -26,6 +26,8 @@
 
 #include <QDBusPendingCallWatcher>
 
+Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
+
 using namespace Disman;
 
 class Q_DECL_HIDDEN ConfigMonitor::Private : public QObject
@@ -41,8 +43,9 @@ public:
     void config_destroyed(QObject* removedConfig);
     void get_config_finished(ConfigOperation* op);
     void update_configs(const Disman::ConfigPtr& newConfig);
+    bool has_config(ConfigPtr const& config) const;
 
-    QList<QWeakPointer<Disman::Config>> watched_configs;
+    QList<std::weak_ptr<Disman::Config>> watched_configs;
 
     QPointer<org::kwinft::disman::backend> mBackend;
     bool mFirstBackend;
@@ -121,16 +124,16 @@ void ConfigMonitor::Private::backend_config_changed(const QVariantMap& configMap
 
 void ConfigMonitor::Private::update_configs(const Disman::ConfigPtr& newConfig)
 {
-    QMutableListIterator<QWeakPointer<Config>> iter(watched_configs);
+    QMutableListIterator<std::weak_ptr<Config>> iter(watched_configs);
     while (iter.hasNext()) {
-        Disman::ConfigPtr config = iter.next().toStrongRef();
+        Disman::ConfigPtr config = iter.next().lock();
         if (!config) {
             iter.remove();
             continue;
         }
 
         config->apply(newConfig);
-        iter.setValue(config.toWeakRef());
+        iter.setValue(config);
     }
 
     Q_EMIT q->configuration_changed();
@@ -139,11 +142,20 @@ void ConfigMonitor::Private::update_configs(const Disman::ConfigPtr& newConfig)
 void ConfigMonitor::Private::config_destroyed(QObject* removedConfig)
 {
     for (auto iter = watched_configs.begin(); iter != watched_configs.end(); ++iter) {
-        if (iter->toStrongRef() == removedConfig) {
+        if (iter->lock().get() == removedConfig) {
             iter = watched_configs.erase(iter);
             // Iterate over the entire list in case there are duplicates
         }
     }
+}
+
+bool ConfigMonitor::Private::has_config(ConfigPtr const& config) const
+{
+    auto& cfgs = watched_configs;
+    return std::find_if(cfgs.cbegin(),
+                        cfgs.cend(),
+                        [config](auto const& cfg) { return cfg.lock().get() == config.get(); })
+        != cfgs.cend();
 }
 
 ConfigMonitor* ConfigMonitor::instance()
@@ -177,29 +189,33 @@ ConfigMonitor::~ConfigMonitor()
 
 void ConfigMonitor::add_config(const ConfigPtr& config)
 {
-    const QWeakPointer<Config> weakConfig = config.toWeakRef();
-    if (!d->watched_configs.contains(weakConfig)) {
-        connect(
-            weakConfig.toStrongRef().data(), &QObject::destroyed, d, &Private::config_destroyed);
-        d->watched_configs << weakConfig;
+    if (d->has_config(config)) {
+        return;
     }
+    connect(config.get(), &QObject::destroyed, d, &Private::config_destroyed);
+    d->watched_configs << config;
 }
 
 void ConfigMonitor::remove_config(const ConfigPtr& config)
 {
-    const QWeakPointer<Config> weakConfig = config.toWeakRef();
-    if (d->watched_configs.contains(config)) {
-        disconnect(
-            weakConfig.toStrongRef().data(), &QObject::destroyed, d, &Private::config_destroyed);
-        d->watched_configs.removeAll(config);
+    if (!d->has_config(config)) {
+        return;
     }
+
+    disconnect(config.get(), &QObject::destroyed, d, &Private::config_destroyed);
+    auto& cfgs = d->watched_configs;
+    cfgs.erase(
+        std::remove_if(cfgs.begin(),
+                       cfgs.end(),
+                       [config](auto const& cfg) { return cfg.lock().get() == config.get(); }),
+        cfgs.end());
 }
 
 void ConfigMonitor::connect_in_process_backend(Disman::AbstractBackend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
     connect(backend, &AbstractBackend::config_changed, [=](Disman::ConfigPtr config) {
-        if (config.isNull()) {
+        if (!config) {
             return;
         }
         qCDebug(DISMAN) << "Backend change!" << config;
