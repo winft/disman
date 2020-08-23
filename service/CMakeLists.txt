@@ -28,7 +28,7 @@ qt5_add_dbus_adaptor(backendlauncher_SRCS
 add_executable(disman_backend_launcher ${backendlauncher_SRCS})
 
 target_link_libraries(disman_backend_launcher
-  Disman
+  Disman::Disman
   Qt5::Core
   Qt5::Gui
   Qt5::DBus

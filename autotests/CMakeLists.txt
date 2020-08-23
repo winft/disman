@@ -7,7 +7,7 @@ macro(DISMAN_ADD_TEST)
         set(test_SRCS ${_testname}.cpp ${DISMAN_WAYLAND_SRCS})
         qt5_add_dbus_interface(test_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml fakebackendinterface)
         add_executable(${_testname} ${test_SRCS})
-        target_link_libraries(${_testname} Qt5::Core Qt5::Gui Qt5::Test Qt5::DBus Disman ${DISMAN_WAYLAND_LIBS})
+        target_link_libraries(${_testname} Qt5::Core Qt5::Gui Qt5::Test Qt5::DBus Disman::Disman ${DISMAN_WAYLAND_LIBS})
         add_test(NAME disman-${_testname}
                  COMMAND dbus-launch $<TARGET_FILE:${_testname}>
         )

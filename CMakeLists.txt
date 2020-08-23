@@ -85,8 +85,9 @@ install(
 
 install(
   EXPORT DismanTargets
-  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   FILE DismanTargets.cmake
+  NAMESPACE Disman::
+  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 

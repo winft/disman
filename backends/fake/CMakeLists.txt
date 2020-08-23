@@ -21,6 +21,6 @@ add_library(fake MODULE ${fake_SRCS})
 
 set_target_properties(fake PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
 set_target_properties(fake PROPERTIES PREFIX "")
-target_link_libraries(fake Qt5::Core Qt5::DBus Disman)
+target_link_libraries(fake Qt5::Core Qt5::DBus Disman::Disman)
 
 install(TARGETS fake DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

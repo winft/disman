@@ -32,6 +32,8 @@ ecm_qt_declare_logging_category(disman_SRCS
 )
 
 add_library(Disman SHARED ${disman_SRCS})
+add_library(Disman::Disman ALIAS Disman)
+
 generate_export_header(Disman)
 
 target_link_libraries(Disman
