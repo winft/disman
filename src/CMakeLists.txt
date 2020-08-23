@@ -49,7 +49,6 @@ target_link_libraries(Disman
     Qt5::Gui
   PRIVATE
     Qt5::DBus
-    Qt5::X11Extras
 )
 
 set_target_properties(Disman PROPERTIES

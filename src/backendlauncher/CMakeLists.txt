@@ -37,7 +37,6 @@ target_link_libraries(disman_backend_launcher
   Disman
   Qt5::Core
   Qt5::Gui
-  Qt5::X11Extras
   Qt5::DBus
 )
 

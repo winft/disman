@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <type_traits>
 
 #include <QScopedPointer>
-#include <QX11Info>
 
 #include <xcb/randr.h>
 #include <xcb/xcb.h>

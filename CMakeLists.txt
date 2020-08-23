@@ -27,7 +27,6 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
   DBus
   Gui
   Test
-  X11Extras
 )
 
 # Wayland backend plugin KWayland

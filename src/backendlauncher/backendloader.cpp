@@ -27,7 +27,6 @@
 #include <QDBusConnectionInterface>
 #include <QDir>
 #include <QPluginLoader>
-#include <QX11Info>
 
 #include <memory>
 

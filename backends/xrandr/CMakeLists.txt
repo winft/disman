@@ -1,3 +1,7 @@
+find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
+  X11Extras
+)
+
 include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BUILD_DIR})
 
 set(xrandr_SRCS
