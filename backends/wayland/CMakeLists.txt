@@ -47,7 +47,7 @@ set_target_properties(DismanWayland PROPERTIES
 install(
   TARGETS DismanWayland
   EXPORT DismanWaylandTargets
-  ${KDE_INSTALL_TARGETS_DEFAULT_ARGS}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 install(

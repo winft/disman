@@ -51,13 +51,13 @@ set_target_properties(Disman PROPERTIES
 target_include_directories(Disman
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
-    $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}/disman>
+    $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
 )
 
 install(
   TARGETS Disman
   EXPORT DismanTargets
-  ${KDE_INSTALL_TARGETS_DEFAULT_ARGS}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 set(disman_HEADERS
