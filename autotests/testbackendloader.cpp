@@ -20,7 +20,7 @@
 #include <QSignalSpy>
 #include <QtTest>
 
-#include "../src/backendmanager_p.h"
+#include "backendmanager_p.h"
 
 Q_LOGGING_CATEGORY(DISMAN, "disman")
 

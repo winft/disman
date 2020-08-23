@@ -19,11 +19,11 @@
 #include <QObject>
 #include <QtTest>
 
-#include "../src/configserializer_p.h"
-#include "../src/mode.h"
-#include "../src/output.h"
-#include "../src/screen.h"
-#include "../src/types.h"
+#include "configserializer_p.h"
+#include "mode.h"
+#include "output.h"
+#include "screen.h"
+#include "types.h"
 
 class TestConfigSerializer : public QObject
 {

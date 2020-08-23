@@ -59,7 +59,7 @@ ecm_setup_version(${PROJECT_VERSION}
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-add_subdirectory(src)
+add_subdirectory(lib)
 add_subdirectory(service)
 add_subdirectory(doctor)
 add_subdirectory(backends)

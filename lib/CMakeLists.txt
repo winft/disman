@@ -50,7 +50,7 @@ set_target_properties(Disman PROPERTIES
 
 target_include_directories(Disman
   PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
     $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}/disman>
 )
 
