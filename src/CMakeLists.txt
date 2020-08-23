@@ -1,5 +1,3 @@
-add_subdirectory(backendlauncher)
-add_subdirectory(doctor)
 set(disman_SRCS
   abstractbackend.cpp
   backendmanager.cpp
