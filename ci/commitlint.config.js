@@ -10,7 +10,7 @@ module.exports = {
             2,
             'always',
             [
-                'api',
+                'lib',
                 'qscreen',
                 'randr',
                 'wayland'
