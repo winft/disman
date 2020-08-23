@@ -20,7 +20,7 @@ set_target_properties(kwayland
 
 target_link_libraries(kwayland
     Qt5::Core
-    DismanWayland
+    Disman::Wayland
     KF5::WaylandClient
 )
 

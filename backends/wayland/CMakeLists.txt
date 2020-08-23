@@ -32,6 +32,8 @@ set(wayland_LIBS
 # Library
 ####################################################################################################
 add_library(DismanWayland SHARED ${wayland_SRCS})
+add_library(Disman::Wayland ALIAS DismanWayland)
+
 generate_export_header(DismanWayland BASE_NAME disman_wayland)
 
 target_link_libraries(DismanWayland
@@ -41,7 +43,7 @@ target_link_libraries(DismanWayland
 set_target_properties(DismanWayland PROPERTIES
   VERSION "${PROJECT_VERSION}"
   SOVERSION "${PROJECT_VERSION_MAJOR}"
-  EXPORT_NAME DismanWayland
+  EXPORT_NAME Wayland
 )
 
 install(
@@ -93,8 +95,9 @@ install(
 
 install(
   EXPORT DismanWaylandTargets
-  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   FILE DismanWaylandTargets.cmake
+  NAMESPACE Disman::
+  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 

@@ -19,7 +19,7 @@ set_target_properties(wlroots-wrapland
 
 target_link_libraries(wlroots-wrapland
     Qt5::Core
-    DismanWayland
+    Disman::Wayland
     WraplandClient
 )
 

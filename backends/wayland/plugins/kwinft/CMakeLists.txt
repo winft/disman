@@ -19,7 +19,7 @@ set_target_properties(kwinft
 
 target_link_libraries(kwinft
     Qt5::Core
-    DismanWayland
+    Disman::Wayland
     WraplandClient
 )
 
