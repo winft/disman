@@ -59,7 +59,7 @@ install(
     ${CMAKE_CURRENT_BINARY_DIR}/disman_wayland_export.h
     wayland_interface.h
     waylandoutput.h
-  DESTINATION ${INCLUDE_INSTALL_DIR}/Disman/disman/wayland
+  DESTINATION ${INCLUDE_INSTALL_DIR}/disman/wayland
 )
 
 if(NOT WIN32)

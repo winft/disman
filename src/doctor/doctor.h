@@ -22,7 +22,7 @@
 #include <QCommandLineParser>
 #include <QObject>
 
-#include <Disman/Output>
+#include "output.h"
 
 namespace Disman
 {

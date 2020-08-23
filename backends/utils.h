@@ -19,7 +19,7 @@
 #ifndef DISMAN_BACKEND_UTILS_H_
 #define DISMAN_BACKEND_UTILS_H_
 
-#include <disman/output.h>
+#include <output.h>
 
 namespace Utils
 {

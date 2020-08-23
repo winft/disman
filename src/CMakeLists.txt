@@ -58,7 +58,11 @@ set_target_properties(Disman PROPERTIES
   EXPORT_NAME Disman
 )
 
-target_include_directories(Disman PUBLIC "$<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}/Disman>")
+target_include_directories(Disman
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}/disman>
+)
 
 install(
   TARGETS Disman
@@ -66,36 +70,27 @@ install(
   ${KDE_INSTALL_TARGETS_DEFAULT_ARGS}
 )
 
-ecm_generate_headers(Disman_HEADERS
-  HEADER_NAMES
-    Log
-    Mode
-    Output
-    EDID
-    Screen
-    Config
-    ConfigMonitor
-    ConfigOperation
-    Generator
-    GetConfigOperation
-    SetConfigOperation
-    Types
-  PREFIX Disman
-  REQUIRED_HEADERS Disman_REQ_HEADERS
+set(disman_HEADERS
+  ${CMAKE_CURRENT_BINARY_DIR}/disman_export.h
+  backendmanager_p.h # needed for Disman unit tests
+  config.h
+  configmonitor.h
+  configoperation.h
+  edid.h
+  generator.h
+  getconfigoperation.h
+  log.h
+  mode.h
+  output.h
+  screen.h
+  setconfigoperation.h
+  types.h
 )
 
 install(
-  FILES ${Disman_HEADERS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/Disman/Disman
+  FILES ${disman_HEADERS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/disman
   COMPONENT Devel
-)
-
-install(
-  FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/disman_export.h
-    backendmanager_p.h # needed for unit-tests in Disman
-    ${Disman_REQ_HEADERS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/Disman/disman
 )
 
 if(NOT WIN32)
