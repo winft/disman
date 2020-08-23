@@ -21,9 +21,9 @@
 #include "backendloader.h"
 #include "disman_backend_launcher_debug.h"
 
-#include "src/abstractbackend.h"
-#include "src/config.h"
-#include "src/configserializer_p.h"
+#include "abstractbackend.h"
+#include "config.h"
+#include "configserializer_p.h"
 
 #include <QDBusConnection>
 #include <QDBusError>

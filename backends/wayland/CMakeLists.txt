@@ -34,10 +34,6 @@ set(wayland_LIBS
 add_library(DismanWayland SHARED ${wayland_SRCS})
 generate_export_header(DismanWayland BASE_NAME disman_wayland)
 
-target_include_directories(DismanWayland
-  PUBLIC "$<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}/Disman>"
-)
-
 target_link_libraries(DismanWayland
   PUBLIC ${wayland_LIBS}
 )

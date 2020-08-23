@@ -1,5 +1,3 @@
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BUILD_DIR})
-
 set(qscreen_SRCS
   qscreenbackend.cpp
   qscreenconfig.cpp

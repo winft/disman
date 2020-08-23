@@ -1,5 +1,3 @@
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BUILD_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
 set(fake_SRCS
   fake.cpp
   parser.cpp
