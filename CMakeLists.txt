@@ -16,7 +16,6 @@ include(ECMSetupVersion)
 include(ECMMarkAsTest)
 include(ECMGenerateHeaders)
 include(ECMQtDeclareLoggingCategory)
-include(ECMAddQch)
 include(FeatureSummary)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
@@ -53,15 +52,6 @@ set_package_properties(XCB PROPERTIES
   PURPOSE "Required for building RandR backend."
 )
 
-option(BUILD_QCH
-  "Build API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)"
-  OFF
-)
-add_feature_info(QCH
-  ${BUILD_QCH}
-  "API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)"
-)
-
 ecm_setup_version(${PROJECT_VERSION}
   VARIABLE_PREFIX Disman
   VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
@@ -79,16 +69,6 @@ if(BUILD_TESTING)
 endif()
 
 set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/Disman")
-
-if(BUILD_QCH)
-  ecm_install_qch_export(
-    TARGETS Disman_QCH
-    FILE DismanQchTargets.cmake
-    DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-    COMPONENT Devel
-  )
-  set(PACKAGE_INCLUDE_QCHTARGETS "include(\"\${CMAKE_CURRENT_LIST_DIR}/DismanQchTargets.cmake\")")
-endif()
 
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/DismanConfig.cmake.in"

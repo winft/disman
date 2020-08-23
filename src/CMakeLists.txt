@@ -113,24 +113,3 @@ ecm_generate_pri_file(
   FILENAME_VAR PRI_FILENAME
 )
 install(FILES ${PRI_FILENAME} DESTINATION ${ECM_MKSPECS_INSTALL_DIR})
-
-if(BUILD_QCH)
-  ecm_add_qch(Disman_QCH
-    NAME Disman
-    VERSION ${PROJECT_VERSION}
-    ORG_DOMAIN org.kwinft
-    SOURCES # using only public headers, to cover only public API
-      ${Disman_REQ_HEADERS}
-    # MD_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md"
-    LINK_QCHS
-      Qt5Core_QCH
-      Qt5Gui_QCH
-    BLANK_MACROS
-      DISMAN_EXPORT
-      DISMAN_DEPRECATED
-      DISMAN_DEPRECATED_EXPORT
-    TAGFILE_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
-    QCH_INSTALL_DESTINATION ${KDE_INSTALL_QTQCHDIR}
-    COMPONENT Devel
-  )
-endif()
