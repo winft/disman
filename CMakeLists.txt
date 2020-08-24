@@ -22,6 +22,7 @@ include(GenerateExportHeader)
 # That is the common minimum version. Individual targets might require up to C++17 though.
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
   Core
