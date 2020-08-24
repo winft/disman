@@ -14,98 +14,90 @@ include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 include(KDECMakeSettings)
 include(ECMSetupVersion)
 include(ECMMarkAsTest)
-include(ECMGenerateHeaders)
 include(ECMQtDeclareLoggingCategory)
-include(ECMAddQch)
 include(FeatureSummary)
-include(CheckCXXCompilerFlag)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
-set(CMAKE_CXX_STANDARD 17)
+# That is the common minimum version. Individual targets might require up to C++17 though.
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Core DBus Gui Test X11Extras)
+find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
+  Core
+  DBus
+  Gui
+  Test
+)
 
 # Wayland backend plugin KWayland
-find_package(KF5Wayland ${KF5_MIN_VERSION} CONFIG REQUIRED)
-add_feature_info("KF5Wayland" KF5Wayland_FOUND "Required for building Disman's KWayland backend")
+find_package(KF5Wayland ${KF5_MIN_VERSION} CONFIG)
+set_package_properties(KF5Wayland PROPERTIES
+  TYPE OPTIONAL
+  PURPOSE "Required for building Disman's KWayland backend"
+)
 
 # Wayland backend plugin KWinFT and wlroots
-find_package(Wrapland ${PROJECT_VERSION} CONFIG REQUIRED)
-add_feature_info("Wrapland" Wrapland_FOUND "Required for building Disman's KWayland backend")
+find_package(Wrapland ${PROJECT_VERSION} CONFIG)
+set_package_properties(Wrapland PROPERTIES
+  TYPE OPTIONAL
+  PURPOSE "Required for building Disman's Wrapland-powered backends"
+)
 
-# xrandr backend
-
+# RandR backend
 find_package(XCB COMPONENTS XCB RANDR)
 set_package_properties(XCB PROPERTIES
-                       TYPE OPTIONAL
-                       PURPOSE "Required for building XRandR backends"
+  TYPE OPTIONAL
+  PURPOSE "Required for building RandR backend."
 )
 
-option(BUILD_QCH "Build API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)" OFF)
-add_feature_info(QCH ${BUILD_QCH} "API documentation in QCH format (for e.g. Qt Assistant, Qt Creator & KDevelop)")
-
-ecm_setup_version(${PROJECT_VERSION} VARIABLE_PREFIX Disman
-                        VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
-                        PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
-                        SOVERSION ${PROJECT_VERSION_MAJOR}
+ecm_setup_version(${PROJECT_VERSION}
+  VARIABLE_PREFIX Disman
+  VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
+  PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
+  SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-check_cxx_compiler_flag(-fvisibility=hidden _HAVE_VISIBILITY)
-if (_HAVE_VISIBILITY AND NOT WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-  check_cxx_compiler_flag(-fvisibility-inlines-hidden _HAVE_VISIBILITY_INLINES)
-  if (_HAVE_VISIBILITY_INLINES)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-  endif (_HAVE_VISIBILITY_INLINES)
-endif (_HAVE_VISIBILITY AND NOT WIN32)
-
-add_subdirectory(src)
+add_subdirectory(lib)
+add_subdirectory(service)
+add_subdirectory(doctor)
 add_subdirectory(backends)
 if(BUILD_TESTING)
-   add_subdirectory(autotests)
-   add_subdirectory(tests)
+  add_subdirectory(autotests)
+  add_subdirectory(tests)
 endif()
 
 set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/Disman")
 
-if (BUILD_QCH)
-    ecm_install_qch_export(
-        TARGETS Disman_QCH
-        FILE DismanQchTargets.cmake
-        DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-        COMPONENT Devel
-    )
-    set(PACKAGE_INCLUDE_QCHTARGETS "include(\"\${CMAKE_CURRENT_LIST_DIR}/DismanQchTargets.cmake\")")
-endif()
-
-configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/DismanConfig.cmake.in"
-                              "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
-                              INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/DismanConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake" INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
 )
 
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
+install(
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 
-install(EXPORT
-  DismanTargets
-  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
+install(
+  EXPORT DismanTargets
   FILE DismanTargets.cmake
+  NAMESPACE Disman::
+  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
   DESTINATION "${INCLUDE_INSTALL_DIR}"
   COMPONENT Devel
 )
-install(FILES Disman.categories  DESTINATION  ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
-
+install(FILES Disman.categories DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

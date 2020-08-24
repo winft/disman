@@ -19,7 +19,7 @@
 #include <QObject>
 #include <QtTest>
 
-#include "../src/edid.h"
+#include "edid.h"
 
 using namespace Disman;
 

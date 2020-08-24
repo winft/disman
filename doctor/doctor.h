@@ -18,11 +18,11 @@
 #ifndef DISMAN_DOCTOR_H
 #define DISMAN_DOCTOR_H
 
-#include "../config.h"
+#include "config.h"
 #include <QCommandLineParser>
 #include <QObject>
 
-#include <Disman/Output>
+#include "output.h"
 
 namespace Disman
 {

@@ -18,8 +18,8 @@
 #ifndef DISMAN_TESTPNP_H
 #define DISMAN_TESTPNP_H
 
-#include "../src/config.h"
-#include "../src/screen.h"
+#include "config.h"
+#include "screen.h"
 
 #include <QObject>
 

@@ -20,10 +20,10 @@
 #include <QObject>
 #include <QtTest>
 
-#include "../src/config.h"
-#include "../src/getconfigoperation.h"
-#include "../src/mode.h"
-#include "../src/output.h"
+#include "config.h"
+#include "getconfigoperation.h"
+#include "mode.h"
+#include "output.h"
 
 using namespace Disman;
 

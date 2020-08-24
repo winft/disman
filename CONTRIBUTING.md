@@ -71,7 +71,7 @@ amendments:
   * style: improvements to code style without logic change
   * test: addition of a new test or correction of an existing one
 * Only the following optional scopes are allowed:
-  * api
+  * lib
   * qscreen
   * randr
   * wayland
@@ -79,7 +79,7 @@ amendments:
 
 ### Example
 
-    fix(api): provide correct return value
+    fix(lib): provide correct return value
 
     For function exampleFunction the return value was incorrect.
     Instead provide the correct value A by changing B to C.

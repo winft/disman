@@ -17,17 +17,16 @@
  *
  */
 #include "backendloader.h"
+#include "abstractbackend.h"
 #include "backenddbuswrapper.h"
 #include "backendloaderadaptor.h"
+#include "backendmanager_p.h"
 #include "disman_backend_launcher_debug.h"
-#include "src/abstractbackend.h"
-#include "src/backendmanager_p.h"
 
 #include <QCoreApplication>
 #include <QDBusConnectionInterface>
 #include <QDir>
 #include <QPluginLoader>
-#include <QX11Info>
 
 #include <memory>
 

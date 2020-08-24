@@ -16,10 +16,11 @@ set_target_properties(kwinft
     PROPERTIES LIBRARY_OUTPUT_DIRECTORY
     "${CMAKE_BINARY_DIR}/bin/disman/wayland/"
 )
+target_compile_features(DismanWayland PRIVATE cxx_std_17)
 
 target_link_libraries(kwinft
     Qt5::Core
-    DismanWayland
+    Disman::Wayland
     WraplandClient
 )
 

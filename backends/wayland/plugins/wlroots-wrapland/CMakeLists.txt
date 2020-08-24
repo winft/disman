@@ -16,10 +16,11 @@ set_target_properties(wlroots-wrapland
     PROPERTIES LIBRARY_OUTPUT_DIRECTORY
     "${CMAKE_BINARY_DIR}/bin/disman/wayland/"
 )
+target_compile_features(DismanWayland PRIVATE cxx_std_17)
 
 target_link_libraries(wlroots-wrapland
     Qt5::Core
-    DismanWayland
+    Disman::Wayland
     WraplandClient
 )
 

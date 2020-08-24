@@ -30,14 +30,14 @@
 #include <QRect>
 #include <QStandardPaths>
 
-#include "../backendmanager_p.h"
-#include "../config.h"
-#include "../configoperation.h"
-#include "../edid.h"
-#include "../getconfigoperation.h"
-#include "../log.h"
-#include "../output.h"
-#include "../setconfigoperation.h"
+#include "backendmanager_p.h"
+#include "config.h"
+#include "configoperation.h"
+#include "edid.h"
+#include "getconfigoperation.h"
+#include "log.h"
+#include "output.h"
+#include "setconfigoperation.h"
 
 Q_LOGGING_CATEGORY(DISMAN_DOCTOR, "disman.doctor")
 
