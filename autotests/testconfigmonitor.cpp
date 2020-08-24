@@ -20,13 +20,13 @@
 #include <QSignalSpy>
 #include <QtTest>
 
-#include "../src/backendmanager_p.h"
-#include "../src/config.h"
-#include "../src/configmonitor.h"
-#include "../src/configoperation.h"
-#include "../src/getconfigoperation.h"
-#include "../src/output.h"
-#include "../src/setconfigoperation.h"
+#include "backendmanager_p.h"
+#include "config.h"
+#include "configmonitor.h"
+#include "configoperation.h"
+#include "getconfigoperation.h"
+#include "output.h"
+#include "setconfigoperation.h"
 #include <QSignalSpy>
 
 #include "fakebackendinterface.h"

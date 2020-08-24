@@ -31,8 +31,6 @@
 #include "output.h"
 
 #include <QRect>
-#include <QScopedPointer>
-#include <QX11Info>
 
 using namespace Disman;
 

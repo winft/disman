@@ -1,39 +1,32 @@
-include_directories(${CMAKE_SOURCE_DIR}/src
-                    ${CMAKE_BUILD_DIR}
+find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
+  X11Extras
 )
 
 set(xrandr_SRCS
-    xrandr.cpp
-    xrandrconfig.cpp
-    xrandrcrtc.cpp
-    xrandroutput.cpp
-    xrandrmode.cpp
-    xrandrscreen.cpp
-    xcbwrapper.cpp
-    xcbeventlistener.cpp
-
-    ../filer_controller.cpp
-    ../logging.cpp
-    ../utils.cpp
+  xrandr.cpp
+  xrandrconfig.cpp
+  xrandrcrtc.cpp
+  xrandroutput.cpp
+  xrandrmode.cpp
+  xrandrscreen.cpp
+  xcbwrapper.cpp
+  xcbeventlistener.cpp
+  ../filer_controller.cpp
+  ../logging.cpp
+  ../utils.cpp
 )
 
-ecm_qt_declare_logging_category(
-    xrandr_SRCS
-    HEADER xrandr_logging.h
-    IDENTIFIER DISMAN_XRANDR
-    CATEGORY_NAME disman.backend.xrandr
+ecm_qt_declare_logging_category(xrandr_SRCS
+  HEADER xrandr_logging.h
+  IDENTIFIER DISMAN_XRANDR
+  CATEGORY_NAME disman.backend.xrandr
 )
 
 add_library(randr MODULE ${xrandr_SRCS})
 
 set_target_properties(randr PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
 set_target_properties(randr PROPERTIES PREFIX "")
-target_link_libraries(randr
-    Qt5::Core
-    Qt5::Gui
-    Qt5::X11Extras
-    ${XCB_LIBRARIES}
-    Disman
-)
+target_compile_features(randr PRIVATE cxx_std_17)
+target_link_libraries(randr Qt5::Core Qt5::Gui Qt5::X11Extras ${XCB_LIBRARIES} Disman::Disman)
 
 install(TARGETS randr DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

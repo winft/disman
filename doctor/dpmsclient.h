@@ -18,7 +18,7 @@
 #ifndef DISMAN_DPMSCLIENT_H
 #define DISMAN_DPMSCLIENT_H
 
-#include "../config.h"
+#include "config.h"
 #include <QCommandLineParser>
 #include <QObject>
 

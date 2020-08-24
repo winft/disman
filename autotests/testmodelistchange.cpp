@@ -18,13 +18,13 @@
 #include <QObject>
 #include <QtTest>
 
-#include "../src/backendmanager_p.h"
-#include "../src/config.h"
-#include "../src/configmonitor.h"
-#include "../src/getconfigoperation.h"
-#include "../src/mode.h"
-#include "../src/output.h"
-#include "../src/setconfigoperation.h"
+#include "backendmanager_p.h"
+#include "config.h"
+#include "configmonitor.h"
+#include "getconfigoperation.h"
+#include "mode.h"
+#include "output.h"
+#include "setconfigoperation.h"
 
 using namespace Disman;
 

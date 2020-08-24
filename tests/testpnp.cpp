@@ -18,13 +18,13 @@
  *************************************************************************************/
 #include "testpnp.h"
 
-#include "../src/config.h"
-#include "../src/configmonitor.h"
-#include "../src/edid.h"
-#include "../src/getconfigoperation.h"
-#include "../src/mode.h"
-#include "../src/output.h"
-#include "../src/screen.h"
+#include "config.h"
+#include "configmonitor.h"
+#include "edid.h"
+#include "getconfigoperation.h"
+#include "mode.h"
+#include "output.h"
+#include "screen.h"
 
 #include <QGuiApplication>
 #include <QRect>

@@ -26,7 +26,7 @@
 #include <QLoggingCategory>
 #include <QStandardPaths>
 
-#include "../src/edid.h"
+#include "edid.h"
 
 Q_LOGGING_CATEGORY(DISMAN_WAYLAND_TESTSERVER, "disman.wayland.testserver")
 

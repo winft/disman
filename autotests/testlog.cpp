@@ -19,7 +19,7 @@
 #include <QObject>
 #include <QtTest>
 
-#include "../src/log.h"
+#include "log.h"
 
 Q_DECLARE_LOGGING_CATEGORY(DISMAN_TESTLOG)
 

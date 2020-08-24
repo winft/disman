@@ -36,7 +36,6 @@
 #include <QGuiApplication>
 #include <QStandardPaths>
 #include <QThread>
-#include <QX11Info>
 
 #include <memory>
 
@@ -151,7 +150,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
         if (!qgetenv("WAYLAND_DISPLAY").isEmpty()) {
             return "wayland";
         }
-        if (QX11Info::isPlatformX11()) {
+        if (!qgetenv("DISPLAY").isEmpty()) {
             return "randr";
         }
         return "qscreen";
