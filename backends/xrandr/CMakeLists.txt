@@ -26,6 +26,7 @@ add_library(randr MODULE ${xrandr_SRCS})
 
 set_target_properties(randr PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
 set_target_properties(randr PROPERTIES PREFIX "")
+target_compile_features(randr PRIVATE cxx_std_17)
 target_link_libraries(randr Qt5::Core Qt5::Gui Qt5::X11Extras ${XCB_LIBRARIES} Disman::Disman)
 
 install(TARGETS randr DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

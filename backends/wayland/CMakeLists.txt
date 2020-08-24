@@ -45,6 +45,7 @@ set_target_properties(DismanWayland PROPERTIES
   SOVERSION "${PROJECT_VERSION_MAJOR}"
   EXPORT_NAME Wayland
 )
+target_compile_features(DismanWayland PRIVATE cxx_std_17)
 
 install(
   TARGETS DismanWayland
@@ -117,6 +118,7 @@ add_library(wayland MODULE ${wayland_SRCS})
 
 set_target_properties(wayland PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
 set_target_properties(wayland PROPERTIES PREFIX "")
+target_compile_features(wayland PRIVATE cxx_std_17)
 target_link_libraries(wayland ${wayland_LIBS})
 
 install(
