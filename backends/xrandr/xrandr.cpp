@@ -155,21 +155,20 @@ void XRandR::outputChanged(xcb_randr_output_t output,
 {
     m_configChangeCompressor->start();
 
-    XRandROutput* xOutput = s_internalConfig->output(output);
-    if (!xOutput) {
-        s_internalConfig->addNewOutput(output);
+    auto xOutput = s_internalConfig->output(output);
+
+    if (connection == XCB_RANDR_CONNECTION_DISCONNECTED) {
+        if (xOutput) {
+            xOutput->disconnected();
+            s_internalConfig->removeOutput(output);
+            qCDebug(DISMAN_XRANDR) << "Output" << output << " removed";
+        }
         return;
     }
 
-    // check if this output disappeared
-    if (crtc == XCB_NONE && mode == XCB_NONE && connection == XCB_RANDR_CONNECTION_DISCONNECTED) {
-        XCB::OutputInfo info(output, XCB_TIME_CURRENT_TIME);
-        if (info.isNull()) {
-            s_internalConfig->removeOutput(output);
-            qCDebug(DISMAN_XRANDR) << "Output" << output << " removed";
-            return;
-        }
-        // info is valid: the output is still there
+    if (!xOutput) {
+        s_internalConfig->addNewOutput(output);
+        return;
     }
 
     XCB::PrimaryOutput primary(XRandR::rootWindow());

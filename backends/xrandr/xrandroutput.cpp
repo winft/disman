@@ -51,6 +51,24 @@ XRandROutput::~XRandROutput()
 {
 }
 
+void XRandROutput::disconnected()
+{
+    if (m_crtc) {
+        xcb_randr_set_crtc_config(XCB::connection(),
+                                  m_crtc->crtc(),
+                                  XCB_CURRENT_TIME,
+                                  XCB_CURRENT_TIME,
+                                  0,
+                                  0,
+                                  XCB_NONE,
+                                  XCB_RANDR_ROTATION_ROTATE_0,
+                                  0,
+                                  nullptr);
+        m_crtc->disconectOutput(m_id);
+        m_crtc = nullptr;
+    }
+}
+
 xcb_randr_output_t XRandROutput::id() const
 {
     return m_id;
