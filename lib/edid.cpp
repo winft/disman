@@ -96,29 +96,29 @@ public:
 };
 
 Edid::Edid()
-    : d(new Private())
+    : d_ptr(new Private())
 {
 }
 
 Edid::Edid(const QByteArray& data)
-    : d(new Private())
+    : d_ptr(new Private())
 {
-    d->parse(data);
+    d_ptr->parse(data);
 }
 
 Edid::Edid(Edid const& edid)
-    : d(new Private(*edid.d))
+    : d_ptr(new Private(*edid.d_ptr))
 {
 }
 
 Edid::~Edid()
 {
-    delete d;
+    delete d_ptr;
 }
 
 bool Edid::isValid() const
 {
-    return d->valid;
+    return d_ptr->valid;
 }
 
 std::string Edid::deviceId(const std::string& fallbackName) const
@@ -132,7 +132,7 @@ std::string Edid::deviceId(const std::string& fallbackName) const
             // all info we have are empty strings
             id.append("-unknown");
         }
-    } else if (d->valid) {
+    } else if (d_ptr->valid) {
         if (vendor().size()) {
             id.append('-' + vendor());
         }
@@ -149,85 +149,85 @@ std::string Edid::deviceId(const std::string& fallbackName) const
 
 std::string Edid::name() const
 {
-    if (d->valid) {
-        return d->monitorName;
+    if (d_ptr->valid) {
+        return d_ptr->monitorName;
     }
     return std::string();
 }
 
 std::string Edid::vendor() const
 {
-    if (d->valid) {
-        return d->vendorName;
+    if (d_ptr->valid) {
+        return d_ptr->vendorName;
     }
     return std::string();
 }
 
 std::string Edid::serial() const
 {
-    if (d->valid) {
-        return d->serialNumber;
+    if (d_ptr->valid) {
+        return d_ptr->serialNumber;
     }
     return std::string();
 }
 
 std::string Edid::eisaId() const
 {
-    if (d->valid) {
-        return d->eisaId;
+    if (d_ptr->valid) {
+        return d_ptr->eisaId;
     }
     return std::string();
 }
 
 std::string Edid::hash() const
 {
-    if (d->valid) {
-        return d->checksum;
+    if (d_ptr->valid) {
+        return d_ptr->checksum;
     }
     return std::string();
 }
 
 std::string Edid::pnpId() const
 {
-    if (d->valid) {
-        return d->pnpId;
+    if (d_ptr->valid) {
+        return d_ptr->pnpId;
     }
     return std::string();
 }
 
 uint Edid::width() const
 {
-    return d->width;
+    return d_ptr->width;
 }
 
 uint Edid::height() const
 {
-    return d->height;
+    return d_ptr->height;
 }
 
 qreal Edid::gamma() const
 {
-    return d->gamma;
+    return d_ptr->gamma;
 }
 
 QQuaternion Edid::red() const
 {
-    return d->red;
+    return d_ptr->red;
 }
 
 QQuaternion Edid::green() const
 {
-    return d->green;
+    return d_ptr->green;
 }
 
 QQuaternion Edid::blue() const
 {
-    return d->blue;
+    return d_ptr->blue;
 }
 
 QQuaternion Edid::white() const
 {
-    return d->white;
+    return d_ptr->white;
 }
 
 bool Edid::Private::parse(const QByteArray& rawData)
