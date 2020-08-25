@@ -33,7 +33,6 @@ namespace Disman
 class DISMAN_EXPORT Edid
 {
 public:
-    explicit Edid();
     explicit Edid(const QByteArray& data);
     Edid(Edid const& edid);
     ~Edid();

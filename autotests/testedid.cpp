@@ -46,16 +46,13 @@ void TestEdid::initTestCase()
 
 void TestEdid::testInvalid()
 {
-    std::unique_ptr<Edid> e(new Edid());
+    std::unique_ptr<Edid> e(new Edid("some random data"));
     QCOMPARE(e->isValid(), false);
     QCOMPARE(e->name().size(), 0);
 
     std::unique_ptr<Edid> e2(new Edid(*e.get()));
     QCOMPARE(e2->isValid(), false);
     QCOMPARE(e2->name().size(), 0);
-
-    std::unique_ptr<Edid> e3(new Edid("some random data"));
-    QCOMPARE(e3->isValid(), false);
 }
 
 void TestEdid::testEdidParser_data()

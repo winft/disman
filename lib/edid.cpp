@@ -95,11 +95,6 @@ public:
     QQuaternion white;
 };
 
-Edid::Edid()
-    : d_ptr{new Private}
-{
-}
-
 Edid::Edid(const QByteArray& data)
     : d_ptr{new Private}
 {
