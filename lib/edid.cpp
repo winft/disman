@@ -47,12 +47,9 @@ using namespace Disman;
 class Edid::Private
 {
 public:
-    Private()
-        : valid(false)
-        , width(0)
-        , height(0)
-        , gamma(0)
+    Private(QByteArray const& data)
     {
+        parse(data);
     }
 
     Private(const Private& other)
@@ -73,32 +70,32 @@ public:
     {
     }
 
-    bool parse(const QByteArray& data);
-    int edidGetBit(int in, int bit) const;
-    int edidGetBits(int in, int begin, int end) const;
-    float edidDecodeFraction(int high, int low) const;
-    std::string edidParseString(const quint8* data) const;
-
-    bool valid;
+    bool valid{false};
     std::string monitorName;
     std::string vendorName;
     std::string serialNumber;
     std::string eisaId;
     std::string checksum;
     std::string pnpId;
-    uint width;
-    uint height;
-    double gamma;
+    uint width{0};
+    uint height{0};
+    double gamma{0};
     QQuaternion red;
     QQuaternion green;
     QQuaternion blue;
     QQuaternion white;
+
+private:
+    bool parse(const QByteArray& data);
+    int edidGetBit(int in, int bit) const;
+    int edidGetBits(int in, int begin, int end) const;
+    float edidDecodeFraction(int high, int low) const;
+    std::string edidParseString(const quint8* data) const;
 };
 
 Edid::Edid(const QByteArray& data)
-    : d_ptr{new Private}
+    : d_ptr{new Private(data)}
 {
-    d_ptr->parse(data);
 }
 
 Edid::Edid(Edid const& edid)
