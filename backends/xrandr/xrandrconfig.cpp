@@ -261,9 +261,8 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         return false;
     }
 
-    qCDebug(DISMAN_XRANDR) << "Actions to perform:"
-                           << "\n"
-                           << "\tPrimary Output:" << (primaryOutput != oldPrimaryOutput);
+    qCDebug(DISMAN_XRANDR) << "Actions to perform:";
+    qCDebug(DISMAN_XRANDR) << "\tPrimary Output:" << (primaryOutput != oldPrimaryOutput);
     if (primaryOutput != oldPrimaryOutput) {
         qCDebug(DISMAN_XRANDR) << "\t\tOld:" << oldPrimaryOutput << "\n"
                                << "\t\tNew:" << primaryOutput;
