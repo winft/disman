@@ -64,7 +64,7 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
 
     QByteArray data = QByteArray::fromBase64(outputConfig[QStringLiteral("edid")].toByteArray());
     outputdevice->setEdid(data);
-    Edid edid(data, display);
+    Edid edid(data);
 
     // qDebug() << "EDID Info: ";
     if (edid.isValid()) {

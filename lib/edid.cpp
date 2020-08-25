@@ -96,21 +96,18 @@ public:
 };
 
 Edid::Edid()
-    : QObject()
-    , d(new Private())
+    : d(new Private())
 {
 }
 
-Edid::Edid(const QByteArray& data, QObject* parent)
-    : QObject(parent)
-    , d(new Private())
+Edid::Edid(const QByteArray& data)
+    : d(new Private())
 {
     d->parse(data);
 }
 
 Edid::Edid(Edid::Private* dd)
-    : QObject()
-    , d(dd)
+    : d(new Private(*dd))
 {
 }
 

@@ -21,21 +21,18 @@
 
 #include "disman_export.h"
 
-#include <QObject>
 #include <QQuaternion>
 #include <QtGlobal>
 
 namespace Disman
 {
 
-class DISMAN_EXPORT Edid : public QObject
+class DISMAN_EXPORT Edid
 {
-    Q_OBJECT
-
 public:
     explicit Edid();
-    explicit Edid(const QByteArray& data, QObject* parent = nullptr);
-    ~Edid() override;
+    explicit Edid(const QByteArray& data);
+    ~Edid();
 
     Q_REQUIRED_RESULT Edid* clone() const;
 
@@ -57,8 +54,6 @@ public:
     QQuaternion white() const;
 
 private:
-    Q_DISABLE_COPY(Edid)
-
     class Private;
     Private* const d;
 
