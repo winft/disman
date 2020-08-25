@@ -74,7 +74,7 @@ Output::Private::Private(const Private& other)
         modeList.insert(otherMode->id(), otherMode->clone());
     }
     if (other.edid) {
-        edid.reset(other.edid->clone());
+        edid.reset(new Edid(*other.edid));
     }
 }
 
@@ -517,7 +517,7 @@ void Output::apply(const OutputPtr& other)
 
     // Non-notifyable changes
     if (other->d->edid) {
-        d->edid.reset(other->d->edid->clone());
+        d->edid.reset(new Edid(*other->d->edid));
     }
 
     set_resolution(other->d->resolution);

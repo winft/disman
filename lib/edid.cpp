@@ -106,19 +106,14 @@ Edid::Edid(const QByteArray& data)
     d->parse(data);
 }
 
-Edid::Edid(Edid::Private* dd)
-    : d(new Private(*dd))
+Edid::Edid(Edid const& edid)
+    : d(new Private(*edid.d))
 {
 }
 
 Edid::~Edid()
 {
     delete d;
-}
-
-Edid* Edid::clone() const
-{
-    return new Edid(new Private(*d));
 }
 
 bool Edid::isValid() const

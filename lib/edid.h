@@ -33,9 +33,8 @@ class DISMAN_EXPORT Edid
 public:
     explicit Edid();
     explicit Edid(const QByteArray& data);
+    Edid(Edid const& edid);
     ~Edid();
-
-    Q_REQUIRED_RESULT Edid* clone() const;
 
     bool isValid() const;
 
@@ -57,8 +56,6 @@ public:
 private:
     class Private;
     Private* const d;
-
-    explicit Edid(Private* dd);
 };
 
 }

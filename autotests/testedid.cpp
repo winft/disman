@@ -50,7 +50,7 @@ void TestEdid::testInvalid()
     QCOMPARE(e->isValid(), false);
     QCOMPARE(e->name().size(), 0);
 
-    std::unique_ptr<Edid> e2(e->clone());
+    std::unique_ptr<Edid> e2(new Edid(*e.get()));
     QCOMPARE(e2->isValid(), false);
     QCOMPARE(e2->name().size(), 0);
 
