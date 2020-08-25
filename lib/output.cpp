@@ -163,7 +163,7 @@ void Output::setName(const QString& name)
 QString Output::hash() const
 {
     if (edid() && edid()->isValid()) {
-        return edid()->hash();
+        return QString::fromStdString(edid()->hash());
     }
     const auto hash = QCryptographicHash::hash(name().toLatin1(), QCryptographicHash::Md5);
     return QString::fromLatin1(hash.toHex());

@@ -84,7 +84,8 @@ public:
             QVariantMap metadata;
             metadata[QStringLiteral("name")] = output->name();
             if (output->edid() && output->edid()->isValid()) {
-                metadata[QStringLiteral("edid-name")] = output->edid()->deviceId();
+                metadata[QStringLiteral("edid-name")]
+                    = QString::fromStdString(output->edid()->deviceId());
             }
             return metadata;
         };

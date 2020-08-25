@@ -398,19 +398,20 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
         Edid* edid = output->edid();
         qCDebug(DISMAN_XRANDR) << "EDID Info: ";
         if (edid && edid->isValid()) {
-            qCDebug(DISMAN_XRANDR) << "\tDevice ID: " << edid->deviceId() << "\n"
-                                   << "\tName: " << edid->name() << "\n"
-                                   << "\tVendor: " << edid->vendor() << "\n"
-                                   << "\tSerial: " << edid->serial() << "\n"
-                                   << "\tEISA ID: " << edid->eisaId() << "\n"
-                                   << "\tHash: " << edid->hash() << "\n"
-                                   << "\tWidth: " << edid->width() << "\n"
-                                   << "\tHeight: " << edid->height() << "\n"
-                                   << "\tGamma: " << edid->gamma() << "\n"
-                                   << "\tRed: " << edid->red() << "\n"
-                                   << "\tGreen: " << edid->green() << "\n"
-                                   << "\tBlue: " << edid->blue() << "\n"
-                                   << "\tWhite: " << edid->white();
+            qCDebug(DISMAN_XRANDR)
+                << "\tDevice ID: " << QString::fromStdString(edid->deviceId()) << "\n"
+                << "\tName: " << QString::fromStdString(edid->name()) << "\n"
+                << "\tVendor: " << QString::fromStdString(edid->vendor()) << "\n"
+                << "\tSerial: " << QString::fromStdString(edid->serial()) << "\n"
+                << "\tEISA ID: " << QString::fromStdString(edid->eisaId()) << "\n"
+                << "\tHash: " << QString::fromStdString(edid->hash()) << "\n"
+                << "\tWidth: " << edid->width() << "\n"
+                << "\tHeight: " << edid->height() << "\n"
+                << "\tGamma: " << edid->gamma() << "\n"
+                << "\tRed: " << edid->red() << "\n"
+                << "\tGreen: " << edid->green() << "\n"
+                << "\tBlue: " << edid->blue() << "\n"
+                << "\tWhite: " << edid->white();
         } else {
             qCDebug(DISMAN_XRANDR) << "\tUnavailable";
         }

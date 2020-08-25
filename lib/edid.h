@@ -23,6 +23,7 @@
 
 #include <QQuaternion>
 #include <QtGlobal>
+#include <string>
 
 namespace Disman
 {
@@ -38,13 +39,13 @@ public:
 
     bool isValid() const;
 
-    QString deviceId(const QString& fallbackName = QString()) const;
-    QString name() const;
-    QString vendor() const;
-    QString serial() const;
-    QString eisaId() const;
-    QString hash() const;
-    QString pnpId() const;
+    std::string deviceId(std::string const& fallbackName = std::string()) const;
+    std::string name() const;
+    std::string vendor() const;
+    std::string serial() const;
+    std::string eisaId() const;
+    std::string hash() const;
+    std::string pnpId() const;
     uint width() const;
     uint height() const;
     qreal gamma() const;

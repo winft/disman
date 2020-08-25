@@ -144,12 +144,12 @@ void TestPnp::print()
         const Edid* const edid = output->edid();
         qDebug() << "EDID Info: ";
         if (edid && edid->isValid()) {
-            qDebug() << "\tDevice ID: " << edid->deviceId();
-            qDebug() << "\tName: " << edid->name();
-            qDebug() << "\tVendor: " << edid->vendor();
-            qDebug() << "\tSerial: " << edid->serial();
-            qDebug() << "\tEISA ID: " << edid->eisaId();
-            qDebug() << "\tHash: " << edid->hash();
+            qDebug() << "\tDevice ID: " << QString::fromStdString(edid->deviceId());
+            qDebug() << "\tName: " << QString::fromStdString(edid->name());
+            qDebug() << "\tVendor: " << QString::fromStdString(edid->vendor());
+            qDebug() << "\tSerial: " << QString::fromStdString(edid->serial());
+            qDebug() << "\tEISA ID: " << QString::fromStdString(edid->eisaId());
+            qDebug() << "\tHash: " << QString::fromStdString(edid->hash());
             qDebug() << "\tWidth: " << edid->width();
             qDebug() << "\tHeight: " << edid->height();
             qDebug() << "\tGamma: " << edid->gamma();
