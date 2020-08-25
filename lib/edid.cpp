@@ -118,17 +118,13 @@ bool Edid::isValid() const
     return d_ptr->valid;
 }
 
-std::string Edid::deviceId(const std::string& fallbackName) const
+std::string Edid::deviceId() const
 {
     std::string id = "xrandr";
     // if no info was added check if the fallbacName is provided
     if (!vendor().size() && !name().size() && !serial().size()) {
-        if (fallbackName.size()) {
-            id.append('-' + fallbackName);
-        } else {
-            // all info we have are empty strings
-            id.append("-unknown");
-        }
+        // All info we have are empty strings.
+        id.append("-unknown");
     } else if (d_ptr->valid) {
         if (vendor().size()) {
             id.append('-' + vendor());

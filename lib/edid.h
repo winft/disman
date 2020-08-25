@@ -40,7 +40,7 @@ public:
 
     bool isValid() const;
 
-    std::string deviceId(std::string const& fallbackName = std::string()) const;
+    std::string deviceId() const;
     std::string name() const;
     std::string vendor() const;
     std::string serial() const;
