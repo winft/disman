@@ -145,6 +145,8 @@ void ConfigMonitor::Private::edidReady(QDBusPendingCallWatcher* watcher)
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
 
     const int outputId = watcher->property("outputId").toInt();
+    qCDebug(DISMAN) << "Received EDID for output" << outputId;
+
     const ConfigPtr config = watcher->property("config").value<Disman::ConfigPtr>();
     Q_ASSERT(mPendingEDIDRequests.contains(config));
     Q_ASSERT(mPendingEDIDRequests[config].contains(outputId));
