@@ -88,7 +88,7 @@ public:
     std::string pnpId;
     uint width;
     uint height;
-    qreal gamma;
+    double gamma;
     QQuaternion red;
     QQuaternion green;
     QQuaternion blue;
@@ -202,7 +202,7 @@ uint Edid::height() const
     return d_ptr->height;
 }
 
-qreal Edid::gamma() const
+double Edid::gamma() const
 {
     return d_ptr->gamma;
 }

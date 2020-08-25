@@ -47,9 +47,11 @@ public:
     std::string eisaId() const;
     std::string hash() const;
     std::string pnpId() const;
+
     uint width() const;
     uint height() const;
-    qreal gamma() const;
+
+    double gamma() const;
     QQuaternion red() const;
     QQuaternion green() const;
     QQuaternion blue() const;
