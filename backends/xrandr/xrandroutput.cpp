@@ -439,7 +439,13 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
     dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
     dismanOutput->setName(m_name);
     dismanOutput->setIcon(m_icon);
+
+    // Currently we do not set the edid since it messes with our control files.
+    // TODO: Decide on a common principle for identifying outputs in Wayland and X11. EDID, name,
+    //       with or without connector?
+#if 0
     dismanOutput->setEdid(m_edid);
+#endif
 
     // See https://bugzilla.redhat.com/show_bug.cgi?id=1290586
     // QXL will be creating a new mode we need to jump to every time the display is resized
