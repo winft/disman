@@ -71,6 +71,7 @@ private:
                      xcb_randr_rotation_t rotation,
                      const QRect& geom);
     void screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& sizeMm);
+    void handle_change();
 
     static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
 
