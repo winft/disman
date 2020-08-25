@@ -28,10 +28,18 @@ class TestEdid : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
     void testInvalid();
     void testEdidParser_data();
     void testEdidParser();
 };
+
+void TestEdid::initTestCase()
+{
+    qputenv("DISMAN_LOGGING", "false");
+    qputenv("DISMAN_IN_PROCESS", "1");
+    qputenv("DISMAN_BACKEND", "fake");
+}
 
 void TestEdid::testInvalid()
 {
