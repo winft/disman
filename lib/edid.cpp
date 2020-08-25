@@ -96,12 +96,12 @@ public:
 };
 
 Edid::Edid()
-    : d_ptr(new Private())
+    : d_ptr{new Private}
 {
 }
 
 Edid::Edid(const QByteArray& data)
-    : d_ptr(new Private())
+    : d_ptr{new Private}
 {
     d_ptr->parse(data);
 }
@@ -111,10 +111,7 @@ Edid::Edid(Edid const& edid)
 {
 }
 
-Edid::~Edid()
-{
-    delete d_ptr;
-}
+Edid::~Edid() = default;
 
 bool Edid::isValid() const
 {

@@ -23,6 +23,8 @@
 
 #include <QQuaternion>
 #include <QtGlobal>
+
+#include <memory>
 #include <string>
 
 namespace Disman
@@ -55,7 +57,7 @@ public:
 
 private:
     class Private;
-    Private* const d_ptr;
+    std::unique_ptr<Private> const d_ptr;
 };
 
 }
