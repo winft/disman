@@ -32,20 +32,6 @@ class DISMAN_EXPORT Edid : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString deviceId READ deviceId CONSTANT)
-    Q_PROPERTY(QString name READ name CONSTANT)
-    Q_PROPERTY(QString vendor READ vendor CONSTANT)
-    Q_PROPERTY(QString serial READ serial CONSTANT)
-    Q_PROPERTY(QString eisaId READ eisaId CONSTANT)
-    Q_PROPERTY(QString hash READ hash CONSTANT)
-    Q_PROPERTY(uint width READ width CONSTANT)
-    Q_PROPERTY(uint height READ height CONSTANT)
-    Q_PROPERTY(qreal gamma READ gamma CONSTANT)
-    Q_PROPERTY(QQuaternion red READ red CONSTANT)
-    Q_PROPERTY(QQuaternion green READ green CONSTANT)
-    Q_PROPERTY(QQuaternion blue READ blue CONSTANT)
-    Q_PROPERTY(QQuaternion white READ white CONSTANT)
-
 public:
     explicit Edid();
     explicit Edid(const QByteArray& data, QObject* parent = nullptr);
