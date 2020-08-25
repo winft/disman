@@ -81,11 +81,22 @@ void TestEdid::testEdidParser_data()
         "AP///////"
         "wAN8iw0AAAAABwVAQOAHRB4CoPVlFdSjCccUFQAAAABAQEBAQEBAQEBAQEBAQEBEhtWWlAAGTAwIDYAJaQQAAAYEht"
         "WWlAAGTAwIDYAJaQQAAAYAAAA/gBBVU8KICAgICAgICAgAAAA/gBCMTMzWFcwMyBWNCAKAIc=")
-                         << QStringLiteral("xrandr-unknown") << QStringLiteral("")
+                         // device-id
+                         << QStringLiteral("xrandr-unknown")
+                         // name
+                         << QStringLiteral("")
+                         // pnp-id, vendor
                          << QStringLiteral("COR")
                          << QStringList({QStringLiteral("COR"), QStringLiteral("Corollary Inc")})
-                         << QStringLiteral("") << QStringLiteral("B133XW03 V4")
-                         << QStringLiteral("82266089b3f9da3a8c48de1ec81b09e1") << 29U << 16U << 2.2
+                         // serial, eisa-id
+                         << QStringLiteral("")
+                         << QStringLiteral("B133XW03 V4")
+                         // hash, width, height
+                         << QStringLiteral("82266089b3f9da3a8c48de1ec81b09e1") << 29U
+                         << 16U
+                         // gamma
+                         << 2.2
+                         // colors: rgbw
                          << QQuaternion(1, QVector3D(0.580078, 0.339844, 0))
                          << QQuaternion(1, QVector3D(0.320313, 0.549805, 0))
                          << QQuaternion(1, QVector3D(0.155273, 0.110352, 0))
@@ -110,13 +121,24 @@ void TestEdid::testEdidParser_data()
     QTest::addRow("samsung") << QByteArray::fromBase64(
         "AP///////wBMLcMFMzJGRQkUAQMOMx14Ku6Ro1RMmSYPUFQjCACBAIFAgYCVAKlAswABAQEBAjqAGHE4LUBYLEUA/"
         "h8RAAAeAAAA/QA4PB5REQAKICAgICAgAAAA/ABTeW5jTWFzdGVyCiAgAAAA/wBIOU1aMzAyMTk2CiAgAC4=")
+                             // device-id
                              << QStringLiteral("xrandr-SyncMaster-H9MZ302196")
-                             << QStringLiteral("SyncMaster") << QStringLiteral("SAM")
+                             // name
+                             << QStringLiteral("SyncMaster")
+                             // pnp-id, vendor
+                             << QStringLiteral("SAM")
                              << QStringList({QStringLiteral("SAM"),
                                              QStringLiteral("Samsung Electric Company")})
-                             << QStringLiteral("H9MZ302196") << QStringLiteral("")
-                             << QStringLiteral("9384061b2b87ad193f841e07d60e9e1a") << 51U << 29U
-                             << 2.2 << QQuaternion(1, QVector3D(0.639648, 0.328125, 0))
+                             // serial, eisa-id
+                             << QStringLiteral("H9MZ302196")
+                             << QStringLiteral("")
+                             // hash, width, height
+                             << QStringLiteral("9384061b2b87ad193f841e07d60e9e1a") << 51U
+                             << 29U
+                             // gamma
+                             << 2.2
+                             // colors: rgbw
+                             << QQuaternion(1, QVector3D(0.639648, 0.328125, 0))
                              << QQuaternion(1, QVector3D(0.299805, 0.599609, 0))
                              << QQuaternion(1, QVector3D(0.150391, 0.0595703, 0))
                              << QQuaternion(1, QVector3D(0.3125, 0.329102, 0));
