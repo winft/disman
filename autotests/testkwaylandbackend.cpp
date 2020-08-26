@@ -153,7 +153,7 @@ void testWaylandBackend::verifyOutputs()
 
     QList<int> ids;
     Q_FOREACH (const auto& output, m_config->outputs()) {
-        QVERIFY(!output->name().isEmpty());
+        QVERIFY(output->name().size());
         QVERIFY(output->id() > -1);
         QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));
         QVERIFY(output->geometry() != QRectF());

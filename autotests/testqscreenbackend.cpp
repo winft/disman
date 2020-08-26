@@ -114,11 +114,11 @@ void testQScreenBackend::verifyOutputs()
     QList<int> ids;
     foreach (const Disman::OutputPtr& output, m_config->outputs()) {
         qDebug() << " _____________________ Output: " << output;
-        qDebug() << "   output name: " << output->name();
+        qDebug() << "   output name: " << output->name().c_str();
         qDebug() << "   output modes: " << output->modes().count() << output->modes();
         qDebug() << "   output enabled: " << output->isEnabled();
         qDebug() << "   output sizeMm : " << output->sizeMm();
-        QVERIFY(!output->name().isEmpty());
+        QVERIFY(output->name().size());
         QVERIFY(output->id() > -1);
         QVERIFY(output->isEnabled());
         QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));

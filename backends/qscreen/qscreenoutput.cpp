@@ -56,7 +56,7 @@ OutputPtr QScreenOutput::toDismanOutput() const
 {
     OutputPtr output(new Output);
     output->setId(m_id);
-    output->setName(m_qscreen->name());
+    output->set_name(m_qscreen->name().toStdString());
     updateDismanOutput(output);
     return output;
 }

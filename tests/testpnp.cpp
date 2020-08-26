@@ -120,7 +120,7 @@ void TestPnp::print()
     Q_FOREACH (const OutputPtr& output, outputs) {
         qDebug() << "\n-----------------------------------------------------\n";
         qDebug() << "Id: " << output->id();
-        qDebug() << "Name: " << output->name();
+        qDebug() << "Name: " << output->name().c_str();
         qDebug() << "Type: " << typetoString(output->type());
         qDebug() << "Enabled: " << output->isEnabled();
         qDebug() << "Primary: " << output->isPrimary();

@@ -86,7 +86,7 @@ public:
     bool compareModeList(const ModeList& before, const ModeList& after);
 
     int id;
-    QString name;
+    std::string name;
     Type type;
     QString icon;
     ModeList modeList;

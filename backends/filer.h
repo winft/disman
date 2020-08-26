@@ -404,7 +404,7 @@ public:
             if (!output) {
                 // TODO: fallback or reverse clean up?
                 qCDebug(DISMAN_BACKEND)
-                    << "Could not identify output filer" << output_filer->output()->name();
+                    << "Could not identify output filer" << output_filer->output()->name().c_str();
                 continue;
             }
 
@@ -471,13 +471,12 @@ private:
             return false;
         }
 
-        if (!output->name().isEmpty()
-            && m_duplicateOutputIds.contains(QString::number(output->id()))) {
+        if (output->name().size() && m_duplicateOutputIds.contains(QString::number(output->id()))) {
             // We may have identical outputs connected, these will have the same id in the config
             // in order to find the right one, also check the output's name (usually the connector)
             auto const metadata = info[QStringLiteral("metadata")].toMap();
             auto const outputNameInfo = metadata[QStringLiteral("name")].toString();
-            if (output->name() != outputNameInfo) {
+            if (output->name() != outputNameInfo.toStdString()) {
                 // Was a duplicate id, but info not for this output.
                 return false;
             }

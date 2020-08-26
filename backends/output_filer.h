@@ -53,7 +53,7 @@ public:
         return m_output->hash();
     }
 
-    QString name() const
+    std::string name() const
     {
         return m_output->name();
     }
@@ -82,7 +82,7 @@ public:
     {
         auto metadata = [&output]() {
             QVariantMap metadata;
-            metadata[QStringLiteral("name")] = output->name();
+            metadata[QStringLiteral("name")] = QString::fromStdString(output->name());
             if (output->edid() && output->edid()->isValid()) {
                 metadata[QStringLiteral("edid-name")]
                     = QString::fromStdString(output->edid()->deviceId());

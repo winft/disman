@@ -198,7 +198,7 @@ void Doctor::parsePositionalArgs()
             int output_id = -1;
             if (ops[0] == QLatin1String("output")) {
                 Q_FOREACH (const auto& output, m_config->outputs()) {
-                    if (output->name() == ops[1]) {
+                    if (output->name() == ops[1].toStdString()) {
                         output_id = output->id();
                     }
                 }
@@ -353,7 +353,7 @@ void Doctor::showOutputs() const
     typeString[Disman::Output::DisplayPort] = QStringLiteral("DisplayPort");
 
     Q_FOREACH (const auto& output, m_config->outputs()) {
-        cout << green << "Output: " << cr << output->id() << " " << output->name();
+        cout << green << "Output: " << cr << output->id() << " " << output->name().c_str();
         cout << " "
              << (output->isEnabled() ? green + QLatin1String("enabled")
                                      : red + QLatin1String("disabled"));

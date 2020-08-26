@@ -319,7 +319,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
              * to re-enable it, then update screen size too */
             if (toDisable.contains(output->id())) {
                 output->setEnabled(false);
-                qCDebug(DISMAN_XRANDR) << "Output failed to change: " << output->name();
+                qCDebug(DISMAN_XRANDR) << "Output failed to change: " << output->name().c_str();
                 forceScreenSizeUpdate = true;
             }
         }
@@ -327,7 +327,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
 
     for (const Disman::OutputPtr& output : toEnable) {
         if (!enableOutput(output)) {
-            qCDebug(DISMAN_XRANDR) << "Output failed to be Enabled: " << output->name();
+            qCDebug(DISMAN_XRANDR) << "Output failed to be Enabled: " << output->name().c_str();
             forceScreenSizeUpdate = true;
         }
     }
@@ -372,7 +372,7 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
         qCDebug(DISMAN_XRANDR) << "\n-----------------------------------------------------\n"
                                << "\n"
                                << "Id: " << output->id() << "\n"
-                               << "Name: " << output->name() << "\n"
+                               << "Connector name: " << output->name().c_str() << "\n"
                                << "Type: " << output->type();
 
         qCDebug(DISMAN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
@@ -451,7 +451,8 @@ QSize XRandRConfig::screenSize(const Disman::ConfigPtr& config) const
 
         const ModePtr currentMode = output->auto_mode();
         if (!currentMode) {
-            qCDebug(DISMAN_XRANDR) << "Output: " << output->name() << " has no current Mode!";
+            qCDebug(DISMAN_XRANDR)
+                << "Output: " << output->name().c_str() << " has no current Mode!";
             continue;
         }
 
@@ -576,8 +577,8 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput) const
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (enable output)"
                            << "\n"
-                           << "\tOutput:" << dismanOutput->id() << "(" << dismanOutput->name()
-                           << ")"
+                           << "\tOutput:" << dismanOutput->id() << "("
+                           << dismanOutput->name().c_str() << ")"
                            << "\n"
                            << "\tNew CRTC:" << freeCrtc->crtc() << "\n"
                            << "\tPos:" << dismanOutput->position() << "\n"
@@ -611,8 +612,8 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput) const
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (change output)"
                            << "\n"
-                           << "\tOutput:" << dismanOutput->id() << "(" << dismanOutput->name()
-                           << ")"
+                           << "\tOutput:" << dismanOutput->id() << "("
+                           << dismanOutput->name().c_str() << ")"
                            << "\n"
                            << "\tCRTC:" << xOutput->crtc()->crtc() << "\n"
                            << "\tPos:" << dismanOutput->position() << "\n"

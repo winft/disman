@@ -115,7 +115,7 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map)
 {
     OutputPtr output(new Output);
     output->setId(map[QStringLiteral("id")].toInt());
-    output->setName(map[QStringLiteral("name")].toString());
+    output->set_name(map[QStringLiteral("name")].toString().toStdString());
     output->setEnabled(map[QStringLiteral("enabled")].toBool());
     output->setPrimary(map[QStringLiteral("primary")].toBool());
     output->setIcon(map[QStringLiteral("icon")].toString());

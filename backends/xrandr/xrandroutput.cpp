@@ -437,7 +437,7 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
     dismanOutput->setId(m_id);
     dismanOutput->setType(m_type);
     dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
-    dismanOutput->setName(m_name);
+    dismanOutput->set_name(m_name.toStdString());
     dismanOutput->setIcon(m_icon);
 
     // Currently we do not set the edid since it messes with our control files.

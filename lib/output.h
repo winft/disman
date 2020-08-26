@@ -84,8 +84,12 @@ public:
     int id() const;
     void setId(int id);
 
-    QString name() const;
-    void setName(const QString& name);
+    /**
+     * The name of the output uniquely identifies it and usually describes the connector in some way
+     * together with a counter, for example DP-1, DP-2 and HDMI-A-1, HDMI-A-2.
+     */
+    std::string name() const;
+    void set_name(std::string const& name);
 
     /**
      * Returns an identifying hex encoded hash for this output.

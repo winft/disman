@@ -150,12 +150,12 @@ void Output::setId(int id)
     d->id = id;
 }
 
-QString Output::name() const
+std::string Output::name() const
 {
     return d->name;
 }
 
-void Output::setName(const QString& name)
+void Output::set_name(std::string const& name)
 {
     d->name = name;
 }
@@ -165,7 +165,7 @@ QString Output::hash() const
     if (edid() && edid()->isValid()) {
         return QString::fromStdString(edid()->hash());
     }
-    const auto hash = QCryptographicHash::hash(name().toLatin1(), QCryptographicHash::Md5);
+    auto const hash = QCryptographicHash::hash(name().c_str(), QCryptographicHash::Md5);
     return QString::fromLatin1(hash.toHex());
 }
 
@@ -493,7 +493,7 @@ void Output::apply(const OutputPtr& other)
     const bool keepBlocked = signalsBlocked();
     blockSignals(true);
 
-    setName(other->d->name);
+    set_name(other->d->name);
     setType(other->d->type);
     setIcon(other->d->icon);
     setPosition(other->geometry().topLeft());
@@ -565,7 +565,7 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
         std::stringstream ss;
 
         ss << "{" << output->id() << " "
-           << output->name().toStdString()
+           << output->name()
 
            // basic properties
            << (output->isEnabled() ? " [enabled]" : "[disabled]")
