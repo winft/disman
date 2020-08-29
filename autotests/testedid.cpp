@@ -18,48 +18,56 @@
 #include <QCoreApplication>
 #include <QObject>
 #include <QtTest>
+#include <memory>
 
 #include "edid.h"
 
 using namespace Disman;
+
+Q_DECLARE_METATYPE(std::string)
 
 class TestEdid : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
     void testInvalid();
     void testEdidParser_data();
     void testEdidParser();
 };
 
+void TestEdid::initTestCase()
+{
+    qputenv("DISMAN_LOGGING", "false");
+    qputenv("DISMAN_IN_PROCESS", "1");
+    qputenv("DISMAN_BACKEND", "fake");
+}
+
 void TestEdid::testInvalid()
 {
-    QScopedPointer<Edid> e(new Edid());
+    std::unique_ptr<Edid> e(new Edid("some random data"));
     QCOMPARE(e->isValid(), false);
-    QCOMPARE(e->name(), QString());
+    QCOMPARE(e->name().size(), 0);
 
-    QScopedPointer<Edid> e2(e->clone());
+    std::unique_ptr<Edid> e2(new Edid(*e.get()));
     QCOMPARE(e2->isValid(), false);
-    QCOMPARE(e2->name(), QString());
-
-    QScopedPointer<Edid> e3(new Edid("some random data"));
-    QCOMPARE(e3->isValid(), false);
+    QCOMPARE(e2->name().size(), 0);
 }
 
 void TestEdid::testEdidParser_data()
 {
     // The raw edid data
     QTest::addColumn<QByteArray>("raw_edid");
-    QTest::addColumn<QString>("deviceId");
-    QTest::addColumn<QString>("name");
-    QTest::addColumn<QString>("pnpId");
+    QTest::addColumn<std::string>("deviceId");
+    QTest::addColumn<std::string>("name");
+    QTest::addColumn<std::string>("pnpId");
     // List of potential vendor names, this depends on the availablility
     // of pnp.ids, otherwise it will be a three letter abbreviation.
     QTest::addColumn<QStringList>("vendor");
-    QTest::addColumn<QString>("serial");
-    QTest::addColumn<QString>("eisaId");
-    QTest::addColumn<QString>("hash");
+    QTest::addColumn<std::string>("serial");
+    QTest::addColumn<std::string>("eisaId");
+    QTest::addColumn<std::string>("hash");
     QTest::addColumn<uint>("width");
     QTest::addColumn<uint>("height");
     QTest::addColumn<qreal>("gamma");
@@ -73,11 +81,22 @@ void TestEdid::testEdidParser_data()
         "AP///////"
         "wAN8iw0AAAAABwVAQOAHRB4CoPVlFdSjCccUFQAAAABAQEBAQEBAQEBAQEBAQEBEhtWWlAAGTAwIDYAJaQQAAAYEht"
         "WWlAAGTAwIDYAJaQQAAAYAAAA/gBBVU8KICAgICAgICAgAAAA/gBCMTMzWFcwMyBWNCAKAIc=")
-                         << QStringLiteral("xrandr-unknown") << QStringLiteral("")
-                         << QStringLiteral("COR")
+                         // device-id
+                         << std::string("xrandr-unknown")
+                         // name
+                         << std::string("")
+                         // pnp-id, vendor
+                         << std::string("COR")
                          << QStringList({QStringLiteral("COR"), QStringLiteral("Corollary Inc")})
-                         << QStringLiteral("") << QStringLiteral("B133XW03 V4")
-                         << QStringLiteral("82266089b3f9da3a8c48de1ec81b09e1") << 29U << 16U << 2.2
+                         // serial, eisa-id
+                         << std::string("")
+                         << std::string("B133XW03 V4")
+                         // hash, width, height
+                         << std::string("82266089b3f9da3a8c48de1ec81b09e1") << 29U
+                         << 16U
+                         // gamma
+                         << 2.2
+                         // colors: rgbw
                          << QQuaternion(1, QVector3D(0.580078, 0.339844, 0))
                          << QQuaternion(1, QVector3D(0.320313, 0.549805, 0))
                          << QQuaternion(1, QVector3D(0.155273, 0.110352, 0))
@@ -89,11 +108,11 @@ void TestEdid::testEdidParser_data()
         "A/wBGNTI1TTI0NUFLTEwKAAAA/ABERUxMIFUyNDEwCiAgAAAA/"
         "QA4TB5REQAKICAgICAgAToCAynxUJAFBAMCBxYBHxITFCAVEQYjCQcHZwMMABAAOC2DAQAA4wUDAQI6gBhxOC1AWCx"
         "FAAZEIQAAHgEdgBhxHBYgWCwlAAZEIQAAngEdAHJR0B4gbihVAAZEIQAAHowK0Iog4C0QED6WAAZEIQAAGAAAAAAAA"
-        "AAAAAAAAAAAPg==") << QStringLiteral("xrandr-DELL U2410-F525M245AKLL")
-                          << QStringLiteral("DELL U2410") << QStringLiteral("DEL")
+        "AAAAAAAAAAAPg==") << std::string("xrandr-DELL U2410-F525M245AKLL")
+                          << std::string("DELL U2410") << std::string("DEL")
                           << QStringList({QStringLiteral("DEL"), QStringLiteral("Dell Inc.")})
-                          << QStringLiteral("F525M245AKLL") << QStringLiteral("")
-                          << QStringLiteral("be55eeb5fcc1e775f321c1ae3aa02ef0") << 52U << 32U << 2.2
+                          << std::string("F525M245AKLL") << std::string("")
+                          << std::string("be55eeb5fcc1e775f321c1ae3aa02ef0") << 52U << 32U << 2.2
                           << QQuaternion(1, QVector3D(0.679688, 0.308594, 0))
                           << QQuaternion(1, QVector3D(0.206055, 0.693359, 0))
                           << QQuaternion(1, QVector3D(0.151367, 0.0546875, 0))
@@ -102,13 +121,24 @@ void TestEdid::testEdidParser_data()
     QTest::addRow("samsung") << QByteArray::fromBase64(
         "AP///////wBMLcMFMzJGRQkUAQMOMx14Ku6Ro1RMmSYPUFQjCACBAIFAgYCVAKlAswABAQEBAjqAGHE4LUBYLEUA/"
         "h8RAAAeAAAA/QA4PB5REQAKICAgICAgAAAA/ABTeW5jTWFzdGVyCiAgAAAA/wBIOU1aMzAyMTk2CiAgAC4=")
-                             << QStringLiteral("xrandr-SyncMaster-H9MZ302196")
-                             << QStringLiteral("SyncMaster") << QStringLiteral("SAM")
+                             // device-id
+                             << std::string("xrandr-SyncMaster-H9MZ302196")
+                             // name
+                             << std::string("SyncMaster")
+                             // pnp-id, vendor
+                             << std::string("SAM")
                              << QStringList({QStringLiteral("SAM"),
                                              QStringLiteral("Samsung Electric Company")})
-                             << QStringLiteral("H9MZ302196") << QStringLiteral("")
-                             << QStringLiteral("9384061b2b87ad193f841e07d60e9e1a") << 51U << 29U
-                             << 2.2 << QQuaternion(1, QVector3D(0.639648, 0.328125, 0))
+                             // serial, eisa-id
+                             << std::string("H9MZ302196")
+                             << std::string("")
+                             // hash, width, height
+                             << std::string("9384061b2b87ad193f841e07d60e9e1a") << 51U
+                             << 29U
+                             // gamma
+                             << 2.2
+                             // colors: rgbw
+                             << QQuaternion(1, QVector3D(0.639648, 0.328125, 0))
                              << QQuaternion(1, QVector3D(0.299805, 0.599609, 0))
                              << QQuaternion(1, QVector3D(0.150391, 0.0595703, 0))
                              << QQuaternion(1, QVector3D(0.3125, 0.329102, 0));
@@ -117,14 +147,14 @@ void TestEdid::testEdidParser_data()
         "AP///////"
         "wBNEEoUAAAAAB4ZAQSlHRF4Dt5Qo1RMmSYPUFQAAAABAQEBAQEBAQEBAQEBAQEBzZGAoMAINHAwIDUAJqUQAAAYpHS"
         "AoMAINHAwIDUAJqUQAAAYAAAA/gBSWE40OYFMUTEzM1oxAAAAAAACQQMoABIAAAsBCiAgAMw=")
-                           << QStringLiteral("xrandr-unknown")
-                           << QString() // unsure why, this screen reports no name
-                           << QStringLiteral("SHP")
+                           << std::string("xrandr-unknown")
+                           << std::string("") // unsure why, this screen reports no name
+                           << std::string("SHP")
                            << QStringList(
                                   {QStringLiteral("SHP"), QStringLiteral("Sharp Corporation")})
-                           << QStringLiteral("") << QStringLiteral("RXN49-LQ133Z1")
-                           << QStringLiteral("3627c3534e4c82871967b57237bf5b83") << 29U << 17U
-                           << 2.2 << QQuaternion(1, QVector3D(0.639648, 0.328125, 0))
+                           << std::string("") << std::string("RXN49-LQ133Z1")
+                           << std::string("3627c3534e4c82871967b57237bf5b83") << 29U << 17U << 2.2
+                           << QQuaternion(1, QVector3D(0.639648, 0.328125, 0))
                            << QQuaternion(1, QVector3D(0.299805, 0.599609, 0))
                            << QQuaternion(1, QVector3D(0.149414, 0.0595703, 0))
                            << QQuaternion(1, QVector3D(0.3125, 0.328125, 0));
@@ -133,13 +163,13 @@ void TestEdid::testEdidParser_data()
 void TestEdid::testEdidParser()
 {
     QFETCH(QByteArray, raw_edid);
-    QFETCH(QString, deviceId);
-    QFETCH(QString, name);
-    QFETCH(QString, pnpId);
+    QFETCH(std::string, deviceId);
+    QFETCH(std::string, name);
+    QFETCH(std::string, pnpId);
     QFETCH(QStringList, vendor);
-    QFETCH(QString, serial);
-    QFETCH(QString, eisaId);
-    QFETCH(QString, hash);
+    QFETCH(std::string, serial);
+    QFETCH(std::string, eisaId);
+    QFETCH(std::string, hash);
     QFETCH(uint, width);
     QFETCH(uint, height);
     QFETCH(qreal, gamma);

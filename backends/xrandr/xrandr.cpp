@@ -126,32 +126,9 @@ XRandR::XRandR()
         m_configChangeCompressor = new QTimer(this);
         m_configChangeCompressor->setSingleShot(true);
         m_configChangeCompressor->setInterval(500);
-        connect(m_configChangeCompressor, &QTimer::timeout, [this]() {
-            auto cfg = config();
-            if (!m_config || m_config->connectedOutputsHash() != cfg->connectedOutputsHash()) {
-                qCDebug(DISMAN_XRANDR) << "Config with new output pattern received:" << cfg;
+        connect(m_configChangeCompressor, &QTimer::timeout, this, &XRandR::handle_change);
 
-                if (cfg->origin() == Config::Origin::unknown) {
-                    qCDebug(DISMAN_XRANDR)
-                        << "Config received that is unknown. Creating an optimized config now.";
-                    Generator generator(cfg, m_config);
-                    generator.optimize();
-                    cfg = generator.config();
-                } else {
-                    m_filer_controller->read(cfg);
-                }
-
-                m_config = cfg;
-
-                if (set_config_impl(cfg)) {
-                    qCDebug(DISMAN_XRANDR) << "Config for new output pattern sent.";
-                    m_configChangeCompressor->start();
-                    return;
-                }
-            }
-            Q_EMIT configChanged(config());
-        });
-
+        handle_change();
         s_monitorInitialized = true;
     }
 }
@@ -178,21 +155,20 @@ void XRandR::outputChanged(xcb_randr_output_t output,
 {
     m_configChangeCompressor->start();
 
-    XRandROutput* xOutput = s_internalConfig->output(output);
-    if (!xOutput) {
-        s_internalConfig->addNewOutput(output);
+    auto xOutput = s_internalConfig->output(output);
+
+    if (connection == XCB_RANDR_CONNECTION_DISCONNECTED) {
+        if (xOutput) {
+            xOutput->disconnected();
+            s_internalConfig->removeOutput(output);
+            qCDebug(DISMAN_XRANDR) << "Output" << output << " removed";
+        }
         return;
     }
 
-    // check if this output disappeared
-    if (crtc == XCB_NONE && mode == XCB_NONE && connection == XCB_RANDR_CONNECTION_DISCONNECTED) {
-        XCB::OutputInfo info(output, XCB_TIME_CURRENT_TIME);
-        if (info.isNull()) {
-            s_internalConfig->removeOutput(output);
-            qCDebug(DISMAN_XRANDR) << "Output" << output << " removed";
-            return;
-        }
-        // info is valid: the output is still there
+    if (!xOutput) {
+        s_internalConfig->addNewOutput(output);
+        return;
     }
 
     XCB::PrimaryOutput primary(XRandR::rootWindow());
@@ -214,6 +190,32 @@ void XRandR::crtcChanged(xcb_randr_crtc_t crtc,
     }
 
     m_configChangeCompressor->start();
+}
+
+void XRandR::handle_change()
+{
+    auto cfg = config();
+    if (!m_config || m_config->connectedOutputsHash() != cfg->connectedOutputsHash()) {
+        qCDebug(DISMAN_XRANDR) << "Config with new output pattern received:" << cfg;
+
+        if (cfg->origin() == Config::Origin::unknown) {
+            qCDebug(DISMAN_XRANDR)
+                << "Config received that is unknown. Creating an optimized config now.";
+            Generator generator(cfg, m_config);
+            generator.optimize();
+            cfg = generator.config();
+        } else {
+            m_filer_controller->read(cfg);
+        }
+
+        m_config = cfg;
+
+        if (set_config_impl(cfg)) {
+            qCDebug(DISMAN_XRANDR) << "Config for new output pattern sent.";
+            return;
+        }
+    }
+    Q_EMIT configChanged(cfg);
 }
 
 void XRandR::screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& sizeMm)

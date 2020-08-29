@@ -51,6 +51,24 @@ XRandROutput::~XRandROutput()
 {
 }
 
+void XRandROutput::disconnected()
+{
+    if (m_crtc) {
+        xcb_randr_set_crtc_config(XCB::connection(),
+                                  m_crtc->crtc(),
+                                  XCB_CURRENT_TIME,
+                                  XCB_CURRENT_TIME,
+                                  0,
+                                  0,
+                                  XCB_NONE,
+                                  XCB_RANDR_ROTATION_ROTATE_0,
+                                  0,
+                                  nullptr);
+        m_crtc->disconectOutput(m_id);
+        m_crtc = nullptr;
+    }
+}
+
 xcb_randr_output_t XRandROutput::id() const
 {
     return m_id;
@@ -421,7 +439,13 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
     dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
     dismanOutput->setName(m_name);
     dismanOutput->setIcon(m_icon);
+
+    // Currently we do not set the edid since it messes with our control files.
+    // TODO: Decide on a common principle for identifying outputs in Wayland and X11. EDID, name,
+    //       with or without connector?
+#if 0
     dismanOutput->setEdid(m_edid);
+#endif
 
     // See https://bugzilla.redhat.com/show_bug.cgi?id=1290586
     // QXL will be creating a new mode we need to jump to every time the display is resized

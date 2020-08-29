@@ -79,6 +79,7 @@ public:
             auto retention = get_value(
                 output, "retention", static_cast<int>(Output::Retention::Undefined), nullptr);
             output->set_retention(convert_int_to_retention(retention));
+            output->setEnabled(get_value(output, "enabled", true, nullptr));
 
             output->setPosition(
                 get_value(output, "pos", QPointF(0, 0), nullptr, std::function{get_pos}));
@@ -131,6 +132,7 @@ public:
             }
 
             set_value(output, "retention", static_cast<int>(output->retention()), nullptr);
+            set_value(output, "enabled", output->isEnabled(), nullptr);
             set_replication_source(output, config);
             set_value(output, "pos", output->position(), nullptr, std::function{set_pos});
 

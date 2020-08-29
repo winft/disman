@@ -74,7 +74,7 @@ Output::Private::Private(const Private& other)
         modeList.insert(otherMode->id(), otherMode->clone());
     }
     if (other.edid) {
-        edid.reset(other.edid->clone());
+        edid.reset(new Edid(*other.edid));
     }
 }
 
@@ -163,7 +163,7 @@ void Output::setName(const QString& name)
 QString Output::hash() const
 {
     if (edid() && edid()->isValid()) {
-        return edid()->hash();
+        return QString::fromStdString(edid()->hash());
     }
     const auto hash = QCryptographicHash::hash(name().toLatin1(), QCryptographicHash::Md5);
     return QString::fromLatin1(hash.toHex());
@@ -517,7 +517,7 @@ void Output::apply(const OutputPtr& other)
 
     // Non-notifyable changes
     if (other->d->edid) {
-        d->edid.reset(other->d->edid->clone());
+        d->edid.reset(new Edid(*other->d->edid));
     }
 
     set_resolution(other->d->resolution);

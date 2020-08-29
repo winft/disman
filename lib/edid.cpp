@@ -44,15 +44,12 @@
 
 using namespace Disman;
 
-class Q_DECL_HIDDEN Edid::Private
+class Edid::Private
 {
 public:
-    Private()
-        : valid(false)
-        , width(0)
-        , height(0)
-        , gamma(0)
+    Private(QByteArray const& data)
     {
+        parse(data);
     }
 
     Private(const Private& other)
@@ -73,174 +70,153 @@ public:
     {
     }
 
-    bool parse(const QByteArray& data);
-    int edidGetBit(int in, int bit) const;
-    int edidGetBits(int in, int begin, int end) const;
-    float edidDecodeFraction(int high, int low) const;
-    QString edidParseString(const quint8* data) const;
-
-    bool valid;
-    QString monitorName;
-    QString vendorName;
-    QString serialNumber;
-    QString eisaId;
-    QString checksum;
-    QString pnpId;
-    uint width;
-    uint height;
-    qreal gamma;
+    bool valid{false};
+    std::string monitorName;
+    std::string vendorName;
+    std::string serialNumber;
+    std::string eisaId;
+    std::string checksum;
+    std::string pnpId;
+    uint width{0};
+    uint height{0};
+    double gamma{0};
     QQuaternion red;
     QQuaternion green;
     QQuaternion blue;
     QQuaternion white;
+
+private:
+    bool parse(const QByteArray& data);
+    int edidGetBit(int in, int bit) const;
+    int edidGetBits(int in, int begin, int end) const;
+    float edidDecodeFraction(int high, int low) const;
+    std::string edidParseString(const quint8* data) const;
 };
 
-Edid::Edid()
-    : QObject()
-    , d(new Private())
+Edid::Edid(const QByteArray& data)
+    : d_ptr{new Private(data)}
 {
 }
 
-Edid::Edid(const QByteArray& data, QObject* parent)
-    : QObject(parent)
-    , d(new Private())
-{
-    d->parse(data);
-}
-
-Edid::Edid(Edid::Private* dd)
-    : QObject()
-    , d(dd)
+Edid::Edid(Edid const& edid)
+    : d_ptr(new Private(*edid.d_ptr))
 {
 }
 
-Edid::~Edid()
-{
-    delete d;
-}
-
-Edid* Edid::clone() const
-{
-    return new Edid(new Private(*d));
-}
+Edid::~Edid() = default;
 
 bool Edid::isValid() const
 {
-    return d->valid;
+    return d_ptr->valid;
 }
 
-QString Edid::deviceId(const QString& fallbackName) const
+std::string Edid::deviceId() const
 {
-    QString id = QStringLiteral("xrandr");
+    std::string id = "xrandr";
     // if no info was added check if the fallbacName is provided
-    if (vendor().isNull() && name().isNull() && serial().isNull()) {
-        if (!fallbackName.isEmpty()) {
-            id.append(QLatin1Char('-') % fallbackName);
-        } else {
-            // all info we have are empty strings
-            id.append(QLatin1String("-unknown"));
+    if (!vendor().size() && !name().size() && !serial().size()) {
+        // All info we have are empty strings.
+        id.append("-unknown");
+    } else if (d_ptr->valid) {
+        if (vendor().size()) {
+            id.append('-' + vendor());
         }
-    } else if (d->valid) {
-        if (!vendor().isNull()) {
-            id.append(QLatin1Char('-') % vendor());
+        if (name().size()) {
+            id.append('-' + name());
         }
-        if (!name().isNull()) {
-            id.append(QLatin1Char('-') % name());
-        }
-        if (!serial().isNull()) {
-            id.append(QLatin1Char('-') % serial());
+        if (serial().size()) {
+            id.append('-' + serial());
         }
     }
 
     return id;
 }
 
-QString Edid::name() const
+std::string Edid::name() const
 {
-    if (d->valid) {
-        return d->monitorName;
+    if (d_ptr->valid) {
+        return d_ptr->monitorName;
     }
-    return QString();
+    return std::string();
 }
 
-QString Edid::vendor() const
+std::string Edid::vendor() const
 {
-    if (d->valid) {
-        return d->vendorName;
+    if (d_ptr->valid) {
+        return d_ptr->vendorName;
     }
-    return QString();
+    return std::string();
 }
 
-QString Edid::serial() const
+std::string Edid::serial() const
 {
-    if (d->valid) {
-        return d->serialNumber;
+    if (d_ptr->valid) {
+        return d_ptr->serialNumber;
     }
-    return QString();
+    return std::string();
 }
 
-QString Edid::eisaId() const
+std::string Edid::eisaId() const
 {
-    if (d->valid) {
-        return d->eisaId;
+    if (d_ptr->valid) {
+        return d_ptr->eisaId;
     }
-    return QString();
+    return std::string();
 }
 
-QString Edid::hash() const
+std::string Edid::hash() const
 {
-    if (d->valid) {
-        return d->checksum;
+    if (d_ptr->valid) {
+        return d_ptr->checksum;
     }
-    return QString();
+    return std::string();
 }
 
-QString Edid::pnpId() const
+std::string Edid::pnpId() const
 {
-    if (d->valid) {
-        return d->pnpId;
+    if (d_ptr->valid) {
+        return d_ptr->pnpId;
     }
-    return QString();
+    return std::string();
 }
 
 uint Edid::width() const
 {
-    return d->width;
+    return d_ptr->width;
 }
 
 uint Edid::height() const
 {
-    return d->height;
+    return d_ptr->height;
 }
 
-qreal Edid::gamma() const
+double Edid::gamma() const
 {
-    return d->gamma;
+    return d_ptr->gamma;
 }
 
 QQuaternion Edid::red() const
 {
-    return d->red;
+    return d_ptr->red;
 }
 
 QQuaternion Edid::green() const
 {
-    return d->green;
+    return d_ptr->green;
 }
 
 QQuaternion Edid::blue() const
 {
-    return d->blue;
+    return d_ptr->blue;
 }
 
 QQuaternion Edid::white() const
 {
-    return d->white;
+    return d_ptr->white;
 }
 
 bool Edid::Private::parse(const QByteArray& rawData)
 {
-    quint32 serial;
     const quint8* data = reinterpret_cast<const quint8*>(rawData.constData());
     int length = rawData.length();
 
@@ -263,21 +239,23 @@ bool Edid::Private::parse(const QByteArray& rawData)
      * 7654321076543210
      * |\---/\---/\---/
      * R  C1   C2   C3 */
+    pnpId.resize(3);
     pnpId[0] = 'A' + ((data[GCM_EDID_OFFSET_PNPID + 0] & 0x7c) / 4) - 1;
     pnpId[1] = 'A' + ((data[GCM_EDID_OFFSET_PNPID + 0] & 0x3) * 8)
         + ((data[GCM_EDID_OFFSET_PNPID + 1] & 0xe0) / 32) - 1;
     pnpId[2] = 'A' + (data[GCM_EDID_OFFSET_PNPID + 1] & 0x1f) - 1;
+    pnpId.resize(strlen(pnpId.data()));
 
     // load the PNP_IDS file and load the vendor name
-    if (!pnpId.isEmpty()) {
+    if (pnpId.size()) {
         QFile pnpIds(QStringLiteral(PNP_IDS));
         if (pnpIds.open(QIODevice::ReadOnly)) {
             while (!pnpIds.atEnd()) {
                 QString line = QString::fromUtf8(pnpIds.readLine());
-                if (line.startsWith(pnpId)) {
+                if (line.startsWith(QString::fromStdString(pnpId))) {
                     QStringList parts = line.split(QLatin1Char('\t'));
                     if (parts.size() == 2) {
-                        vendorName = line.split(QLatin1Char('\t')).at(1).simplified();
+                        vendorName = line.split(QLatin1Char('\t')).at(1).simplified().toStdString();
                     }
                     break;
                 }
@@ -286,12 +264,12 @@ bool Edid::Private::parse(const QByteArray& rawData)
     }
 
     /* maybe there isn't a ASCII serial number descriptor, so use this instead */
-    serial = static_cast<quint32>(data[GCM_EDID_OFFSET_SERIAL + 0]);
-    serial += static_cast<quint32>(data[GCM_EDID_OFFSET_SERIAL + 1] * 0x100);
-    serial += static_cast<quint32>(data[GCM_EDID_OFFSET_SERIAL + 2] * 0x10000);
-    serial += static_cast<quint32>(data[GCM_EDID_OFFSET_SERIAL + 3] * 0x1000000);
+    auto serial = static_cast<uint32_t>(data[GCM_EDID_OFFSET_SERIAL + 0]);
+    serial += static_cast<uint32_t>(data[GCM_EDID_OFFSET_SERIAL + 1] * 0x100);
+    serial += static_cast<uint32_t>(data[GCM_EDID_OFFSET_SERIAL + 2] * 0x10000);
+    serial += static_cast<uint32_t>(data[GCM_EDID_OFFSET_SERIAL + 3] * 0x1000000);
     if (serial > 0) {
-        serialNumber = QString::number(serial);
+        serialNumber = std::to_string(serial);
     }
 
     /* get the size */
@@ -339,22 +317,13 @@ bool Edid::Private::parse(const QByteArray& rawData)
 
         /* any useful blocks? */
         if (data[i + 3] == GCM_DESCRIPTOR_DISPLAY_PRODUCT_NAME) {
-            QString tmp = edidParseString(&data[i + 5]);
-            if (!tmp.isEmpty()) {
-                monitorName = tmp;
-            }
+            monitorName = edidParseString(&data[i + 5]);
         } else if (data[i + 3] == GCM_DESCRIPTOR_DISPLAY_PRODUCT_SERIAL_NUMBER) {
-            QString tmp = edidParseString(&data[i + 5]);
-            if (!tmp.isEmpty()) {
-                serialNumber = tmp;
-            }
+            serialNumber = edidParseString(&data[i + 5]);
         } else if (data[i + 3] == GCM_DESCRIPTOR_COLOR_MANAGEMENT_DATA) {
             qCWarning(DISMAN_EDID) << "failing to parse color management data";
         } else if (data[i + 3] == GCM_DESCRIPTOR_ALPHANUMERIC_DATA_STRING) {
-            QString tmp = edidParseString(&data[i + 5]);
-            if (!tmp.isEmpty()) {
-                eisaId = tmp;
-            }
+            eisaId = edidParseString(&data[i + 5]);
         } else if (data[i + 3] == GCM_DESCRIPTOR_COLOR_POINT) {
             if (data[i + 3 + 9] != 0xff) {
                 /* extended EDID block(1) which contains
@@ -372,7 +341,7 @@ bool Edid::Private::parse(const QByteArray& rawData)
     // calculate checksum
     QCryptographicHash hash(QCryptographicHash::Md5);
     hash.addData(reinterpret_cast<const char*>(data), length);
-    checksum = QString::fromLatin1(hash.result().toHex());
+    checksum = QString::fromLatin1(hash.result().toHex()).toStdString();
 
     valid = true;
     return valid;
@@ -401,16 +370,16 @@ float Edid::Private::edidDecodeFraction(int high, int low) const
     return result;
 }
 
-QString Edid::Private::edidParseString(const quint8* data) const
+std::string Edid::Private::edidParseString(const quint8* data) const
 {
     /* this is always 13 bytes, but we can't guarantee it's null
      * terminated or not junk. */
     auto text = QString::fromLatin1(reinterpret_cast<const char*>(data), 13).simplified();
 
-    for (int i = 0; i < text.length(); ++i) {
+    for (int i = 0; i < text.size(); ++i) {
         if (!text.at(i).isPrint()) {
             text[i] = '-';
         }
     }
-    return text;
+    return text.toStdString();
 }

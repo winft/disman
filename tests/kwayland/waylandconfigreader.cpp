@@ -64,7 +64,7 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
 
     QByteArray data = QByteArray::fromBase64(outputConfig[QStringLiteral("edid")].toByteArray());
     outputdevice->setEdid(data);
-    Edid edid(data, display);
+    Edid edid(data);
 
     // qDebug() << "EDID Info: ";
     if (edid.isValid()) {
@@ -82,8 +82,8 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
         // qDebug() << "\tBlue: " << edid.blue();
         // qDebug() << "\tWhite: " << edid.white();
         outputdevice->setPhysicalSize(QSize(edid.width() * 10, edid.height() * 10));
-        outputdevice->setManufacturer(edid.vendor());
-        outputdevice->setModel(edid.name());
+        outputdevice->setManufacturer(QString::fromStdString(edid.vendor()));
+        outputdevice->setModel(QString::fromStdString(edid.name()));
     } else {
         outputdevice->setPhysicalSize(sizeFromJson(outputConfig[QStringLiteral("sizeMM")]));
         outputdevice->setManufacturer(outputConfig[QStringLiteral("manufacturer")].toString());

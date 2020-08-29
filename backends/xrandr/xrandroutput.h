@@ -44,7 +44,6 @@ public:
     explicit XRandROutput(xcb_randr_output_t id, XRandRConfig* config);
     ~XRandROutput() override;
 
-    void disabled();
     void disconnected();
 
     void update();
