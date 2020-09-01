@@ -116,7 +116,10 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     // Initialize primary output
     output->setEnabled(m_head->enabled());
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
-    output->set_name(name().toStdString());
+
+    // TODO: use the name field here once we set the hash identifier explicitly.
+    output->set_name(m_head->description().toStdString());
+    output->set_description(m_head->description().toStdString());
     output->setSizeMm(m_head->physicalSize());
     output->setPosition(m_head->position());
     output->setRotation(s_rotationMap[m_head->transform()]);
@@ -215,12 +218,6 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     }
 
     return changed;
-}
-
-QString WlrootsOutput::name() const
-{
-    Q_ASSERT(m_head);
-    return m_head->description();
 }
 
 QDebug operator<<(QDebug dbg, const WlrootsOutput* output)
