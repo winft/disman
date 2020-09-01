@@ -25,6 +25,7 @@
 #include "output.h"
 
 #include <QScreen>
+#include <string>
 
 namespace Disman
 {
@@ -47,6 +48,7 @@ public:
 
 private:
     void updateFromQScreen(const QScreen* qscreen);
+    std::string description() const;
     const QScreen* m_qscreen;
     int m_id;
 };

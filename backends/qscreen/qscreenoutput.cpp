@@ -18,7 +18,6 @@
 #include "qscreenoutput.h"
 #include "qscreenbackend.h"
 
-#include <edid.h>
 #include <mode.h>
 
 #include <QGuiApplication>
@@ -52,11 +51,29 @@ const QScreen* QScreenOutput::qscreen() const
     return m_qscreen;
 }
 
+std::string QScreenOutput::description() const
+{
+    std::string ret;
+
+    if (auto vendor = m_qscreen->manufacturer().toStdString(); vendor.size()) {
+        ret += vendor + " ";
+    }
+    if (auto model = m_qscreen->model().toStdString(); model.size()) {
+        ret += model + " ";
+    }
+
+    if (!ret.size()) {
+        return m_qscreen->name().toStdString();
+    }
+    return ret + "(" + m_qscreen->name().toStdString() + ")";
+}
+
 OutputPtr QScreenOutput::toDismanOutput() const
 {
     OutputPtr output(new Output);
     output->setId(m_id);
     output->set_name(m_qscreen->name().toStdString());
+    output->set_description(description());
     updateDismanOutput(output);
     return output;
 }
