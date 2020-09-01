@@ -50,6 +50,7 @@ Output::Private::Private()
 Output::Private::Private(const Private& other)
     : id(other.id)
     , name(other.name)
+    , description(other.description)
     , type(other.type)
     , icon(other.icon)
     , replicationSource(other.replicationSource)
@@ -158,6 +159,16 @@ std::string Output::name() const
 void Output::set_name(std::string const& name)
 {
     d->name = name;
+}
+
+std::string Output::description() const
+{
+    return d->description;
+}
+
+void Output::set_description(std::string const& description)
+{
+    d->description = description;
 }
 
 QString Output::hash() const
@@ -494,6 +505,7 @@ void Output::apply(const OutputPtr& other)
     blockSignals(true);
 
     set_name(other->d->name);
+    set_description(other->d->description);
     setType(other->d->type);
     setIcon(other->d->icon);
     setPosition(other->geometry().topLeft());
@@ -564,8 +576,8 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 
         std::stringstream ss;
 
-        ss << "{" << output->id() << " "
-           << output->name()
+        ss << "{" << output->id() << " " << output->description() << " (" << output->name()
+           << ") "
 
            // basic properties
            << (output->isEnabled() ? " [enabled]" : "[disabled]")

@@ -92,6 +92,16 @@ public:
     void set_name(std::string const& name);
 
     /**
+     * The description of an output is provided by the backend and is meant to be displayed in
+     * UI to identify the output and the display connected to it. It is pre-translated as it is the
+     * responsibility of the backend to translate it to the user session locale.
+     *
+     * Examples are 'Foocorp 11" Display' or 'Virtual X11 output via :1'.
+     */
+    std::string description() const;
+    void set_description(std::string const& description);
+
+    /**
      * Returns an identifying hex encoded hash for this output.
      *
      * The hash is calculated either via the edid hash or if no
