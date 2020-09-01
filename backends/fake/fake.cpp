@@ -183,6 +183,7 @@ void Fake::addOutput(int outputId, const QString& name)
     Disman::OutputPtr output(new Disman::Output);
     output->setId(outputId);
     output->set_name(name.toStdString());
+    output->set_description(name.toStdString());
     mConfig->addOutput(output);
     Q_EMIT configChanged(mConfig);
 }
