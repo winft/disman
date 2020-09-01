@@ -79,6 +79,7 @@ public:
 private:
     void init();
     void updateModes(const XCB::OutputInfo& outputInfo);
+    std::string description() const;
 
     static Disman::Output::Type fetchOutputType(xcb_randr_output_t outputId, const QString& name);
     static QByteArray typeFromProperty(xcb_randr_output_t outputId);
