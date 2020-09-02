@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filer_controller.h"
 #include "filer_helpers.h"
 
-#include <edid.h>
 #include <output.h>
 #include <types.h>
 
@@ -83,10 +82,7 @@ public:
         auto metadata = [&output]() {
             QVariantMap metadata;
             metadata[QStringLiteral("name")] = QString::fromStdString(output->name());
-            if (output->edid() && output->edid()->isValid()) {
-                metadata[QStringLiteral("edid-name")]
-                    = QString::fromStdString(output->edid()->deviceId());
-            }
+            metadata[QStringLiteral("description")] = QString::fromStdString(output->description());
             return metadata;
         };
         QVariantMap outputInfo;
