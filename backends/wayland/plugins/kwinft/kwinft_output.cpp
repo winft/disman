@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <Wrapland/Client/output_configuration_v1.h>
 #include <Wrapland/Client/output_device_v1.h>
 
+#include <cassert>
+
 using namespace Disman;
 namespace Wl = Wrapland::Client;
 
@@ -61,7 +63,7 @@ bool KwinftOutput::enabled() const
 
 QByteArray KwinftOutput::edid() const
 {
-    return m_device->edid();
+    return QByteArray();
 }
 
 QRectF KwinftOutput::geometry() const
@@ -92,9 +94,9 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
     // Initialize primary output
     output->setEnabled(m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled);
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
-    output->set_name(name().toStdString());
-    output->set_description(name().toStdString());
-    output->set_hash(name().toStdString());
+    output->set_name(m_device->name().toStdString());
+    output->set_description(m_device->description().toStdString());
+    output->set_hash(hash().toStdString());
     output->setSizeMm(m_device->physicalSize());
     output->setPosition(m_device->geometry().topLeft());
     output->setRotation(s_rotationMap[m_device->transform()]);
@@ -211,16 +213,17 @@ QString KwinftOutput::modeName(const Wl::OutputDeviceV1::Mode& m) const
         + QLatin1Char('@') + QString::number(qRound(m.refreshRate / 1000.0));
 }
 
-QString KwinftOutput::name() const
+QString KwinftOutput::hash() const
 {
-    Q_ASSERT(m_device);
-    return QStringLiteral("%1 %2").arg(m_device->manufacturer(), m_device->model());
+    assert(m_device);
+    return QStringLiteral("%1:%2:%3:%4")
+        .arg(m_device->make(), m_device->model(), m_device->serialNumber(), m_device->name());
 }
 
 QDebug operator<<(QDebug dbg, const KwinftOutput* output)
 {
     dbg << "KwinftOutput(Id:" << output->id() << ", Name:"
-        << QString(output->outputDevice()->manufacturer() + QLatin1Char(' ')
+        << QString(output->outputDevice()->make() + QLatin1Char(' ')
                    + output->outputDevice()->model())
         << ")";
     return dbg;
