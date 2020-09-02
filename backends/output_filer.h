@@ -48,7 +48,7 @@ public:
         return m_output;
     }
 
-    QString hash() const
+    std::string hash() const
     {
         return m_output->hash();
     }
@@ -90,7 +90,7 @@ public:
             return metadata;
         };
         QVariantMap outputInfo;
-        outputInfo[QStringLiteral("id")] = output->hash();
+        outputInfo[QStringLiteral("id")] = QString::fromStdString(output->hash());
         outputInfo[QStringLiteral("metadata")] = metadata();
         return outputInfo;
     }

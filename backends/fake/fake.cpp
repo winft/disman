@@ -184,6 +184,7 @@ void Fake::addOutput(int outputId, const QString& name)
     output->setId(outputId);
     output->set_name(name.toStdString());
     output->set_description(name.toStdString());
+    output->set_hash(name.toStdString());
     mConfig->addOutput(output);
     Q_EMIT configChanged(mConfig);
 }

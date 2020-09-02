@@ -31,6 +31,8 @@
 #include <QSize>
 #include <QStringList>
 
+#include <string>
+
 namespace Disman
 {
 
@@ -103,13 +105,19 @@ public:
 
     /**
      * Returns an identifying hex encoded hash for this output.
-     *
-     * The hash is calculated either via the edid hash or if no
-     * edid is available by the output name, which is hashed as well.
-     *
-     * @return identifying hash of this output
      */
-    QString hash() const;
+    std::string hash() const;
+
+    /**
+     * Set the output hash by providing a hashable input. The input will be hashed and converted
+     * to hex internally.
+     */
+    void set_hash(std::string const& input);
+
+    /**
+     * Set the output hash by setting a hash directly.
+     */
+    void set_hash_raw(std::string const& hash);
 
     Type type() const;
     void setType(Type type);

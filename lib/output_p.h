@@ -88,6 +88,7 @@ public:
     int id;
     std::string name;
     std::string description;
+    std::string hash;
     Type type;
     QString icon;
     ModeList modeList;

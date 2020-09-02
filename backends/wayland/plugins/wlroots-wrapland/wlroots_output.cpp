@@ -116,10 +116,9 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     // Initialize primary output
     output->setEnabled(m_head->enabled());
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
-
-    // TODO: use the name field here once we set the hash identifier explicitly.
-    output->set_name(m_head->description().toStdString());
+    output->set_name(m_head->name().toStdString());
     output->set_description(m_head->description().toStdString());
+    output->set_hash(m_head->description().toStdString());
     output->setSizeMm(m_head->physicalSize());
     output->setPosition(m_head->position());
     output->setRotation(s_rotationMap[m_head->transform()]);

@@ -47,9 +47,10 @@ static bool read_file(QFileInfo const& file_info, QVariantMap& info)
     return true;
 }
 
-static QFileInfo file_info(std::string const& dir_path, QString const& hash)
+static QFileInfo file_info(std::string const& dir_path, std::string const& hash)
 {
-    return QFileInfo(QDir(QString::fromStdString(dir_path)), hash % QStringLiteral(".json"));
+    return QFileInfo(QDir(QString::fromStdString(dir_path)),
+                     QString::fromStdString(hash + ".json"));
 }
 
 static bool write_file(QVariantMap const& map, QFileInfo const& file_info)

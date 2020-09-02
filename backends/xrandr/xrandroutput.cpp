@@ -94,6 +94,15 @@ std::string XRandROutput::description() const
     return ret + "(" + m_name.toStdString() + ")";
 }
 
+std::string XRandROutput::hash() const
+{
+    Disman::Edid edid(this->edid());
+    if (!edid.isValid()) {
+        return m_name.toStdString();
+    }
+    return edid.hash();
+}
+
 bool XRandROutput::isConnected() const
 {
     return m_connected == XCB_RANDR_CONNECTION_CONNECTED;
@@ -459,6 +468,7 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
     dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
     dismanOutput->set_name(m_name.toStdString());
     dismanOutput->set_description(description());
+    dismanOutput->set_hash(this->hash());
     dismanOutput->setIcon(m_icon);
 
     // Currently we do not set the edid since it messes with our control files.

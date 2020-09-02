@@ -51,6 +51,7 @@ Output::Private::Private(const Private& other)
     : id(other.id)
     , name(other.name)
     , description(other.description)
+    , hash(other.hash)
     , type(other.type)
     , icon(other.icon)
     , replicationSource(other.replicationSource)
@@ -171,13 +172,20 @@ void Output::set_description(std::string const& description)
     d->description = description;
 }
 
-QString Output::hash() const
+std::string Output::hash() const
 {
-    if (edid() && edid()->isValid()) {
-        return QString::fromStdString(edid()->hash());
-    }
-    auto const hash = QCryptographicHash::hash(name().c_str(), QCryptographicHash::Md5);
-    return QString::fromLatin1(hash.toHex());
+    return d->hash;
+}
+
+void Output::set_hash(std::string const& input)
+{
+    auto const hash = QCryptographicHash::hash(input.c_str(), QCryptographicHash::Md5);
+    d->hash = QString::fromLatin1(hash.toHex()).toStdString();
+}
+
+void Output::set_hash_raw(std::string const& hash)
+{
+    d->hash = hash;
 }
 
 Output::Type Output::type() const
@@ -506,6 +514,7 @@ void Output::apply(const OutputPtr& other)
 
     set_name(other->d->name);
     set_description(other->d->description);
+    d->hash = other->d->hash;
     setType(other->d->type);
     setIcon(other->d->icon);
     setPosition(other->geometry().topLeft());
@@ -598,7 +607,7 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
            << " | physical size[mm]: " << output->sizeMm().width() << "x"
            << output->sizeMm().height() << " | mode: " << stream_mode(output->auto_mode())
            << " | geometry: " << stream_rect(output->geometry()) << " | scale: " << output->scale()
-           << " | hash: " << output->hash().toStdString() << "}";
+           << " | hash: " << output->hash() << "}";
 
         dbg << QString::fromStdString(ss.str());
     } else {

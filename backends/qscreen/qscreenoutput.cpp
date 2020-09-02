@@ -73,7 +73,11 @@ OutputPtr QScreenOutput::toDismanOutput() const
     OutputPtr output(new Output);
     output->setId(m_id);
     output->set_name(m_qscreen->name().toStdString());
-    output->set_description(description());
+
+    auto const descr = description();
+    output->set_description(descr);
+    output->set_hash(descr);
+
     updateDismanOutput(output);
     return output;
 }
