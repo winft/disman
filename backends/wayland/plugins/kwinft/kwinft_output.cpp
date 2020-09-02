@@ -17,7 +17,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "kwinft_output.h"
 
-#include <edid.h>
 #include <mode.h>
 
 #include "kwinft_logging.h"

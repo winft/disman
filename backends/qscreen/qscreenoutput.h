@@ -20,10 +20,6 @@
 
 #include "qscreenconfig.h"
 
-#include "config.h"
-#include "edid.h"
-#include "output.h"
-
 #include <QScreen>
 #include <string>
 

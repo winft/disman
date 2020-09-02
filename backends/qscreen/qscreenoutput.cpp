@@ -18,7 +18,8 @@
 #include "qscreenoutput.h"
 #include "qscreenbackend.h"
 
-#include <mode.h>
+#include "mode.h"
+#include "output.h"
 
 #include <QGuiApplication>
 #include <QScreen>

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "wlroots_interface.h"
 #include "wlroots_logging.h"
 
-#include <edid.h>
 #include <mode.h>
 
 #include <Wrapland/Client/wlr_output_configuration_v1.h>

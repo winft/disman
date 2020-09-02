@@ -23,7 +23,6 @@
 #include "../filer_controller.h"
 
 #include "config.h"
-#include "edid.h"
 #include <output.h>
 
 #include <stdlib.h>
