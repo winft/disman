@@ -23,7 +23,6 @@
 #include "backendmanager_p.h"
 #include "config.h"
 #include "configmonitor.h"
-#include "edid.h"
 #include "getconfigoperation.h"
 #include "mode.h"
 #include "output.h"
@@ -59,7 +58,6 @@ private Q_SLOTS:
     void verifyFeatures();
     void simpleWrite();
     void addAndRemoveOutput();
-    void testEdid();
 
 private:
     ConfigPtr m_config;
@@ -158,7 +156,6 @@ void testWaylandBackend::verifyOutputs()
         QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));
         QVERIFY(output->geometry() != QRectF());
         QVERIFY(output->sizeMm() != QSize());
-        QVERIFY(output->edid() != nullptr);
         QVERIFY(output->preferredModes().size() == 1);
         QCOMPARE(output->rotation(), Output::None);
         QVERIFY(!ids.contains(output->id()));
@@ -259,44 +256,6 @@ void testWaylandBackend::addAndRemoveOutput()
     op3->exec();
     newconfig = op3->config();
     QCOMPARE(newconfig->outputs().count(), 2);
-}
-
-void testWaylandBackend::testEdid()
-{
-    m_server->showOutputs();
-
-    QByteArray data = QByteArray::fromBase64(
-        "AP///////"
-        "wAQrBbwTExLQQ4WAQOANCB46h7Frk80sSYOUFSlSwCBgKlA0QBxTwEBAQEBAQEBKDyAoHCwI0AwIDYABkQhAAAaAAA"
-        "A/wBGNTI1TTI0NUFLTEwKAAAA/ABERUxMIFUyNDEwCiAgAAAA/"
-        "QA4TB5REQAKICAgICAgAToCAynxUJAFBAMCBxYBHxITFCAVEQYjCQcHZwMMABAAOC2DAQAA4wUDAQI6gBhxOC1AWCx"
-        "FAAZEIQAAHgEdgBhxHBYgWCwlAAZEIQAAngEdAHJR0B4gbihVAAZEIQAAHowK0Iog4C0QED6WAAZEIQAAGAAAAAAAA"
-        "AAAAAAAAAAAPg==");
-
-    QScopedPointer<Edid> edid(new Edid(data));
-    QVERIFY(edid->isValid());
-
-    GetConfigOperation* op = new GetConfigOperation();
-    op->exec();
-    auto config = op->config();
-    QVERIFY(config->outputs().count() > 0);
-
-    auto o = config->outputs().last();
-    qCDebug(DISMAN_WAYLAND) << "Edid: " << o->edid()->isValid();
-    QVERIFY(o->edid()->isValid());
-    QCOMPARE(o->edid()->deviceId(), edid->deviceId());
-    QCOMPARE(o->edid()->name(), edid->name());
-    QCOMPARE(o->edid()->vendor(), edid->vendor());
-    QCOMPARE(o->edid()->eisaId(), edid->eisaId());
-    QCOMPARE(o->edid()->serial(), edid->serial());
-    QCOMPARE(o->edid()->hash(), edid->hash());
-    QCOMPARE(o->edid()->width(), edid->width());
-    QCOMPARE(o->edid()->height(), edid->height());
-    QCOMPARE(o->edid()->gamma(), edid->gamma());
-    QCOMPARE(o->edid()->red(), edid->red());
-    QCOMPARE(o->edid()->green(), edid->green());
-    QCOMPARE(o->edid()->blue(), edid->blue());
-    QCOMPARE(o->edid()->white(), edid->white());
 }
 
 void testWaylandBackend::verifyFeatures()

@@ -27,7 +27,6 @@
 #include "xrandr_logging.h"
 
 #include "config.h"
-#include "edid.h"
 #include "output.h"
 
 #include <QRect>
@@ -373,6 +372,7 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                << "\n"
                                << "Id: " << output->id() << "\n"
                                << "Connector name: " << output->name().c_str() << "\n"
+                               << "Description: " << output->description().c_str() << "\n"
                                << "Type: " << output->type();
 
         qCDebug(DISMAN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
@@ -393,27 +393,6 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
         for (const ModePtr& mode : modes) {
             qCDebug(DISMAN_XRANDR) << "\t" << mode->id() << "  " << mode->name() << " "
                                    << mode->size() << " " << mode->refreshRate();
-        }
-
-        Edid* edid = output->edid();
-        qCDebug(DISMAN_XRANDR) << "EDID Info: ";
-        if (edid && edid->isValid()) {
-            qCDebug(DISMAN_XRANDR)
-                << "\tDevice ID: " << QString::fromStdString(edid->deviceId()) << "\n"
-                << "\tName: " << QString::fromStdString(edid->name()) << "\n"
-                << "\tVendor: " << QString::fromStdString(edid->vendor()) << "\n"
-                << "\tSerial: " << QString::fromStdString(edid->serial()) << "\n"
-                << "\tEISA ID: " << QString::fromStdString(edid->eisaId()) << "\n"
-                << "\tHash: " << QString::fromStdString(edid->hash()) << "\n"
-                << "\tWidth: " << edid->width() << "\n"
-                << "\tHeight: " << edid->height() << "\n"
-                << "\tGamma: " << edid->gamma() << "\n"
-                << "\tRed: " << edid->red() << "\n"
-                << "\tGreen: " << edid->green() << "\n"
-                << "\tBlue: " << edid->blue() << "\n"
-                << "\tWhite: " << edid->white();
-        } else {
-            qCDebug(DISMAN_XRANDR) << "\tUnavailable";
         }
     }
 }

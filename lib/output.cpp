@@ -22,7 +22,6 @@
 #include "abstractbackend.h"
 #include "backendmanager_p.h"
 #include "disman_debug.h"
-#include "edid.h"
 #include "mode.h"
 
 #include <QCryptographicHash>
@@ -43,7 +42,6 @@ Output::Private::Private()
     , scale(1.0)
     , enabled(false)
     , primary(false)
-    , edid(nullptr)
 {
 }
 
@@ -74,9 +72,6 @@ Output::Private::Private(const Private& other)
 {
     Q_FOREACH (const ModePtr& otherMode, other.modeList) {
         modeList.insert(otherMode->id(), otherMode->clone());
-    }
-    if (other.edid) {
-        edid.reset(new Edid(*other.edid));
     }
 }
 
@@ -416,16 +411,6 @@ void Output::setReplicationSource(int source)
     d->enforced_geometry = QRectF();
 }
 
-void Output::setEdid(const QByteArray& rawData)
-{
-    d->edid.reset(new Edid(rawData));
-}
-
-Edid* Output::edid() const
-{
-    return d->edid.data();
-}
-
 QSize Output::sizeMm() const
 {
     return d->sizeMm;
@@ -535,11 +520,6 @@ void Output::apply(const OutputPtr& other)
         modes.insert(otherMode->id(), otherMode->clone());
     }
     setModes(modes);
-
-    // Non-notifyable changes
-    if (other->d->edid) {
-        d->edid.reset(new Edid(*other->d->edid));
-    }
 
     set_resolution(other->d->resolution);
     set_refresh_rate(other->d->refresh_rate);

@@ -33,7 +33,7 @@ class DISMAN_EXPORT GetConfigOperation : public Disman::ConfigOperation
     Q_OBJECT
 
 public:
-    explicit GetConfigOperation(Options options = NoOptions, QObject* parent = nullptr);
+    explicit GetConfigOperation(QObject* parent = nullptr);
     ~GetConfigOperation() override;
 
     Disman::ConfigPtr config() const override;

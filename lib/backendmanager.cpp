@@ -360,12 +360,10 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher* watcher)
     mServiceWatcher.addWatchedService(mBackendService);
 
     // Immediatelly request config
-    connect(new GetConfigOperation(GetConfigOperation::NoEDID),
-            &GetConfigOperation::finished,
-            [&](ConfigOperation* op) {
-                mConfig = qobject_cast<GetConfigOperation*>(op)->config();
-                emitBackendReady();
-            });
+    connect(new GetConfigOperation, &GetConfigOperation::finished, [&](ConfigOperation* op) {
+        mConfig = qobject_cast<GetConfigOperation*>(op)->config();
+        emitBackendReady();
+    });
     // And listen for its change.
     connect(mInterface,
             &org::kwinft::disman::backend::configChanged,

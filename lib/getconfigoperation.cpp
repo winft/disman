@@ -35,20 +35,15 @@ class GetConfigOperationPrivate : public ConfigOperationPrivate
     Q_OBJECT
 
 public:
-    GetConfigOperationPrivate(GetConfigOperation::Options options, GetConfigOperation* qq);
+    GetConfigOperationPrivate(GetConfigOperation* qq);
 
     void backendReady(org::kwinft::disman::backend* backend) override;
     void onConfigReceived(QDBusPendingCallWatcher* watcher);
-    void onEDIDReceived(QDBusPendingCallWatcher* watcher);
 
 public:
-    GetConfigOperation::Options options;
     ConfigPtr config;
-    // For in-process
-    void loadEdid(Disman::AbstractBackend* backend);
 
     // For out-of-process
-    int pendingEDIDs;
     QPointer<org::kwinft::disman::backend> mBackend;
 
 private:
@@ -57,10 +52,8 @@ private:
 
 }
 
-GetConfigOperationPrivate::GetConfigOperationPrivate(GetConfigOperation::Options options,
-                                                     GetConfigOperation* qq)
+GetConfigOperationPrivate::GetConfigOperationPrivate(GetConfigOperation* qq)
     : ConfigOperationPrivate(qq)
-    , options(options)
 {
 }
 
@@ -101,57 +94,13 @@ void GetConfigOperationPrivate::onConfigReceived(QDBusPendingCallWatcher* watche
     config = ConfigSerializer::deserializeConfig(reply.value());
     if (!config) {
         q->setError(tr("Failed to deserialize backend response"));
-        q->emitResult();
-        return;
     }
 
-    if (options & GetConfigOperation::NoEDID || config->outputs().isEmpty()) {
-        q->emitResult();
-        return;
-    }
-
-    pendingEDIDs = 0;
-    if (!mBackend) {
-        q->setError(tr("Backend invalidated"));
-        q->emitResult();
-        return;
-    }
-    Q_FOREACH (const OutputPtr& output, config->outputs()) {
-        QDBusPendingCallWatcher* watcher
-            = new QDBusPendingCallWatcher(mBackend->getEdid(output->id()), this);
-        watcher->setProperty("outputId", output->id());
-        connect(watcher,
-                &QDBusPendingCallWatcher::finished,
-                this,
-                &GetConfigOperationPrivate::onEDIDReceived);
-        ++pendingEDIDs;
-    }
+    q->emitResult();
 }
 
-void GetConfigOperationPrivate::onEDIDReceived(QDBusPendingCallWatcher* watcher)
-{
-    Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
-    Q_Q(GetConfigOperation);
-
-    QDBusPendingReply<QByteArray> reply = *watcher;
-    watcher->deleteLater();
-    if (reply.isError()) {
-        q->setError(reply.error().message());
-        q->emitResult();
-        return;
-    }
-
-    const QByteArray edidData = reply.value();
-    const int outputId = watcher->property("outputId").toInt();
-
-    config->output(outputId)->setEdid(edidData);
-    if (--pendingEDIDs == 0) {
-        q->emitResult();
-    }
-}
-
-GetConfigOperation::GetConfigOperation(Options options, QObject* parent)
-    : ConfigOperation(new GetConfigOperationPrivate(options, this), parent)
+GetConfigOperation::GetConfigOperation(QObject* parent)
+    : ConfigOperation(new GetConfigOperationPrivate(this), parent)
 {
 }
 
@@ -174,27 +123,9 @@ void GetConfigOperation::start()
             return; // loadBackend() already set error and called emitResult() for us
         }
         d->config = backend->config()->clone();
-        d->loadEdid(backend);
         emitResult();
     } else {
         d->requestBackend();
-    }
-}
-
-void GetConfigOperationPrivate::loadEdid(Disman::AbstractBackend* backend)
-{
-    Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
-    if (options & Disman::ConfigOperation::NoEDID) {
-        return;
-    }
-    if (!config) {
-        return;
-    }
-    Q_FOREACH (auto output, config->outputs()) {
-        if (output->edid() == nullptr) {
-            const QByteArray edidData = backend->edid(output->id());
-            output->setEdid(edidData);
-        }
     }
 }
 

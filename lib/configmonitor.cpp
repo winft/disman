@@ -41,14 +41,11 @@ public:
     void configDestroyed(QObject* removedConfig);
     void getConfigFinished(ConfigOperation* op);
     void updateConfigs(const Disman::ConfigPtr& newConfig);
-    void edidReady(QDBusPendingCallWatcher* watcher);
 
     QList<QWeakPointer<Disman::Config>> watchedConfigs;
 
     QPointer<org::kwinft::disman::backend> mBackend;
     bool mFirstBackend;
-
-    QMap<Disman::ConfigPtr, QList<int>> mPendingEDIDRequests;
 
 private:
     ConfigMonitor* q;
@@ -113,63 +110,13 @@ void ConfigMonitor::Private::getConfigFinished(ConfigOperation* op)
 void ConfigMonitor::Private::backendConfigChanged(const QVariantMap& configMap)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
+
     ConfigPtr newConfig = ConfigSerializer::deserializeConfig(configMap);
     if (!newConfig) {
         qCWarning(DISMAN) << "Failed to deserialize config from DBus change notification";
         return;
     }
-
-    for (auto const& output : newConfig->outputs()) {
-        if (!output->edid()) {
-            QDBusPendingReply<QByteArray> reply = mBackend->getEdid(output->id());
-            mPendingEDIDRequests[newConfig].append(output->id());
-            QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(reply);
-            watcher->setProperty("outputId", output->id());
-            watcher->setProperty("config", QVariant::fromValue(newConfig));
-            connect(watcher,
-                    &QDBusPendingCallWatcher::finished,
-                    this,
-                    &ConfigMonitor::Private::edidReady);
-        }
-    }
-
-    if (mPendingEDIDRequests.contains(newConfig)) {
-        qCDebug(DISMAN) << "Requesting missing EDID for outputs" << mPendingEDIDRequests[newConfig];
-    } else {
-        updateConfigs(newConfig);
-    }
-}
-
-void ConfigMonitor::Private::edidReady(QDBusPendingCallWatcher* watcher)
-{
-    Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
-
-    const int outputId = watcher->property("outputId").toInt();
-    qCDebug(DISMAN) << "Received EDID for output" << outputId;
-
-    const ConfigPtr config = watcher->property("config").value<Disman::ConfigPtr>();
-    Q_ASSERT(mPendingEDIDRequests.contains(config));
-    Q_ASSERT(mPendingEDIDRequests[config].contains(outputId));
-
-    watcher->deleteLater();
-
-    mPendingEDIDRequests[config].removeOne(outputId);
-
-    const QDBusPendingReply<QByteArray> reply = *watcher;
-    if (reply.isError()) {
-        qCWarning(DISMAN) << "Error when retrieving EDID: " << reply.error().message();
-    } else {
-        const QByteArray edid = reply.argumentAt<0>();
-        if (!edid.isEmpty()) {
-            OutputPtr output = config->output(outputId);
-            output->setEdid(edid);
-        }
-    }
-
-    if (mPendingEDIDRequests[config].isEmpty()) {
-        mPendingEDIDRequests.remove(config);
-        updateConfigs(config);
-    }
+    updateConfigs(newConfig);
 }
 
 void ConfigMonitor::Private::updateConfigs(const Disman::ConfigPtr& newConfig)
