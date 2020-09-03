@@ -110,12 +110,13 @@ void Doctor::showBackends() const
     auto preferred = BackendManager::instance()->preferred_backend();
     cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << Qt::endl;
     cout << "Available Disman backends:" << Qt::endl;
-    Q_FOREACH (const QFileInfo f, backends) {
+    for (auto const file_info : backends) {
         auto c = blue;
-        if (preferred == f) {
+        if (preferred == file_info) {
             c = green;
         }
-        cout << "  * " << c << f.fileName() << cr << ": " << f.absoluteFilePath() << Qt::endl;
+        cout << "  * " << c << file_info.fileName() << cr << ": " << file_info.absoluteFilePath()
+             << Qt::endl;
     }
     cout << Qt::endl;
 }
@@ -127,14 +128,13 @@ void Doctor::setOptionList(const QStringList& positionalArgs)
 
 void Doctor::parsePositionalArgs()
 {
-    // qCDebug(DISMAN_CTL) << "POSARGS" << m_positionalArgs;
-    Q_FOREACH (const QString& op, m_positionalArgs) {
+    for (auto const& op : m_positionalArgs) {
         auto ops = op.split(QLatin1Char('.'));
         if (ops.count() > 2) {
             bool ok;
             int output_id = -1;
             if (ops[0] == QLatin1String("output")) {
-                Q_FOREACH (const auto& output, m_config->outputs()) {
+                for (auto const& output : m_config->outputs()) {
                     if (output->name() == ops[1].toStdString()) {
                         output_id = output->id();
                     }
@@ -280,7 +280,7 @@ void Doctor::showOutputs() const
     typeString[Disman::Output::TVC4] = QStringLiteral("TVC4");
     typeString[Disman::Output::DisplayPort] = QStringLiteral("DisplayPort");
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& output : m_config->outputs()) {
         cout << green << "Output: " << cr << output->id() << " " << output->name().c_str();
         cout << " "
              << (output->isEnabled() ? green + QLatin1String("enabled")
@@ -289,7 +289,7 @@ void Doctor::showOutputs() const
         auto _type = typeString[output->type()];
         cout << " " << yellow << (_type.isEmpty() ? QStringLiteral("UnmappedOutputType") : _type);
         cout << blue << " Modes: " << cr;
-        Q_FOREACH (auto mode, output->modes()) {
+        for (auto const& mode : output->modes()) {
             auto name = QStringLiteral("%1x%2@%3")
                             .arg(QString::number(mode->size().width()),
                                  QString::number(mode->size().height()),
@@ -327,7 +327,7 @@ bool Doctor::setEnabled(int id, bool enabled = true)
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& output : m_config->outputs()) {
         if (output->id() == id) {
             cout << (enabled ? "Enabling " : "Disabling ") << "output " << id << Qt::endl;
             output->setEnabled(enabled);
@@ -347,7 +347,7 @@ bool Doctor::setPosition(int id, const QPoint& pos)
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& output : m_config->outputs()) {
         if (output->id() == id) {
             qCDebug(DISMAN_CTL) << "Set output position" << pos;
             output->setPosition(pos);
@@ -366,10 +366,10 @@ bool Doctor::setMode(int id, const QString& mode_id)
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
             // find mode
-            Q_FOREACH (const Disman::ModePtr mode, output->modes()) {
+            for (auto const& mode : output->modes()) {
                 auto name = QStringLiteral("%1x%2@%3")
                                 .arg(QString::number(mode->size().width()),
                                      QString::number(mode->size().height()),
@@ -394,7 +394,7 @@ bool Doctor::setScale(int id, qreal scale)
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
             output->setScale(scale);
             m_changed = true;
@@ -412,7 +412,7 @@ bool Doctor::setRotation(int id, Disman::Output::Rotation rot)
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
             output->setRotation(rot);
             m_changed = true;
