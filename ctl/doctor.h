@@ -7,11 +7,12 @@
 #ifndef DISMAN_DOCTOR_H
 #define DISMAN_DOCTOR_H
 
-#include "config.h"
 #include "output.h"
+#include "types.h"
 
-#include <QCommandLineParser>
 #include <QObject>
+
+class QCommandLineParser;
 
 namespace Disman
 {

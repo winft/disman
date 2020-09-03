@@ -7,24 +7,15 @@
 #include "doctor.h"
 
 #include <QCommandLineParser>
-#include <QCoreApplication>
-#include <QDateTime>
-#include <QFile>
-#include <QGuiApplication>
-#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QLoggingCategory>
-#include <QRect>
-#include <QStandardPaths>
+#include <QRectF>
 
 #include "backendmanager_p.h"
 #include "config.h"
 #include "configoperation.h"
-#include "edid.h"
 #include "getconfigoperation.h"
 #include "log.h"
-#include "output.h"
 #include "setconfigoperation.h"
 
 Q_LOGGING_CATEGORY(DISMAN_CTL, "disman.ctl")
