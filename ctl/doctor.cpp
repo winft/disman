@@ -48,21 +48,17 @@ extern QJsonObject serializeConfig(const Disman::ConfigPtr& config);
 namespace Disman::Ctl
 {
 
-Doctor::Doctor(QObject* parent)
+Doctor::Doctor(QCommandLineParser* parser, QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
+    , m_parser(parser)
     , m_changed(false)
 {
-}
-
-void Doctor::start(QCommandLineParser* parser)
-{
-    m_parser = parser;
     if (m_parser->isSet(QStringLiteral("info"))) {
         showBackends();
     }
     if (parser->isSet(QStringLiteral("json")) || parser->isSet(QStringLiteral("outputs"))
-        || !m_positionalArgs.isEmpty()) {
+        || !m_parser->positionalArguments().isEmpty()) {
 
         Disman::GetConfigOperation* op = new Disman::GetConfigOperation();
         connect(op,
@@ -121,14 +117,9 @@ void Doctor::showBackends() const
     cout << Qt::endl;
 }
 
-void Doctor::setOptionList(const QStringList& positionalArgs)
-{
-    m_positionalArgs = positionalArgs;
-}
-
 void Doctor::parsePositionalArgs()
 {
-    for (auto const& op : m_positionalArgs) {
+    for (auto const& op : m_parser->positionalArguments()) {
         auto ops = op.split(QLatin1Char('.'));
         if (ops.count() > 2) {
             bool ok;

@@ -25,10 +25,8 @@ class Doctor : public QObject
     Q_OBJECT
 
 public:
-    explicit Doctor(QObject* parent = nullptr);
+    explicit Doctor(QCommandLineParser* parser, QObject* parent = nullptr);
 
-    void setOptionList(const QStringList& positionalArgs);
-    void start(QCommandLineParser* m_parser);
     void configReceived(Disman::ConfigOperation* op);
 
     void showBackends() const;

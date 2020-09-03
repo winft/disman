@@ -73,8 +73,6 @@ int main(int argc, char** argv)
 
     QGuiApplication app(argc, argv);
 
-    Disman::Ctl::Doctor server;
-
     QCommandLineOption info
         = QCommandLineOption(QStringList() << QStringLiteral("i") << QStringLiteral("info"),
                              QStringLiteral("Show runtime information: backends, logging, etc."));
@@ -102,10 +100,7 @@ int main(int argc, char** argv)
     parser.addOption(log);
     parser.process(app);
 
-    if (!parser.positionalArguments().isEmpty()) {
-        server.setOptionList(parser.positionalArguments());
-    }
+    Disman::Ctl::Doctor server(&parser);
 
-    server.start(&parser);
     return app.exec();
 }
