@@ -117,7 +117,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->set_name(m_head->name().toStdString());
     output->set_description(m_head->description().toStdString());
-    output->set_hash(m_head->description().toStdString());
+    output->set_hash(hash().toStdString());
     output->setSizeMm(m_head->physicalSize());
     output->setPosition(m_head->position());
     output->setRotation(s_rotationMap[m_head->transform()]);
@@ -216,6 +216,16 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     }
 
     return changed;
+}
+
+QString WlrootsOutput::hash() const
+{
+    assert(m_head);
+    if (!m_head->model().isEmpty()) {
+        return QStringLiteral("%1:%2:%3:%4")
+            .arg(m_head->make(), m_head->model(), m_head->serialNumber(), m_head->name());
+    }
+    return m_head->description();
 }
 
 QDebug operator<<(QDebug dbg, const WlrootsOutput* output)
