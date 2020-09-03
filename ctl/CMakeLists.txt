@@ -1,4 +1,5 @@
 add_executable(dismanctl main.cpp doctor.cpp)
+target_compile_features(dismanctl PRIVATE cxx_std_17)
 
 target_link_libraries(dismanctl Qt5::DBus Disman::Disman)
 
