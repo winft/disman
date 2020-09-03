@@ -223,6 +223,11 @@ void Doctor::parsePositionalArgs()
 
 void Doctor::configReceived(Disman::ConfigOperation* op)
 {
+    if (op->hasError()) {
+        qCWarning(DISMAN_CTL) << "Received initial config has error.";
+        qApp->exit(1);
+    }
+
     m_config = op->config();
 
     if (m_parser->isSet(QStringLiteral("json"))) {
