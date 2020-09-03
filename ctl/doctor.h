@@ -26,7 +26,6 @@ class Doctor : public QObject
 
 public:
     explicit Doctor(QObject* parent = nullptr);
-    ~Doctor() override;
 
     void setOptionList(const QStringList& positionalArgs);
     void start(QCommandLineParser* m_parser);
@@ -35,18 +34,12 @@ public:
     void showBackends() const;
     void showOutputs() const;
     void showJson() const;
-    int outputCount() const;
 
     bool setEnabled(int id, bool enabled);
     bool setPosition(int id, const QPoint& pos);
     bool setMode(int id, const QString& mode_id);
     bool setScale(int id, qreal scale);
     bool setRotation(int id, Disman::Output::Rotation rot);
-
-Q_SIGNALS:
-    void outputsChanged();
-    void started();
-    void configChanged();
 
 private:
     void applyConfig();

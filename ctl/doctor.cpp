@@ -55,10 +55,6 @@ Doctor::Doctor(QObject* parent)
 {
 }
 
-Doctor::~Doctor()
-{
-}
-
 void Doctor::start(QCommandLineParser* parser)
 {
     m_parser = parser;
@@ -258,15 +254,6 @@ void Doctor::configReceived(Disman::ConfigOperation* op)
         applyConfig();
         m_changed = false;
     }
-}
-
-int Doctor::outputCount() const
-{
-    if (!m_config) {
-        qCWarning(DISMAN_CTL) << "Invalid config.";
-        return 0;
-    }
-    return m_config->outputs().count();
 }
 
 void Doctor::showOutputs() const
