@@ -45,6 +45,10 @@ Doctor::Doctor(QCommandLineParser* parser, QObject* parent)
     , m_parser(parser)
     , m_changed(false)
 {
+    if (m_parser->optionNames().isEmpty() && m_parser->positionalArguments().isEmpty()) {
+        // When dismanctl was launched without any parameter show help and quit.
+        m_parser->showHelp(1);
+    }
     if (m_parser->isSet(QStringLiteral("info"))) {
         showBackends();
     }
