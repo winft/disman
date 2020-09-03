@@ -41,13 +41,10 @@ public:
     void start(QCommandLineParser* m_parser);
     void configReceived(Disman::ConfigOperation* op);
 
-    void showDpms();
-
     void showBackends() const;
     void showOutputs() const;
     void showJson() const;
     int outputCount() const;
-    void setDpms(const QString& dpmsArg);
 
     bool setEnabled(int id, bool enabled);
     bool setPosition(int id, const QPoint& pos);
@@ -68,7 +65,6 @@ private:
     QCommandLineParser* m_parser;
     bool m_changed;
     QStringList m_positionalArgs;
-    DpmsClient* m_dpmsClient;
 };
 
 }

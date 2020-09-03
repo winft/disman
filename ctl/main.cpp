@@ -97,10 +97,6 @@ int main(int argc, char** argv)
     QCommandLineOption json
         = QCommandLineOption(QStringList() << QStringLiteral("j") << QStringLiteral("json"),
                              QStringLiteral("Show configuration in JSON format"));
-    QCommandLineOption dpms
-        = QCommandLineOption(QStringList() << QStringLiteral("d") << QStringLiteral("dpms"),
-                             QStringLiteral("Display power management (wayland only)"),
-                             QStringLiteral("off"));
     QCommandLineOption log
         = QCommandLineOption(QStringList() << QStringLiteral("l") << QStringLiteral("log"),
                              QStringLiteral("Write a comment to the log file"),
@@ -116,7 +112,6 @@ int main(int argc, char** argv)
     parser.addOption(info);
     parser.addOption(json);
     parser.addOption(outputs);
-    parser.addOption(dpms);
     parser.addOption(log);
     parser.process(app);
 

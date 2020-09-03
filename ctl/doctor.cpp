@@ -16,7 +16,6 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 #include "doctor.h"
-#include "dpmsclient.h"
 
 #include <QCommandLineParser>
 #include <QCoreApplication>
@@ -66,7 +65,6 @@ Doctor::Doctor(QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
     , m_changed(false)
-    , m_dpmsClient(nullptr)
 {
 }
 
@@ -90,24 +88,6 @@ void Doctor::start(QCommandLineParser* parser)
                 [this](Disman::ConfigOperation* op) { configReceived(op); });
         return;
     }
-    if (m_parser->isSet(QStringLiteral("dpms"))) {
-        if (!QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
-            cerr << "DPMS is only supported on Wayland." << Qt::endl;
-            // We need to kick the event loop, otherwise .quit() hangs
-            QTimer::singleShot(0, qApp->quit);
-            return;
-        }
-        m_dpmsClient = new DpmsClient(this);
-        connect(m_dpmsClient, &DpmsClient::finished, qApp, &QCoreApplication::quit);
-
-        const QString dpmsArg = m_parser->value(QStringLiteral("dpms"));
-        if (dpmsArg == QLatin1String("show")) {
-            showDpms();
-        } else {
-            setDpms(dpmsArg);
-        }
-        return;
-    }
 
     if (m_parser->isSet(QStringLiteral("log"))) {
 
@@ -121,32 +101,6 @@ void Doctor::start(QCommandLineParser* parser)
     }
     // We need to kick the event loop, otherwise .quit() hangs
     QTimer::singleShot(0, qApp->quit);
-}
-
-void Disman::Doctor::setDpms(const QString& dpmsArg)
-{
-    qDebug() << "SetDpms: " << dpmsArg;
-    connect(m_dpmsClient, &DpmsClient::ready, this, [this, dpmsArg]() {
-        cout << "DPMS.ready()";
-        if (dpmsArg == QLatin1String("off")) {
-            m_dpmsClient->off();
-        } else if (dpmsArg == QLatin1String("on")) {
-            m_dpmsClient->on();
-        } else {
-            cout << "--dpms argument not understood (" << dpmsArg << ")";
-        }
-    });
-
-    m_dpmsClient->connect();
-}
-
-void Doctor::showDpms()
-{
-    m_dpmsClient = new DpmsClient(this);
-
-    connect(m_dpmsClient, &DpmsClient::ready, this, []() { cout << "DPMS.ready()"; });
-
-    m_dpmsClient->connect();
 }
 
 void Doctor::showBackends() const
