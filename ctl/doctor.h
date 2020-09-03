@@ -9,8 +9,10 @@
 
 #include "output.h"
 #include "types.h"
+#include "watcher.h"
 
 #include <QObject>
+#include <memory>
 
 class QCommandLineParser;
 
@@ -31,7 +33,7 @@ public:
     void configReceived(Disman::ConfigOperation* op);
 
     void showBackends() const;
-    void showOutputs() const;
+    static void showOutputs(Disman::ConfigPtr const& config);
     void showJson() const;
 
     bool setEnabled(int id, bool enabled);
@@ -44,7 +46,10 @@ private:
     void applyConfig();
     void parsePositionalArgs();
     int parseInt(const QString& str, bool& ok) const;
+
     Disman::ConfigPtr m_config;
+    std::unique_ptr<Watcher> m_watcher;
+
     QCommandLineParser* m_parser;
     bool m_changed;
     QStringList m_positionalArgs;

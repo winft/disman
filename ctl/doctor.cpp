@@ -5,6 +5,7 @@
     SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only
 */
 #include "doctor.h"
+#include "watcher.h"
 
 #include <QCommandLineParser>
 #include <QJsonDocument>
@@ -53,7 +54,7 @@ Doctor::Doctor(QCommandLineParser* parser, QObject* parent)
         showBackends();
     }
     if (parser->isSet(QStringLiteral("json")) || parser->isSet(QStringLiteral("outputs"))
-        || !m_parser->positionalArguments().isEmpty()) {
+        || parser->isSet(QStringLiteral("watch")) || !m_parser->positionalArguments().isEmpty()) {
 
         Disman::GetConfigOperation* op = new Disman::GetConfigOperation();
         connect(op,
@@ -228,6 +229,11 @@ void Doctor::configReceived(Disman::ConfigOperation* op)
         qApp->exit(1);
     }
 
+    if (m_parser->isSet(QStringLiteral("watch"))) {
+        m_watcher.reset(new Watcher(op->config()));
+        return;
+    }
+
     m_config = op->config();
 
     if (m_parser->isSet(QStringLiteral("json"))) {
@@ -235,7 +241,7 @@ void Doctor::configReceived(Disman::ConfigOperation* op)
         qApp->quit();
     }
     if (m_parser->isSet(QStringLiteral("outputs"))) {
-        showOutputs();
+        showOutputs(m_config);
         qApp->quit();
     }
 
@@ -247,9 +253,9 @@ void Doctor::configReceived(Disman::ConfigOperation* op)
     }
 }
 
-void Doctor::showOutputs() const
+void Doctor::showOutputs(const Disman::ConfigPtr& config)
 {
-    if (!m_config) {
+    if (!config) {
         qCWarning(DISMAN_CTL) << "Invalid config.";
         return;
     }
@@ -271,7 +277,7 @@ void Doctor::showOutputs() const
     typeString[Disman::Output::TVC4] = QStringLiteral("TVC4");
     typeString[Disman::Output::DisplayPort] = QStringLiteral("DisplayPort");
 
-    for (auto const& output : m_config->outputs()) {
+    for (auto const& output : config->outputs()) {
         cout << green << "Output: " << cr << output->id() << " " << output->name().c_str();
         cout << " "
              << (output->isEnabled() ? green + QLatin1String("enabled")

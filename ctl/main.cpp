@@ -86,6 +86,9 @@ int main(int argc, char** argv)
         = QCommandLineOption(QStringList() << QStringLiteral("l") << QStringLiteral("log"),
                              QStringLiteral("Write a comment to the log file"),
                              QStringLiteral("comment"));
+    QCommandLineOption watch
+        = QCommandLineOption(QStringList() << QStringLiteral("w") << QStringLiteral("watch"),
+                             QStringLiteral("Watch for changes and print them to stdout."));
 
     QCommandLineParser parser;
     parser.setApplicationDescription(desc);
@@ -98,6 +101,7 @@ int main(int argc, char** argv)
     parser.addOption(json);
     parser.addOption(outputs);
     parser.addOption(log);
+    parser.addOption(watch);
     parser.process(app);
 
     Disman::Ctl::Doctor server(&parser);
