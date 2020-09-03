@@ -39,16 +39,14 @@ const static QString blue = QStringLiteral("\033[01;34m");
 const static QString bold = QStringLiteral("\033[01;39m");
 const static QString cr = QStringLiteral("\033[0;0m");
 
-namespace Disman
-{
-namespace ConfigSerializer
+namespace Disman::ConfigSerializer
 {
 // Exported private symbol in configserializer_p.h in Disman
 extern QJsonObject serializeConfig(const Disman::ConfigPtr& config);
 }
-}
 
-using namespace Disman;
+namespace Disman::Ctl
+{
 
 Doctor::Doctor(QObject* parent)
     : QObject(parent)
@@ -447,4 +445,6 @@ void Doctor::applyConfig()
     setop->exec();
     qCDebug(DISMAN_CTL) << "setop exec returned" << m_config;
     qApp->exit(0);
+}
+
 }

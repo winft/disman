@@ -8,15 +8,17 @@
 #define DISMAN_DOCTOR_H
 
 #include "config.h"
+#include "output.h"
+
 #include <QCommandLineParser>
 #include <QObject>
-
-#include "output.h"
 
 namespace Disman
 {
 class ConfigOperation;
-class DpmsClient;
+
+namespace Ctl
+{
 
 class Doctor : public QObject
 {
@@ -56,6 +58,7 @@ private:
     QStringList m_positionalArgs;
 };
 
+}
 }
 
 #endif

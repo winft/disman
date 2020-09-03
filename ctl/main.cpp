@@ -9,8 +9,6 @@
 #include <QCommandLineParser>
 #include <QGuiApplication>
 
-#include <QDebug>
-
 /** Usage example:
  * dismanctl --set output.0.disable output.1.mode.1 output.1.enable"
  *
@@ -75,7 +73,7 @@ int main(int argc, char** argv)
 
     QGuiApplication app(argc, argv);
 
-    Disman::Doctor server;
+    Disman::Ctl::Doctor server;
 
     QCommandLineOption info
         = QCommandLineOption(QStringList() << QStringLiteral("i") << QStringLiteral("info"),
