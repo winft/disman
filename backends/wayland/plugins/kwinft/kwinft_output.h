@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <Wrapland/Client/registry.h>
 
 #include <QRectF>
+#include <string>
 
 namespace Wrapland
 {
@@ -46,7 +47,6 @@ public:
 
     void updateDismanOutput(Disman::OutputPtr& output) override;
 
-    QString name() const;
     QByteArray edid() const override;
     bool enabled() const override;
     QRectF geometry() const override;
@@ -59,6 +59,7 @@ public:
 
 private:
     void showOutput();
+    QString hash() const;
     QString modeName(const Wrapland::Client::OutputDeviceV1::Mode& m) const;
 
     Wrapland::Client::OutputDeviceV1* m_device;

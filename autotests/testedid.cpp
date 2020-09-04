@@ -82,7 +82,7 @@ void TestEdid::testEdidParser_data()
         "wAN8iw0AAAAABwVAQOAHRB4CoPVlFdSjCccUFQAAAABAQEBAQEBAQEBAQEBAQEBEhtWWlAAGTAwIDYAJaQQAAAYEht"
         "WWlAAGTAwIDYAJaQQAAAYAAAA/gBBVU8KICAgICAgICAgAAAA/gBCMTMzWFcwMyBWNCAKAIc=")
                          // device-id
-                         << std::string("xrandr-unknown")
+                         << std::string("xrandr-Corollary Inc")
                          // name
                          << std::string("")
                          // pnp-id, vendor
@@ -108,11 +108,23 @@ void TestEdid::testEdidParser_data()
         "A/wBGNTI1TTI0NUFLTEwKAAAA/ABERUxMIFUyNDEwCiAgAAAA/"
         "QA4TB5REQAKICAgICAgAToCAynxUJAFBAMCBxYBHxITFCAVEQYjCQcHZwMMABAAOC2DAQAA4wUDAQI6gBhxOC1AWCx"
         "FAAZEIQAAHgEdgBhxHBYgWCwlAAZEIQAAngEdAHJR0B4gbihVAAZEIQAAHowK0Iog4C0QED6WAAZEIQAAGAAAAAAAA"
-        "AAAAAAAAAAAPg==") << std::string("xrandr-DELL U2410-F525M245AKLL")
-                          << std::string("DELL U2410") << std::string("DEL")
+        "AAAAAAAAAAAPg==")
+                          // device-id
+                          << std::string("xrandr-Dell Inc.-DELL U2410-F525M245AKLL")
+                          // name
+                          << std::string("DELL U2410")
+                          // pnp-id, vendor
+                          << std::string("DEL")
                           << QStringList({QStringLiteral("DEL"), QStringLiteral("Dell Inc.")})
-                          << std::string("F525M245AKLL") << std::string("")
-                          << std::string("be55eeb5fcc1e775f321c1ae3aa02ef0") << 52U << 32U << 2.2
+                          // serial, eisa-id
+                          << std::string("F525M245AKLL")
+                          << std::string("")
+                          // hash, width, height
+                          << std::string("be55eeb5fcc1e775f321c1ae3aa02ef0") << 52U
+                          << 32U
+                          // gamma
+                          << 2.2
+                          // colors: rgbw
                           << QQuaternion(1, QVector3D(0.679688, 0.308594, 0))
                           << QQuaternion(1, QVector3D(0.206055, 0.693359, 0))
                           << QQuaternion(1, QVector3D(0.151367, 0.0546875, 0))
@@ -122,7 +134,7 @@ void TestEdid::testEdidParser_data()
         "AP///////wBMLcMFMzJGRQkUAQMOMx14Ku6Ro1RMmSYPUFQjCACBAIFAgYCVAKlAswABAQEBAjqAGHE4LUBYLEUA/"
         "h8RAAAeAAAA/QA4PB5REQAKICAgICAgAAAA/ABTeW5jTWFzdGVyCiAgAAAA/wBIOU1aMzAyMTk2CiAgAC4=")
                              // device-id
-                             << std::string("xrandr-SyncMaster-H9MZ302196")
+                             << std::string("xrandr-Samsung Electric Company-SyncMaster-H9MZ302196")
                              // name
                              << std::string("SyncMaster")
                              // pnp-id, vendor
@@ -147,13 +159,23 @@ void TestEdid::testEdidParser_data()
         "AP///////"
         "wBNEEoUAAAAAB4ZAQSlHRF4Dt5Qo1RMmSYPUFQAAAABAQEBAQEBAQEBAQEBAQEBzZGAoMAINHAwIDUAJqUQAAAYpHS"
         "AoMAINHAwIDUAJqUQAAAYAAAA/gBSWE40OYFMUTEzM1oxAAAAAAACQQMoABIAAAsBCiAgAMw=")
-                           << std::string("xrandr-unknown")
-                           << std::string("") // unsure why, this screen reports no name
+                           // device-id
+                           << std::string("xrandr-Sharp Corporation")
+                           // name, unsure why, this screen reports no name
+                           << std::string("")
+                           // pnp-id, vendor
                            << std::string("SHP")
                            << QStringList(
                                   {QStringLiteral("SHP"), QStringLiteral("Sharp Corporation")})
-                           << std::string("") << std::string("RXN49-LQ133Z1")
-                           << std::string("3627c3534e4c82871967b57237bf5b83") << 29U << 17U << 2.2
+                           // serial, eisa-id
+                           << std::string("")
+                           << std::string("RXN49-LQ133Z1")
+                           // hash, width, height
+                           << std::string("3627c3534e4c82871967b57237bf5b83") << 29U
+                           << 17U
+                           // gamma
+                           << 2.2
+                           // colors: rgbw
                            << QQuaternion(1, QVector3D(0.639648, 0.328125, 0))
                            << QQuaternion(1, QVector3D(0.299805, 0.599609, 0))
                            << QQuaternion(1, QVector3D(0.149414, 0.0595703, 0))

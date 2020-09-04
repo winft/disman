@@ -19,6 +19,7 @@
 #include "xrandroutput.h"
 
 #include "config.h"
+#include "edid.h"
 #include "xrandr.h"
 #include "xrandrconfig.h"
 #include "xrandrmode.h"
@@ -72,6 +73,34 @@ void XRandROutput::disconnected()
 xcb_randr_output_t XRandROutput::id() const
 {
     return m_id;
+}
+
+std::string XRandROutput::description() const
+{
+    std::string ret;
+
+    Disman::Edid edid(this->edid());
+    if (edid.isValid()) {
+        if (auto vendor = edid.vendor(); vendor.size()) {
+            ret += vendor + " ";
+        }
+        if (auto name = edid.name(); name.size()) {
+            ret += name + " ";
+        }
+    }
+    if (!ret.size()) {
+        return m_name.toStdString();
+    }
+    return ret + "(" + m_name.toStdString() + ")";
+}
+
+std::string XRandROutput::hash() const
+{
+    Disman::Edid edid(this->edid());
+    if (!edid.isValid()) {
+        return m_name.toStdString();
+    }
+    return edid.hash();
 }
 
 bool XRandROutput::isConnected() const
@@ -437,7 +466,9 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
     dismanOutput->setId(m_id);
     dismanOutput->setType(m_type);
     dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
-    dismanOutput->setName(m_name);
+    dismanOutput->set_name(m_name.toStdString());
+    dismanOutput->set_description(description());
+    dismanOutput->set_hash(this->hash());
     dismanOutput->setIcon(m_icon);
 
     // Currently we do not set the edid since it messes with our control files.

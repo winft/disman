@@ -56,7 +56,7 @@ public:
         const auto outputs = config->outputs();
         allIds.reserve(outputs.count());
         for (const Disman::OutputPtr& output : outputs) {
-            const auto outputId = output->hash();
+            const auto outputId = QString::fromStdString(output->hash());
             if (allIds.contains(outputId) && !m_duplicateOutputIds.contains(outputId)) {
                 m_duplicateOutputIds << outputId;
             }
@@ -358,7 +358,7 @@ public:
 
     void get_replication_source(OutputPtr& output, OutputList const& outputs) const
     {
-        auto replicate_hash = get_value(output, "replicate", QString(), nullptr);
+        auto replicate_hash = get_value(output, "replicate", QString(), nullptr).toStdString();
 
         auto replication_source_it = std::find_if(
             outputs.constBegin(), outputs.constEnd(), [replicate_hash](OutputPtr const& out) {
@@ -380,12 +380,16 @@ public:
     void set_replication_source(OutputPtr const& output, ConfigPtr const& config)
     {
         auto const source = config->output(output->replicationSource());
-        set_value(output, "replicate", source ? source->hash() : QStringLiteral(""), nullptr);
+        set_value(output,
+                  "replicate",
+                  source ? QString::fromStdString(source->hash()) : QStringLiteral(""),
+                  nullptr);
     }
 
     QFileInfo file_info() const
     {
-        return Filer_helpers::file_info(m_dir_path + "configs/", m_config->connectedOutputsHash());
+        return Filer_helpers::file_info(m_dir_path + "configs/",
+                                        m_config->connectedOutputsHash().toStdString());
     }
 
     bool read_file()
@@ -404,7 +408,7 @@ public:
             if (!output) {
                 // TODO: fallback or reverse clean up?
                 qCDebug(DISMAN_BACKEND)
-                    << "Could not identify output filer" << output_filer->output()->name();
+                    << "Could not identify output filer" << output_filer->output()->name().c_str();
                 continue;
             }
 
@@ -462,22 +466,21 @@ private:
 
     bool is_info_for_output(QVariantMap const& info, OutputPtr const& output) const
     {
-        auto const output_id_info = info[QStringLiteral("id")].toString();
+        auto const output_id_info = info[QStringLiteral("id")].toString().toStdString();
 
-        if (output_id_info.isEmpty()) {
+        if (!output_id_info.size()) {
             return false;
         }
         if (output->hash() != output_id_info) {
             return false;
         }
 
-        if (!output->name().isEmpty()
-            && m_duplicateOutputIds.contains(QString::number(output->id()))) {
+        if (output->name().size() && m_duplicateOutputIds.contains(QString::number(output->id()))) {
             // We may have identical outputs connected, these will have the same id in the config
             // in order to find the right one, also check the output's name (usually the connector)
             auto const metadata = info[QStringLiteral("metadata")].toMap();
             auto const outputNameInfo = metadata[QStringLiteral("name")].toString();
-            if (output->name() != outputNameInfo) {
+            if (output->name() != outputNameInfo.toStdString()) {
                 // Was a duplicate id, but info not for this output.
                 return false;
             }

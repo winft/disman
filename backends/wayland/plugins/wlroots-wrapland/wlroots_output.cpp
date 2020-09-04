@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "wlroots_interface.h"
 #include "wlroots_logging.h"
 
-#include <edid.h>
 #include <mode.h>
 
 #include <Wrapland/Client/wlr_output_configuration_v1.h>
@@ -116,7 +115,9 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     // Initialize primary output
     output->setEnabled(m_head->enabled());
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
-    output->setName(name());
+    output->set_name(m_head->name().toStdString());
+    output->set_description(m_head->description().toStdString());
+    output->set_hash(hash().toStdString());
     output->setSizeMm(m_head->physicalSize());
     output->setPosition(m_head->position());
     output->setRotation(s_rotationMap[m_head->transform()]);
@@ -217,9 +218,13 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     return changed;
 }
 
-QString WlrootsOutput::name() const
+QString WlrootsOutput::hash() const
 {
-    Q_ASSERT(m_head);
+    assert(m_head);
+    if (!m_head->model().isEmpty()) {
+        return QStringLiteral("%1:%2:%3:%4")
+            .arg(m_head->make(), m_head->model(), m_head->serialNumber(), m_head->name());
+    }
     return m_head->description();
 }
 

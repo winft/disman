@@ -20,7 +20,6 @@
 
 #include "config.h"
 #include "configmonitor.h"
-#include "edid.h"
 #include "getconfigoperation.h"
 #include "mode.h"
 #include "output.h"
@@ -120,7 +119,7 @@ void TestPnp::print()
     Q_FOREACH (const OutputPtr& output, outputs) {
         qDebug() << "\n-----------------------------------------------------\n";
         qDebug() << "Id: " << output->id();
-        qDebug() << "Name: " << output->name();
+        qDebug() << "Name: " << output->name().c_str();
         qDebug() << "Type: " << typetoString(output->type());
         qDebug() << "Enabled: " << output->isEnabled();
         qDebug() << "Primary: " << output->isPrimary();
@@ -139,26 +138,6 @@ void TestPnp::print()
         Q_FOREACH (const ModePtr& mode, modes) {
             qDebug() << "\t" << mode->id() << "  " << mode->name() << " " << mode->size() << " "
                      << mode->refreshRate();
-        }
-
-        const Edid* const edid = output->edid();
-        qDebug() << "EDID Info: ";
-        if (edid && edid->isValid()) {
-            qDebug() << "\tDevice ID: " << QString::fromStdString(edid->deviceId());
-            qDebug() << "\tName: " << QString::fromStdString(edid->name());
-            qDebug() << "\tVendor: " << QString::fromStdString(edid->vendor());
-            qDebug() << "\tSerial: " << QString::fromStdString(edid->serial());
-            qDebug() << "\tEISA ID: " << QString::fromStdString(edid->eisaId());
-            qDebug() << "\tHash: " << QString::fromStdString(edid->hash());
-            qDebug() << "\tWidth: " << edid->width();
-            qDebug() << "\tHeight: " << edid->height();
-            qDebug() << "\tGamma: " << edid->gamma();
-            qDebug() << "\tRed: " << edid->red();
-            qDebug() << "\tGreen: " << edid->green();
-            qDebug() << "\tBlue: " << edid->blue();
-            qDebug() << "\tWhite: " << edid->white();
-        } else {
-            qDebug() << "\tUnavailable";
         }
     }
 }

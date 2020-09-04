@@ -35,12 +35,6 @@ class DISMAN_EXPORT ConfigOperation : public QObject
     Q_OBJECT
 
 public:
-    enum Option {
-        NoOptions,
-        NoEDID,
-    };
-    Q_DECLARE_FLAGS(Options, Option)
-
     ~ConfigOperation() override;
 
     bool hasError() const;

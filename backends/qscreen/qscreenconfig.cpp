@@ -22,7 +22,8 @@
 
 #include "qscreen_logging.h"
 
-#include <mode.h>
+#include "mode.h"
+#include "output.h"
 
 #include <QGuiApplication>
 #include <QRect>

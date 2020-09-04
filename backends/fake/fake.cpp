@@ -23,7 +23,6 @@
 #include "../filer_controller.h"
 
 #include "config.h"
-#include "edid.h"
 #include <output.h>
 
 #include <stdlib.h>
@@ -182,7 +181,9 @@ void Fake::addOutput(int outputId, const QString& name)
 {
     Disman::OutputPtr output(new Disman::Output);
     output->setId(outputId);
-    output->setName(name);
+    output->set_name(name.toStdString());
+    output->set_description(name.toStdString());
+    output->set_hash(name.toStdString());
     mConfig->addOutput(output);
     Q_EMIT configChanged(mConfig);
 }

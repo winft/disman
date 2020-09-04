@@ -18,7 +18,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "kwayland_output.h"
 
-#include <edid.h>
 #include <mode.h>
 
 #include "kwayland_logging.h"
@@ -93,7 +92,9 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     // Initialize primary output
     output->setEnabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
     output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
-    output->setName(name());
+    output->set_name(name().toStdString());
+    output->set_description(name().toStdString());
+    output->set_hash(name().toStdString());
     output->setSizeMm(m_device->physicalSize());
     output->setPosition(m_device->globalPosition());
     output->setRotation(s_rotationMap[m_device->transform()]);

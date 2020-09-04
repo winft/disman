@@ -138,7 +138,7 @@ private Q_SLOTS:
 
         Disman::OutputPtr output(new Disman::Output);
         output->setId(60);
-        output->setName(QStringLiteral("LVDS-0"));
+        output->set_name("LVDS-0");
         output->setType(Disman::Output::Panel);
         output->setIcon(QString());
         output->setModes(modes);
@@ -153,7 +153,7 @@ private Q_SLOTS:
         QVERIFY(!obj.isEmpty());
 
         QCOMPARE(obj[QLatin1String("id")].toInt(), output->id());
-        QCOMPARE(obj[QLatin1String("name")].toString(), output->name());
+        QCOMPARE(obj[QLatin1String("name")].toString(), QString::fromStdString(output->name()));
         QCOMPARE(static_cast<Disman::Output::Type>(obj[QLatin1String("type")].toInt()),
                  output->type());
         QCOMPARE(obj[QLatin1String("icon")].toString(), output->icon());

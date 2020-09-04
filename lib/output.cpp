@@ -22,7 +22,6 @@
 #include "abstractbackend.h"
 #include "backendmanager_p.h"
 #include "disman_debug.h"
-#include "edid.h"
 #include "mode.h"
 
 #include <QCryptographicHash>
@@ -43,13 +42,14 @@ Output::Private::Private()
     , scale(1.0)
     , enabled(false)
     , primary(false)
-    , edid(nullptr)
 {
 }
 
 Output::Private::Private(const Private& other)
     : id(other.id)
     , name(other.name)
+    , description(other.description)
+    , hash(other.hash)
     , type(other.type)
     , icon(other.icon)
     , replicationSource(other.replicationSource)
@@ -72,9 +72,6 @@ Output::Private::Private(const Private& other)
 {
     Q_FOREACH (const ModePtr& otherMode, other.modeList) {
         modeList.insert(otherMode->id(), otherMode->clone());
-    }
-    if (other.edid) {
-        edid.reset(new Edid(*other.edid));
     }
 }
 
@@ -150,23 +147,40 @@ void Output::setId(int id)
     d->id = id;
 }
 
-QString Output::name() const
+std::string Output::name() const
 {
     return d->name;
 }
 
-void Output::setName(const QString& name)
+void Output::set_name(std::string const& name)
 {
     d->name = name;
 }
 
-QString Output::hash() const
+std::string Output::description() const
 {
-    if (edid() && edid()->isValid()) {
-        return QString::fromStdString(edid()->hash());
-    }
-    const auto hash = QCryptographicHash::hash(name().toLatin1(), QCryptographicHash::Md5);
-    return QString::fromLatin1(hash.toHex());
+    return d->description;
+}
+
+void Output::set_description(std::string const& description)
+{
+    d->description = description;
+}
+
+std::string Output::hash() const
+{
+    return d->hash;
+}
+
+void Output::set_hash(std::string const& input)
+{
+    auto const hash = QCryptographicHash::hash(input.c_str(), QCryptographicHash::Md5);
+    d->hash = QString::fromLatin1(hash.toHex()).toStdString();
+}
+
+void Output::set_hash_raw(std::string const& hash)
+{
+    d->hash = hash;
 }
 
 Output::Type Output::type() const
@@ -397,16 +411,6 @@ void Output::setReplicationSource(int source)
     d->enforced_geometry = QRectF();
 }
 
-void Output::setEdid(const QByteArray& rawData)
-{
-    d->edid.reset(new Edid(rawData));
-}
-
-Edid* Output::edid() const
-{
-    return d->edid.data();
-}
-
 QSize Output::sizeMm() const
 {
     return d->sizeMm;
@@ -493,7 +497,9 @@ void Output::apply(const OutputPtr& other)
     const bool keepBlocked = signalsBlocked();
     blockSignals(true);
 
-    setName(other->d->name);
+    set_name(other->d->name);
+    set_description(other->d->description);
+    d->hash = other->d->hash;
     setType(other->d->type);
     setIcon(other->d->icon);
     setPosition(other->geometry().topLeft());
@@ -514,11 +520,6 @@ void Output::apply(const OutputPtr& other)
         modes.insert(otherMode->id(), otherMode->clone());
     }
     setModes(modes);
-
-    // Non-notifyable changes
-    if (other->d->edid) {
-        d->edid.reset(new Edid(*other->d->edid));
-    }
 
     set_resolution(other->d->resolution);
     set_refresh_rate(other->d->refresh_rate);
@@ -564,8 +565,8 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 
         std::stringstream ss;
 
-        ss << "{" << output->id() << " "
-           << output->name().toStdString()
+        ss << "{" << output->id() << " " << output->description() << " (" << output->name()
+           << ") "
 
            // basic properties
            << (output->isEnabled() ? " [enabled]" : "[disabled]")
@@ -586,7 +587,7 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
            << " | physical size[mm]: " << output->sizeMm().width() << "x"
            << output->sizeMm().height() << " | mode: " << stream_mode(output->auto_mode())
            << " | geometry: " << stream_rect(output->geometry()) << " | scale: " << output->scale()
-           << " | hash: " << output->hash().toStdString() << "}";
+           << " | hash: " << output->hash() << "}";
 
         dbg << QString::fromStdString(ss.str());
     } else {

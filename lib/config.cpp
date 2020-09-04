@@ -232,12 +232,11 @@ ConfigPtr Config::clone() const
     return newConfig;
 }
 
-// TODO: take Output::hashMd5() values
 QString Config::connectedOutputsHash() const
 {
     QStringList hashedOutputs;
     for (OutputPtr const& output : d->outputs) {
-        hashedOutputs << output->hash();
+        hashedOutputs << QString::fromStdString(output->hash());
     }
 
     std::sort(hashedOutputs.begin(), hashedOutputs.end());

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filer_controller.h"
 #include "filer_helpers.h"
 
-#include <edid.h>
 #include <output.h>
 #include <types.h>
 
@@ -48,12 +47,12 @@ public:
         return m_output;
     }
 
-    QString hash() const
+    std::string hash() const
     {
         return m_output->hash();
     }
 
-    QString name() const
+    std::string name() const
     {
         return m_output->name();
     }
@@ -82,15 +81,12 @@ public:
     {
         auto metadata = [&output]() {
             QVariantMap metadata;
-            metadata[QStringLiteral("name")] = output->name();
-            if (output->edid() && output->edid()->isValid()) {
-                metadata[QStringLiteral("edid-name")]
-                    = QString::fromStdString(output->edid()->deviceId());
-            }
+            metadata[QStringLiteral("name")] = QString::fromStdString(output->name());
+            metadata[QStringLiteral("description")] = QString::fromStdString(output->description());
             return metadata;
         };
         QVariantMap outputInfo;
-        outputInfo[QStringLiteral("id")] = output->hash();
+        outputInfo[QStringLiteral("id")] = QString::fromStdString(output->hash());
         outputInfo[QStringLiteral("metadata")] = metadata();
         return outputInfo;
     }

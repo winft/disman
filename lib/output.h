@@ -31,10 +31,10 @@
 #include <QSize>
 #include <QStringList>
 
+#include <string>
+
 namespace Disman
 {
-
-class Edid;
 
 class DISMAN_EXPORT Output : public QObject
 {
@@ -84,18 +84,38 @@ public:
     int id() const;
     void setId(int id);
 
-    QString name() const;
-    void setName(const QString& name);
+    /**
+     * The name of the output uniquely identifies it and usually describes the connector in some way
+     * together with a counter, for example DP-1, DP-2 and HDMI-A-1, HDMI-A-2.
+     */
+    std::string name() const;
+    void set_name(std::string const& name);
+
+    /**
+     * The description of an output is provided by the backend and is meant to be displayed in
+     * UI to identify the output and the display connected to it. It is pre-translated as it is the
+     * responsibility of the backend to translate it to the user session locale.
+     *
+     * Examples are 'Foocorp 11" Display' or 'Virtual X11 output via :1'.
+     */
+    std::string description() const;
+    void set_description(std::string const& description);
 
     /**
      * Returns an identifying hex encoded hash for this output.
-     *
-     * The hash is calculated either via the edid hash or if no
-     * edid is available by the output name, which is hashed as well.
-     *
-     * @return identifying hash of this output
      */
-    QString hash() const;
+    std::string hash() const;
+
+    /**
+     * Set the output hash by providing a hashable input. The input will be hashed and converted
+     * to hex internally.
+     */
+    void set_hash(std::string const& input);
+
+    /**
+     * Set the output hash by setting a hash directly.
+     */
+    void set_hash_raw(std::string const& hash);
 
     Type type() const;
     void setType(Type type);
@@ -197,16 +217,6 @@ public:
      * @param source
      */
     void setReplicationSource(int source);
-
-    void setEdid(const QByteArray& rawData);
-
-    /**
-     * edid returns the output's EDID information if available.
-     *
-     * The output maintains ownership of the returned Edid, so the caller should not delete it.
-     * Note that the edid is only valid as long as the output is alive.
-     */
-    Edid* edid() const;
 
     /**
      * Returns the physical size of the screen in milimeters.

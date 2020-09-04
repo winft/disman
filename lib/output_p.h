@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Disman
 {
-class Edid;
 
 class Q_DECL_HIDDEN Output::Private
 {
@@ -86,7 +85,9 @@ public:
     bool compareModeList(const ModeList& before, const ModeList& after);
 
     int id;
-    QString name;
+    std::string name;
+    std::string description;
+    std::string hash;
     Type type;
     QString icon;
     ModeList modeList;
@@ -112,8 +113,6 @@ public:
     bool auto_rotate_only_in_tablet_mode{true};
 
     Retention retention{Retention::Undefined};
-
-    QScopedPointer<Edid> edid;
 };
 
 template<>

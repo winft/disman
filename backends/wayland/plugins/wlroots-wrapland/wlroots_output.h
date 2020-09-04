@@ -51,7 +51,6 @@ public:
 
     void updateDismanOutput(Disman::OutputPtr& output) override;
 
-    QString name() const;
     QByteArray edid() const override;
     bool enabled() const override;
     QRectF geometry() const override;
@@ -63,6 +62,7 @@ public:
 
 private:
     void showOutput();
+    QString hash() const;
 
     Wrapland::Client::WlrOutputHeadV1* m_head;
     Wrapland::Client::Registry* m_registry;

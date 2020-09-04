@@ -20,7 +20,6 @@
 
 #include "config.h"
 #include "disman_debug.h"
-#include "edid.h"
 #include "mode.h"
 #include "screen.h"
 
@@ -86,7 +85,9 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     QJsonObject obj;
 
     obj[QLatin1String("id")] = output->id();
-    obj[QLatin1String("name")] = output->name();
+    obj[QLatin1String("name")] = QString::fromStdString(output->name());
+    obj[QLatin1String("description")] = QString::fromStdString(output->description());
+    obj[QLatin1String("hash")] = QString::fromStdString(output->hash());
     obj[QLatin1String("type")] = static_cast<int>(output->type());
     obj[QLatin1String("icon")] = output->icon();
     obj[QLatin1String("position")] = serializePoint(output->position());
@@ -100,7 +101,6 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("followPreferredMode")] = output->followPreferredMode();
     obj[QLatin1String("enabled")] = output->isEnabled();
     obj[QLatin1String("primary")] = output->isPrimary();
-    // obj[QLatin1String("edid")] = output->edid()->raw();
     obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
     obj[QLatin1String("replicationSource")] = output->replicationSource();
     obj[QLatin1String("auto_rotate")] = output->auto_rotate();
@@ -303,7 +303,11 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
         if (key == QLatin1String("id")) {
             output->setId(value.toInt());
         } else if (key == QLatin1String("name")) {
-            output->setName(value.toString());
+            output->set_name(value.toString().toStdString());
+        } else if (key == QLatin1String("description")) {
+            output->set_description(value.toString().toStdString());
+        } else if (key == QLatin1String("hash")) {
+            output->set_hash_raw(value.toString().toStdString());
         } else if (key == QLatin1String("type")) {
             output->setType(static_cast<Output::Type>(value.toInt()));
         } else if (key == QLatin1String("icon")) {

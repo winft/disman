@@ -28,7 +28,6 @@
 #include "../filer_controller.h"
 
 #include "config.h"
-#include "edid.h"
 #include "generator.h"
 #include "output.h"
 
