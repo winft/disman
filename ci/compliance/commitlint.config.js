@@ -10,6 +10,7 @@ module.exports = {
             2,
             'always',
             [
+                'ctl',
                 'lib',
                 'qscreen',
                 'randr',

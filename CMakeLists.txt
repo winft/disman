@@ -63,7 +63,7 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 add_subdirectory(lib)
 add_subdirectory(service)
-add_subdirectory(doctor)
+add_subdirectory(ctl)
 add_subdirectory(backends)
 if(BUILD_TESTING)
   add_subdirectory(autotests)

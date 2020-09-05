@@ -1,45 +1,25 @@
-/*************************************************************************************
- *  Copyright 2014-2016 Sebastian Kügler <sebas@kde.org>                             *
- *                                                                                   *
- *  This library is free software; you can redistribute it and/or                    *
- *  modify it under the terms of the GNU Lesser General Public                       *
- *  License as published by the Free Software Foundation; either                     *
- *  version 2.1 of the License, or (at your option) any later version.               *
- *                                                                                   *
- *  This library is distributed in the hope that it will be useful,                  *
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of                   *
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU                *
- *  Lesser General Public License for more details.                                  *
- *                                                                                   *
- *  You should have received a copy of the GNU Lesser General Public                 *
- *  License along with this library; if not, write to the Free Software              *
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
- *************************************************************************************/
+/*
+    SPDX-FileCopyrightText: 2014-2016 by Sebastian Kügler <sebas@kde.org>
+    SPDX-FileCopyrightText: 2020 Roman Gilg <subdiff@gmail.com>
+
+    SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only
+*/
 #include "doctor.h"
-#include "dpmsclient.h"
+#include "watcher.h"
 
 #include <QCommandLineParser>
-#include <QCoreApplication>
-#include <QDateTime>
-#include <QFile>
-#include <QGuiApplication>
-#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QLoggingCategory>
-#include <QRect>
-#include <QStandardPaths>
+#include <QRectF>
 
 #include "backendmanager_p.h"
 #include "config.h"
 #include "configoperation.h"
-#include "edid.h"
 #include "getconfigoperation.h"
 #include "log.h"
-#include "output.h"
 #include "setconfigoperation.h"
 
-Q_LOGGING_CATEGORY(DISMAN_DOCTOR, "disman.doctor")
+Q_LOGGING_CATEGORY(DISMAN_CTL, "disman.ctl")
 
 static QTextStream cout(stdout);
 static QTextStream cerr(stderr);
@@ -51,37 +31,30 @@ const static QString blue = QStringLiteral("\033[01;34m");
 const static QString bold = QStringLiteral("\033[01;39m");
 const static QString cr = QStringLiteral("\033[0;0m");
 
-namespace Disman
-{
-namespace ConfigSerializer
+namespace Disman::ConfigSerializer
 {
 // Exported private symbol in configserializer_p.h in Disman
 extern QJsonObject serializeConfig(const Disman::ConfigPtr& config);
 }
-}
 
-using namespace Disman;
+namespace Disman::Ctl
+{
 
-Doctor::Doctor(QObject* parent)
+Doctor::Doctor(QCommandLineParser* parser, QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
+    , m_parser(parser)
     , m_changed(false)
-    , m_dpmsClient(nullptr)
 {
-}
-
-Doctor::~Doctor()
-{
-}
-
-void Doctor::start(QCommandLineParser* parser)
-{
-    m_parser = parser;
+    if (m_parser->optionNames().isEmpty() && m_parser->positionalArguments().isEmpty()) {
+        // When dismanctl was launched without any parameter show help and quit.
+        m_parser->showHelp(1);
+    }
     if (m_parser->isSet(QStringLiteral("info"))) {
         showBackends();
     }
     if (parser->isSet(QStringLiteral("json")) || parser->isSet(QStringLiteral("outputs"))
-        || !m_positionalArgs.isEmpty()) {
+        || parser->isSet(QStringLiteral("watch")) || !m_parser->positionalArguments().isEmpty()) {
 
         Disman::GetConfigOperation* op = new Disman::GetConfigOperation();
         connect(op,
@@ -90,30 +63,12 @@ void Doctor::start(QCommandLineParser* parser)
                 [this](Disman::ConfigOperation* op) { configReceived(op); });
         return;
     }
-    if (m_parser->isSet(QStringLiteral("dpms"))) {
-        if (!QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
-            cerr << "DPMS is only supported on Wayland." << Qt::endl;
-            // We need to kick the event loop, otherwise .quit() hangs
-            QTimer::singleShot(0, qApp->quit);
-            return;
-        }
-        m_dpmsClient = new DpmsClient(this);
-        connect(m_dpmsClient, &DpmsClient::finished, qApp, &QCoreApplication::quit);
-
-        const QString dpmsArg = m_parser->value(QStringLiteral("dpms"));
-        if (dpmsArg == QLatin1String("show")) {
-            showDpms();
-        } else {
-            setDpms(dpmsArg);
-        }
-        return;
-    }
 
     if (m_parser->isSet(QStringLiteral("log"))) {
 
         const QString logmsg = m_parser->value(QStringLiteral("log"));
         if (!Log::instance()->enabled()) {
-            qCWarning(DISMAN_DOCTOR)
+            qCWarning(DISMAN_CTL)
                 << "Logging is disabled, unset DISMAN_LOGGING in your environment.";
         } else {
             Log::log(logmsg);
@@ -123,49 +78,23 @@ void Doctor::start(QCommandLineParser* parser)
     QTimer::singleShot(0, qApp->quit);
 }
 
-void Disman::Doctor::setDpms(const QString& dpmsArg)
-{
-    qDebug() << "SetDpms: " << dpmsArg;
-    connect(m_dpmsClient, &DpmsClient::ready, this, [this, dpmsArg]() {
-        cout << "DPMS.ready()";
-        if (dpmsArg == QLatin1String("off")) {
-            m_dpmsClient->off();
-        } else if (dpmsArg == QLatin1String("on")) {
-            m_dpmsClient->on();
-        } else {
-            cout << "--dpms argument not understood (" << dpmsArg << ")";
-        }
-    });
-
-    m_dpmsClient->connect();
-}
-
-void Doctor::showDpms()
-{
-    m_dpmsClient = new DpmsClient(this);
-
-    connect(m_dpmsClient, &DpmsClient::ready, this, []() { cout << "DPMS.ready()"; });
-
-    m_dpmsClient->connect();
-}
-
 void Doctor::showBackends() const
 {
     cout << "Environment: " << Qt::endl;
     auto env_disman_backend = (qgetenv("DISMAN_BACKEND").isEmpty())
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
-    cout << "  * DISMAN_BACKEND           : " << env_disman_backend << Qt::endl;
+    cout << "  * DISMAN_BACKEND       : " << env_disman_backend << Qt::endl;
     auto env_disman_backend_inprocess = (qgetenv("DISMAN_IN_PROCESS").isEmpty())
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_IN_PROCESS"));
-    cout << "  * DISMAN_IN_PROCESS : " << env_disman_backend_inprocess << Qt::endl;
+    cout << "  * DISMAN_IN_PROCESS    : " << env_disman_backend_inprocess << Qt::endl;
     auto env_disman_logging = (qgetenv("DISMAN_LOGGING").isEmpty())
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_LOGGING"));
-    cout << "  * DISMAN_LOGGING           : " << env_disman_logging << Qt::endl;
+    cout << "  * DISMAN_LOGGING       : " << env_disman_logging << Qt::endl;
 
-    cout << "Logging to                : "
+    cout << "Logging to               : "
          << (Log::instance()->enabled() ? Log::instance()->logFile()
                                         : QStringLiteral("[logging disabled]"))
          << Qt::endl;
@@ -173,31 +102,26 @@ void Doctor::showBackends() const
     auto preferred = BackendManager::instance()->preferred_backend();
     cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << Qt::endl;
     cout << "Available Disman backends:" << Qt::endl;
-    Q_FOREACH (const QFileInfo f, backends) {
+    for (auto const file_info : backends) {
         auto c = blue;
-        if (preferred == f) {
+        if (preferred == file_info) {
             c = green;
         }
-        cout << "  * " << c << f.fileName() << cr << ": " << f.absoluteFilePath() << Qt::endl;
+        cout << "  * " << c << file_info.fileName() << cr << ": " << file_info.absoluteFilePath()
+             << Qt::endl;
     }
     cout << Qt::endl;
 }
 
-void Doctor::setOptionList(const QStringList& positionalArgs)
-{
-    m_positionalArgs = positionalArgs;
-}
-
 void Doctor::parsePositionalArgs()
 {
-    // qCDebug(DISMAN_DOCTOR) << "POSARGS" << m_positionalArgs;
-    Q_FOREACH (const QString& op, m_positionalArgs) {
+    for (auto const& op : m_parser->positionalArguments()) {
         auto ops = op.split(QLatin1Char('.'));
         if (ops.count() > 2) {
             bool ok;
             int output_id = -1;
             if (ops[0] == QLatin1String("output")) {
-                Q_FOREACH (const auto& output, m_config->outputs()) {
+                for (auto const& output : m_config->outputs()) {
                     if (output->name() == ops[1].toStdString()) {
                         output_id = output->id();
                     }
@@ -227,12 +151,12 @@ void Doctor::parsePositionalArgs()
                         qApp->exit(9);
                         return;
                     }
-                    qCDebug(DISMAN_DOCTOR) << "Output" << output_id << "set mode" << mode_id;
+                    qCDebug(DISMAN_CTL) << "Output" << output_id << "set mode" << mode_id;
 
                 } else if (ops.count() == 4 && ops[2] == QLatin1String("position")) {
                     QStringList _pos = ops[3].split(QLatin1Char(','));
                     if (_pos.count() != 2) {
-                        qCWarning(DISMAN_DOCTOR) << "Invalid position:" << ops[3];
+                        qCWarning(DISMAN_CTL) << "Invalid position:" << ops[3];
                         qApp->exit(5);
                         return;
                     }
@@ -245,7 +169,7 @@ void Doctor::parsePositionalArgs()
                     }
 
                     QPoint p(x, y);
-                    qCDebug(DISMAN_DOCTOR) << "Output position" << p;
+                    qCDebug(DISMAN_CTL) << "Output position" << p;
                     if (!setPosition(output_id, p)) {
                         qApp->exit(1);
                         return;
@@ -260,7 +184,7 @@ void Doctor::parsePositionalArgs()
                     };
                     // set scale
                     if (!ok || qFuzzyCompare(scale, 0.0) || !setScale(output_id, scale)) {
-                        qCDebug(DISMAN_DOCTOR)
+                        qCDebug(DISMAN_CTL)
                             << "Could not set scale " << scale << " to output " << output_id;
                         qApp->exit(9);
                         return;
@@ -283,8 +207,8 @@ void Doctor::parsePositionalArgs()
                         rot = rotationMap[_rotation];
                     }
                     if (!ok || !setRotation(output_id, rot)) {
-                        qCDebug(DISMAN_DOCTOR) << "Could not set orientation " << _rotation
-                                               << " to output " << output_id;
+                        qCDebug(DISMAN_CTL) << "Could not set orientation " << _rotation
+                                            << " to output " << output_id;
                         qApp->exit(9);
                         return;
                     }
@@ -300,6 +224,16 @@ void Doctor::parsePositionalArgs()
 
 void Doctor::configReceived(Disman::ConfigOperation* op)
 {
+    if (op->hasError()) {
+        qCWarning(DISMAN_CTL) << "Received initial config has error.";
+        qApp->exit(1);
+    }
+
+    if (m_parser->isSet(QStringLiteral("watch"))) {
+        m_watcher.reset(new Watcher(op->config()));
+        return;
+    }
+
     m_config = op->config();
 
     if (m_parser->isSet(QStringLiteral("json"))) {
@@ -307,7 +241,7 @@ void Doctor::configReceived(Disman::ConfigOperation* op)
         qApp->quit();
     }
     if (m_parser->isSet(QStringLiteral("outputs"))) {
-        showOutputs();
+        showOutputs(m_config);
         qApp->quit();
     }
 
@@ -319,19 +253,10 @@ void Doctor::configReceived(Disman::ConfigOperation* op)
     }
 }
 
-int Doctor::outputCount() const
+void Doctor::showOutputs(const Disman::ConfigPtr& config)
 {
-    if (!m_config) {
-        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
-        return 0;
-    }
-    return m_config->outputs().count();
-}
-
-void Doctor::showOutputs() const
-{
-    if (!m_config) {
-        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
+    if (!config) {
+        qCWarning(DISMAN_CTL) << "Invalid config.";
         return;
     }
 
@@ -352,7 +277,7 @@ void Doctor::showOutputs() const
     typeString[Disman::Output::TVC4] = QStringLiteral("TVC4");
     typeString[Disman::Output::DisplayPort] = QStringLiteral("DisplayPort");
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& output : config->outputs()) {
         cout << green << "Output: " << cr << output->id() << " " << output->name().c_str();
         cout << " "
              << (output->isEnabled() ? green + QLatin1String("enabled")
@@ -361,7 +286,7 @@ void Doctor::showOutputs() const
         auto _type = typeString[output->type()];
         cout << " " << yellow << (_type.isEmpty() ? QStringLiteral("UnmappedOutputType") : _type);
         cout << blue << " Modes: " << cr;
-        Q_FOREACH (auto mode, output->modes()) {
+        for (auto const& mode : output->modes()) {
             auto name = QStringLiteral("%1x%2@%3")
                             .arg(QString::number(mode->size().width()),
                                  QString::number(mode->size().height()),
@@ -395,11 +320,11 @@ void Doctor::showJson() const
 bool Doctor::setEnabled(int id, bool enabled = true)
 {
     if (!m_config) {
-        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_CTL) << "Invalid config.";
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& output : m_config->outputs()) {
         if (output->id() == id) {
             cout << (enabled ? "Enabling " : "Disabling ") << "output " << id << Qt::endl;
             output->setEnabled(enabled);
@@ -415,13 +340,13 @@ bool Doctor::setEnabled(int id, bool enabled = true)
 bool Doctor::setPosition(int id, const QPoint& pos)
 {
     if (!m_config) {
-        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_CTL) << "Invalid config.";
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& output : m_config->outputs()) {
         if (output->id() == id) {
-            qCDebug(DISMAN_DOCTOR) << "Set output position" << pos;
+            qCDebug(DISMAN_CTL) << "Set output position" << pos;
             output->setPosition(pos);
             m_changed = true;
             return true;
@@ -434,20 +359,20 @@ bool Doctor::setPosition(int id, const QPoint& pos)
 bool Doctor::setMode(int id, const QString& mode_id)
 {
     if (!m_config) {
-        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_CTL) << "Invalid config.";
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
             // find mode
-            Q_FOREACH (const Disman::ModePtr mode, output->modes()) {
+            for (auto const& mode : output->modes()) {
                 auto name = QStringLiteral("%1x%2@%3")
                                 .arg(QString::number(mode->size().width()),
                                      QString::number(mode->size().height()),
                                      QString::number(qRound(mode->refreshRate())));
                 if (mode->id() == mode_id || name == mode_id) {
-                    qCDebug(DISMAN_DOCTOR) << "Taddaaa! Found mode" << mode->id() << name;
+                    qCDebug(DISMAN_CTL) << "Taddaaa! Found mode" << mode->id() << name;
                     output->set_mode(mode);
                     m_changed = true;
                     return true;
@@ -462,11 +387,11 @@ bool Doctor::setMode(int id, const QString& mode_id)
 bool Doctor::setScale(int id, qreal scale)
 {
     if (!m_config) {
-        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_CTL) << "Invalid config.";
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
             output->setScale(scale);
             m_changed = true;
@@ -480,11 +405,11 @@ bool Doctor::setScale(int id, qreal scale)
 bool Doctor::setRotation(int id, Disman::Output::Rotation rot)
 {
     if (!m_config) {
-        qCWarning(DISMAN_DOCTOR) << "Invalid config.";
+        qCWarning(DISMAN_CTL) << "Invalid config.";
         return false;
     }
 
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
             output->setRotation(rot);
             m_changed = true;
@@ -502,6 +427,8 @@ void Doctor::applyConfig()
     }
     auto setop = new SetConfigOperation(m_config, this);
     setop->exec();
-    qCDebug(DISMAN_DOCTOR) << "setop exec returned" << m_config;
+    qCDebug(DISMAN_CTL) << "setop exec returned" << m_config;
     qApp->exit(0);
+}
+
 }

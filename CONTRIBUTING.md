@@ -71,6 +71,7 @@ amendments:
   * style: improvements to code style without logic change
   * test: addition of a new test or correction of an existing one
 * Only the following optional scopes are allowed:
+  * ctl
   * lib
   * qscreen
   * randr
