@@ -23,24 +23,16 @@
 #include "types.h"
 
 #include <QDebug>
-#include <QMetaType>
-#include <QObject>
 #include <QSize>
 
 namespace Disman
 {
 
-class DISMAN_EXPORT Mode : public QObject
+class DISMAN_EXPORT Mode
 {
-    Q_OBJECT
-    Q_PROPERTY(QString id READ id WRITE setId NOTIFY modeChanged)
-    Q_PROPERTY(QString name READ name WRITE setName NOTIFY modeChanged)
-    Q_PROPERTY(QSize size READ size WRITE setSize NOTIFY modeChanged)
-    Q_PROPERTY(float refreshRate READ refreshRate WRITE setRefreshRate NOTIFY modeChanged)
-
 public:
-    explicit Mode();
-    ~Mode() override;
+    Mode();
+    ~Mode();
 
     ModePtr clone() const;
 
@@ -56,9 +48,6 @@ public:
     double refreshRate() const;
     void setRefreshRate(double refresh);
 
-Q_SIGNALS:
-    void modeChanged();
-
 private:
     Q_DISABLE_COPY(Mode)
 
@@ -71,7 +60,5 @@ private:
 }
 
 DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::ModePtr& mode);
-
-Q_DECLARE_METATYPE(Disman::ModeList)
 
 #endif

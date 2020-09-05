@@ -18,7 +18,9 @@
  *************************************************************************************/
 #include "mode.h"
 
-using namespace Disman;
+namespace Disman
+{
+
 class Q_DECL_HIDDEN Mode::Private
 {
 public:
@@ -42,14 +44,12 @@ public:
 };
 
 Mode::Mode()
-    : QObject(nullptr)
-    , d(new Private())
+    : d(new Private())
 {
 }
 
 Mode::Mode(Mode::Private* dd)
-    : QObject()
-    , d(dd)
+    : d(dd)
 {
 }
 
@@ -75,8 +75,6 @@ void Mode::setId(const QString& id)
     }
 
     d->id = id;
-
-    Q_EMIT modeChanged();
 }
 
 QString Mode::name() const
@@ -91,8 +89,6 @@ void Mode::setName(const QString& name)
     }
 
     d->name = name;
-
-    Q_EMIT modeChanged();
 }
 
 QSize Mode::size() const
@@ -107,8 +103,6 @@ void Mode::setSize(const QSize& size)
     }
 
     d->size = size;
-
-    Q_EMIT modeChanged();
 }
 
 double Mode::refreshRate() const
@@ -123,8 +117,8 @@ void Mode::setRefreshRate(double refresh)
     }
 
     d->rate = refresh;
+}
 
-    Q_EMIT modeChanged();
 }
 
 QDebug operator<<(QDebug dbg, const Disman::ModePtr& mode)
