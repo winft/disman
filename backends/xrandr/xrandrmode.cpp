@@ -39,8 +39,8 @@ Disman::ModePtr XRandRMode::toDismanMode()
 {
     Disman::ModePtr dismanMode(new Disman::Mode);
 
-    dismanMode->setId(QString::number(m_id));
-    dismanMode->setName(m_name);
+    dismanMode->setId(std::to_string(m_id));
+    dismanMode->setName(m_name.toStdString());
     dismanMode->setSize(m_size);
     dismanMode->setRefreshRate(m_refreshRate);
 

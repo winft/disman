@@ -133,9 +133,9 @@ XRandRMode::Map XRandROutput::modes() const
     return m_modes;
 }
 
-QString XRandROutput::currentModeId() const
+std::string XRandROutput::currentModeId() const
 {
-    return m_crtc ? QString::number(m_crtc->mode()) : QString();
+    return m_crtc ? std::to_string(m_crtc->mode()) : std::string();
 }
 
 XRandRMode* XRandROutput::currentMode() const
@@ -305,7 +305,7 @@ void XRandROutput::updateModes(const XCB::OutputInfo& outputInfo)
             m_modes.insert(mode->id(), mode);
 
             if (i < outputInfo->num_preferred) {
-                m_preferredModes.append(QString::number(mode->id()));
+                m_preferredModes.push_back(std::to_string(mode->id()));
             }
             break;
         }
@@ -486,7 +486,7 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
         Disman::ModeList dismanModes;
         for (auto iter = m_modes.constBegin(), end = m_modes.constEnd(); iter != end; ++iter) {
             XRandRMode* mode = iter.value();
-            dismanModes.insert(QString::number(iter.key()), mode->toDismanMode());
+            dismanModes.insert({std::to_string(iter.key()), mode->toDismanMode()});
         }
         dismanOutput->setModes(dismanModes);
         dismanOutput->setPreferredModes(m_preferredModes);
@@ -497,7 +497,7 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 
             auto cur_mode = currentMode();
             if (cur_mode) {
-                dismanOutput->set_mode(dismanOutput->mode(QString::number(cur_mode->id())));
+                dismanOutput->set_mode(dismanOutput->mode(std::to_string(cur_mode->id())));
                 dismanOutput->set_resolution(cur_mode->size());
                 dismanOutput->set_refresh_rate(cur_mode->refreshRate());
             }

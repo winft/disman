@@ -99,23 +99,23 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     output->setRotation(s_rotationMap[m_device->transform()]);
 
     ModeList modeList;
-    QStringList preferredModeIds;
+    std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
     ModePtr current_mode;
 
     for (const Wl::OutputDevice::Mode& wlMode : m_device->modes()) {
         ModePtr mode(new Mode());
-        const QString name = modeName(wlMode);
+        auto const name = modeName(wlMode).toStdString();
 
-        QString modeId = QString::number(wlMode.id);
-        if (modeId.isEmpty()) {
-            qCWarning(DISMAN_WAYLAND)
-                << "Could not create mode id from" << wlMode.id << ", using" << name << "instead.";
+        auto modeId = std::to_string(wlMode.id);
+        if (modeId.empty()) {
+            qCWarning(DISMAN_WAYLAND) << "Could not create mode id from" << wlMode.id << ", using"
+                                      << name.c_str() << "instead.";
             modeId = name;
         }
 
-        if (m_modeIdMap.contains(modeId)) {
-            qCWarning(DISMAN_WAYLAND) << "Mode id already in use:" << modeId;
+        if (m_modeIdMap.find(modeId) != m_modeIdMap.end()) {
+            qCWarning(DISMAN_WAYLAND) << "Mode id already in use:" << modeId.c_str();
         }
         mode->setId(modeId);
 
@@ -128,11 +128,11 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
             current_mode = mode;
         }
         if (wlMode.flags.testFlag(Wl::OutputDevice::Mode::Flag::Preferred)) {
-            preferredModeIds << modeId;
+            preferredModeIds.push_back(modeId);
         }
 
         // Update the disman => kwayland mode id translation map
-        m_modeIdMap.insert(modeId, wlMode.id);
+        m_modeIdMap.insert({modeId, wlMode.id});
         // Add to the modelist which gets set on the output
         modeList[modeId] = mode;
     }
@@ -141,7 +141,10 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     output->setModes(modeList);
 
     if (current_mode.isNull()) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
+        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode. Available modes:";
+        for (auto const& [key, mode] : modeList) {
+            qCWarning(DISMAN_WAYLAND) << "  " << mode;
+        }
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
@@ -185,16 +188,19 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration* wlConfig, const Disman
     }
 
     // mode
-    if (auto mode = output->auto_mode(); mode && m_modeIdMap.contains(mode->id())) {
-        const int newModeId = m_modeIdMap.value(mode->id(), -1);
+    if (auto mode = output->auto_mode();
+        mode && m_modeIdMap.find(mode->id()) != m_modeIdMap.end()) {
+        auto const newModeId = m_modeIdMap.at(mode->id());
         if (newModeId != m_device->currentMode().id) {
             changed = true;
             wlConfig->setMode(m_device, newModeId);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:"
-                                  << (mode ? mode->id() : QStringLiteral("null"))
-                                  << "\n  -> available were:" << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:" << (mode ? mode->id() : "null").c_str()
+                                  << "\n  -> available were:";
+        for (auto const& [key, value] : m_modeIdMap) {
+            qCWarning(DISMAN_WAYLAND).nospace() << value << ": " << key.c_str();
+        }
     }
     return changed;
 }

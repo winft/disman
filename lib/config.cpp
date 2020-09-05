@@ -124,7 +124,7 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
         // If the mode is not found in the current output
         if (!currentOutput->mode(output->auto_mode()->id())) {
             qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
-                            << "has no mode:" << output->auto_mode()->id();
+                            << "has no mode:" << output->auto_mode()->id().c_str();
             return false;
         }
 

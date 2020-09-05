@@ -293,7 +293,7 @@ void TestInProcess::testConfigApply()
     auto output = config->outputs().first();
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
-    auto m0 = output->modes().first();
+    auto m0 = output->modes().begin()->second;
     // qDebug() << "m0:" << m0->id() << m0;
     output->set_mode(m0);
     QVERIFY(Config::canBeApplied(config));
@@ -319,7 +319,7 @@ void TestInProcess::testConfigMonitor()
     auto output = config->outputs().first();
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
-    auto m0 = output->modes().first();
+    auto m0 = output->modes().begin()->second;
     // qDebug() << "m0:" << m0->id() << m0;
     output->set_mode(m0);
     QVERIFY(Config::canBeApplied(config));

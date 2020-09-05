@@ -160,14 +160,16 @@ void Fake::setPrimary(int outputId, bool primary)
     Q_EMIT configChanged(mConfig);
 }
 
-void Fake::setCurrentModeId(int outputId, const QString& modeId)
+void Fake::setCurrentModeId(int outputId, QString const& modeId)
 {
-    Disman::OutputPtr output = config()->output(outputId);
-    if (auto mode = output->commanded_mode(); mode && mode->id() == modeId) {
+    std::string const& string_mode_id = modeId.toStdString();
+    auto output = config()->output(outputId);
+
+    if (auto mode = output->commanded_mode(); mode && mode->id() == string_mode_id) {
         return;
     }
 
-    output->set_mode(output->mode(modeId));
+    output->set_mode(output->mode(string_mode_id));
     Q_EMIT configChanged(mConfig);
 }
 

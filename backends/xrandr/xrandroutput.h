@@ -62,7 +62,7 @@ public:
     QSize size() const;
     QSizeF logicalSize() const;
 
-    QString currentModeId() const;
+    std::string currentModeId() const;
     XRandRMode::Map modes() const;
     XRandRMode* currentMode() const;
 
@@ -98,7 +98,7 @@ private:
     Disman::Output::Type m_type;
 
     XRandRMode::Map m_modes;
-    QStringList m_preferredModes;
+    std::vector<std::string> m_preferredModes;
 
     unsigned int m_widthMm;
     unsigned int m_heightMm;

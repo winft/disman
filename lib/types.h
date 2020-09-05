@@ -21,6 +21,9 @@
 #include <QMap>
 #include <QSharedPointer>
 
+#include <map>
+#include <string>
+
 namespace Disman
 {
 
@@ -34,7 +37,7 @@ typedef QMap<int, Disman::OutputPtr> OutputList;
 
 class Mode;
 typedef QSharedPointer<Disman::Mode> ModePtr;
-typedef QMap<QString, Disman::ModePtr> ModeList;
+typedef std::map<std::string, Disman::ModePtr> ModeList;
 
 }
 

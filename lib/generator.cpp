@@ -203,7 +203,7 @@ void Generator::single_output(ConfigPtr const& config)
     }
 
     auto output = outputs.value(outputs.keys().first());
-    if (output->modes().isEmpty()) {
+    if (output->modes().empty()) {
         return;
     }
 

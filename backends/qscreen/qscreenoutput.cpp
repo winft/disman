@@ -112,7 +112,7 @@ void QScreenOutput::updateDismanOutput(OutputPtr& output) const
 
     // Modes: we create a single default mode and go with that
     ModePtr mode(new Mode);
-    const QString modeid = QStringLiteral("defaultmode");
+    std::string const modeid = "defaultmode";
     mode->setId(modeid);
     mode->setRefreshRate(m_qscreen->refreshRate());
     mode->setSize(m_qscreen->size());
@@ -120,7 +120,7 @@ void QScreenOutput::updateDismanOutput(OutputPtr& output) const
     const QString modename = QString::number(m_qscreen->size().width()) + QLatin1String("x")
         + QString::number(m_qscreen->size().height()) + QLatin1String("@")
         + QString::number(m_qscreen->refreshRate());
-    mode->setName(modename);
+    mode->setName(modename.toStdString());
 
     ModeList modes;
     modes[modeid] = mode;

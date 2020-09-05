@@ -107,7 +107,10 @@ void testQScreenBackend::verifyOutputs()
     foreach (const Disman::OutputPtr& output, m_config->outputs()) {
         qDebug() << " _____________________ Output: " << output;
         qDebug() << "   output name: " << output->name().c_str();
-        qDebug() << "   output modes: " << output->modes().count() << output->modes();
+        qDebug() << "   output modes: " << output->modes().size();
+        for (auto const& [key, mode] : output->modes()) {
+            qDebug() << "      " << mode;
+        }
         qDebug() << "   output enabled: " << output->isEnabled();
         qDebug() << "   output sizeMm : " << output->sizeMm();
         QVERIFY(output->name().size());
@@ -132,12 +135,12 @@ void testQScreenBackend::verifyModes()
 {
     const Disman::OutputPtr primary = m_config->primaryOutput();
     QVERIFY(primary);
-    QVERIFY(primary->modes().count() > 0);
+    QVERIFY(primary->modes().size() > 0);
 
-    foreach (const Disman::OutputPtr& output, m_config->outputs()) {
-        foreach (const Disman::ModePtr& mode, output->modes()) {
-            qDebug() << "   Mode   : " << mode->name();
-            QVERIFY(!mode->name().isEmpty());
+    for (auto const& output : m_config->outputs()) {
+        for (auto const& [key, mode] : output->modes()) {
+            qDebug() << "   Mode   : " << mode->name().c_str();
+            QVERIFY(!mode->name().empty());
             QVERIFY(mode->refreshRate() > 0);
             QVERIFY(mode->size() != QSize());
         }

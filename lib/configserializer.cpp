@@ -28,6 +28,9 @@
 #include <QJsonDocument>
 #include <QRect>
 
+#include <string>
+#include <vector>
+
 using namespace Disman;
 
 QJsonObject ConfigSerializer::serializePoint(const QPointF& point)
@@ -100,7 +103,13 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
         obj[QLatin1String("resolution")] = serializeSize(mode->size());
         obj[QLatin1String("refresh_rate")] = mode->refreshRate();
     }
-    obj[QLatin1String("preferredModes")] = serializeList(output->preferredModes());
+
+    QStringList mode_q_strings;
+    for (auto mode_string : output->preferredModes()) {
+        mode_q_strings.push_back(QString::fromStdString(mode_string));
+    }
+    obj[QLatin1String("preferredModes")] = serializeList(mode_q_strings);
+
     obj[QLatin1String("followPreferredMode")] = output->followPreferredMode();
     obj[QLatin1String("enabled")] = output->isEnabled();
     obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
@@ -113,7 +122,7 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("retention")] = static_cast<int>(output->retention());
 
     QJsonArray modes;
-    Q_FOREACH (const ModePtr& mode, output->modes()) {
+    for (auto const& [key, mode] : output->modes()) {
         modes.append(serializeMode(mode));
     }
     obj[QLatin1String("modes")] = modes;
@@ -125,8 +134,8 @@ QJsonObject ConfigSerializer::serializeMode(const ModePtr& mode)
 {
     QJsonObject obj;
 
-    obj[QLatin1String("id")] = mode->id();
-    obj[QLatin1String("name")] = mode->name();
+    obj[QLatin1String("id")] = QString::fromStdString(mode->id());
+    obj[QLatin1String("name")] = QString::fromStdString(mode->name());
     obj[QLatin1String("size")] = serializeSize(mode->size());
     obj[QLatin1String("refreshRate")] = mode->refreshRate();
 
@@ -341,8 +350,15 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->set_auto_resolution(value.toBool());
         } else if (key == QLatin1String("auto_refresh_rate")) {
             output->set_auto_refresh_rate(value.toBool());
+
         } else if (key == QLatin1String("preferredModes")) {
-            output->setPreferredModes(deserializeList<QString>(value.value<QDBusArgument>()));
+            auto q_strings = deserializeList<QString>(value.value<QDBusArgument>());
+            std::vector<std::string> strings;
+            for (auto qs : q_strings) {
+                strings.push_back(qs.toStdString());
+            }
+            output->setPreferredModes(strings);
+
         } else if (key == QLatin1String("followPreferredMode")) {
             output->setFollowPreferredMode(value.toBool());
         } else if (key == QLatin1String("enabled")) {
@@ -364,7 +380,7 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
                 if (!mode) {
                     return OutputPtr();
                 }
-                modes.insert(mode->id(), mode);
+                modes.insert({mode->id(), mode});
             }
             arg.endArray();
             output->setModes(modes);
@@ -390,9 +406,9 @@ ModePtr ConfigSerializer::deserializeMode(const QDBusArgument& arg)
         arg >> key >> value;
 
         if (key == QLatin1String("id")) {
-            mode->setId(value.toString());
+            mode->setId(value.toString().toStdString());
         } else if (key == QLatin1String("name")) {
-            mode->setName(value.toString());
+            mode->setName(value.toString().toStdString());
         } else if (key == QLatin1String("size")) {
             mode->setSize(deserializeSize(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("refreshRate")) {

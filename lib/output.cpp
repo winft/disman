@@ -68,14 +68,14 @@ Output::Private::Private(const Private& other)
     , auto_rotate_only_in_tablet_mode{other.auto_rotate_only_in_tablet_mode}
     , retention{other.retention}
 {
-    Q_FOREACH (const ModePtr& otherMode, other.modeList) {
-        modeList.insert(otherMode->id(), otherMode->clone());
+    for (auto const& [key, otherMode] : other.modeList) {
+        modeList.insert({key, otherMode->clone()});
     }
 }
 
 ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) const
 {
-    for (auto mode : modeList) {
+    for (auto const& [key, mode] : modeList) {
         if (resolution == mode->size() && qFuzzyCompare(refresh_rate, mode->refreshRate())) {
             return mode;
         }
@@ -85,17 +85,19 @@ ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) cons
 
 bool Output::Private::compareModeList(const ModeList& before, const ModeList& after)
 {
-    if (before.count() != after.count()) {
+    if (before.size() != after.size()) {
         return false;
     }
 
-    for (auto itb = before.constBegin(); itb != before.constEnd(); ++itb) {
-        auto ita = after.constFind(itb.key());
-        if (ita == after.constEnd()) {
+    for (auto const& [before_key, before_val] : before) {
+        auto ita = after.find(before_key);
+        if (ita == after.end()) {
             return false;
         }
-        const auto& mb = itb.value();
-        const auto& ma = ita.value();
+
+        const auto& mb = before_val;
+        const auto& ma = ita->second;
+
         if (mb->id() != ma->id()) {
             return false;
         }
@@ -201,9 +203,9 @@ void Output::setIcon(const QString& icon)
     d->icon = icon;
 }
 
-ModePtr Output::mode(const QString& id) const
+ModePtr Output::mode(std::string const& id) const
 {
-    if (!d->modeList.contains(id)) {
+    if (d->modeList.find(id) == d->modeList.end()) {
         return ModePtr();
     }
 
@@ -233,7 +235,7 @@ void Output::set_to_preferred_mode()
 
 ModePtr Output::commanded_mode() const
 {
-    for (auto mode : d->modeList) {
+    for (auto [key, mode] : d->modeList) {
         if (mode->size() == d->resolution && qFuzzyCompare(mode->refreshRate(), d->refresh_rate)) {
             return mode;
         }
@@ -279,23 +281,23 @@ ModePtr Output::auto_mode() const
     return preferred_mode();
 }
 
-void Output::setPreferredModes(const QStringList& modes)
+void Output::setPreferredModes(std::vector<std::string> const& modes)
 {
-    d->preferredMode = QString();
+    d->preferredMode = std::string();
     d->preferredModes = modes;
 }
 
-QStringList Output::preferredModes() const
+std::vector<std::string> const& Output::preferredModes() const
 {
     return d->preferredModes;
 }
 
 ModePtr Output::preferred_mode() const
 {
-    if (!d->preferredMode.isEmpty()) {
-        return d->modeList.value(d->preferredMode);
+    if (!d->preferredMode.empty()) {
+        return d->modeList.at(d->preferredMode);
     }
-    if (d->preferredModes.isEmpty()) {
+    if (d->preferredModes.empty()) {
         return d->best_mode(modes());
     }
 
@@ -493,8 +495,8 @@ void Output::apply(const OutputPtr& other)
 
     setPreferredModes(other->d->preferredModes);
     ModeList modes;
-    Q_FOREACH (const ModePtr& otherMode, other->modes()) {
-        modes.insert(otherMode->id(), otherMode->clone());
+    for (auto const& [key, mode] : other->modes()) {
+        modes.insert({key, mode->clone()});
     }
     setModes(modes);
 
@@ -526,7 +528,7 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
         auto stream_mode = [](Disman::ModePtr const& mode) {
             std::stringstream ss;
             if (mode) {
-                ss << "id " << mode->id().toStdString() << ", size " << mode->size().width() << "x"
+                ss << "id " << mode->id() << ", size " << mode->size().width() << "x"
                    << mode->size().height() << "@" << mode->refreshRate();
             } else {
                 ss << "null";

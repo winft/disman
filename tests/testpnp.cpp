@@ -132,15 +132,17 @@ void TestPnp::print()
         if (output->auto_mode()) {
             qDebug() << "Size: " << output->auto_mode()->size();
         }
-        qDebug() << "Mode: " << output->auto_mode()->id();
-        qDebug() << "Preferred Mode: " << output->preferred_mode()->id();
-        qDebug() << "Preferred modes: " << output->preferredModes();
-        qDebug() << "Modes: ";
+        qDebug() << "Mode: " << output->auto_mode()->id().c_str();
+        qDebug() << "Preferred Mode: " << output->preferred_mode()->id().c_str();
+        qDebug() << "Preferred modes: ";
+        for (auto const& mode_string : output->preferredModes()) {
+            qDebug() << "\t" << mode_string.c_str();
+        }
 
-        const ModeList modes = output->modes();
-        Q_FOREACH (const ModePtr& mode, modes) {
-            qDebug() << "\t" << mode->id() << "  " << mode->name() << " " << mode->size() << " "
-                     << mode->refreshRate();
+        qDebug() << "Modes: ";
+        for (auto const& [key, mode] : output->modes()) {
+            qDebug() << "\t" << mode->id().c_str() << "  " << mode->name().c_str() << " "
+                     << mode->size() << " " << mode->refreshRate();
         }
     }
 }

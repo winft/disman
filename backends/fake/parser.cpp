@@ -129,10 +129,10 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
 
     primary = map[QStringLiteral("primary")].toBool();
 
-    QStringList preferredModes;
+    std::vector<std::string> preferredModes;
     const QVariantList prefModes = map[QStringLiteral("preferredModes")].toList();
     Q_FOREACH (const QVariant& mode, prefModes) {
-        preferredModes.append(mode.toString());
+        preferredModes.push_back(mode.toString().toStdString());
     }
     output->setPreferredModes(preferredModes);
     map.remove(QStringLiteral("preferredModes"));
@@ -141,13 +141,14 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
     const QVariantList modes = map[QStringLiteral("modes")].toList();
     Q_FOREACH (const QVariant& modeValue, modes) {
         const ModePtr mode = Parser::modeFromJson(modeValue);
-        modelist.insert(mode->id(), mode);
+        modelist.insert({mode->id(), mode});
     }
     output->setModes(modelist);
     map.remove(QStringLiteral("modes"));
 
     if (!map[QStringLiteral("currentModeId")].toString().isEmpty()) {
-        output->set_mode(output->mode(map[QStringLiteral("currentModeId")].toString()));
+        output->set_mode(
+            output->mode(map[QStringLiteral("currentModeId")].toString().toStdString()));
     }
 
     const QByteArray type = map[QStringLiteral("type")].toByteArray().toUpper();
@@ -213,8 +214,8 @@ ModePtr Parser::modeFromJson(const QVariant& data)
     const QVariantMap map = data.toMap();
     ModePtr mode(new Mode);
 
-    mode->setId(map[QStringLiteral("id")].toString());
-    mode->setName(map[QStringLiteral("name")].toString());
+    mode->setId(map[QStringLiteral("id")].toString().toStdString());
+    mode->setName(map[QStringLiteral("name")].toString().toStdString());
     mode->setRefreshRate(map[QStringLiteral("refreshRate")].toDouble());
     mode->setSize(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
 

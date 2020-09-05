@@ -37,8 +37,8 @@ public:
     {
     }
 
-    QString id;
-    QString name;
+    std::string id;
+    std::string name;
     QSize size;
     double rate;
 };
@@ -63,12 +63,12 @@ ModePtr Mode::clone() const
     return ModePtr(new Mode(new Private(*d)));
 }
 
-const QString Mode::id() const
+std::string Mode::id() const
 {
     return d->id;
 }
 
-void Mode::setId(const QString& id)
+void Mode::setId(std::string const& id)
 {
     if (d->id == id) {
         return;
@@ -77,12 +77,12 @@ void Mode::setId(const QString& id)
     d->id = id;
 }
 
-QString Mode::name() const
+std::string Mode::name() const
 {
     return d->name;
 }
 
-void Mode::setName(const QString& name)
+void Mode::setName(std::string const& name)
 {
     if (d->name == name) {
         return;
@@ -124,7 +124,7 @@ void Mode::setRefreshRate(double refresh)
 QDebug operator<<(QDebug dbg, const Disman::ModePtr& mode)
 {
     if (mode) {
-        dbg << "Disman::Mode(Id:" << mode->id() << ", Size:" << mode->size() << "@"
+        dbg << "Disman::Mode(Id:" << mode->id().c_str() << ", Size:" << mode->size() << "@"
             << mode->refreshRate() << ")";
     } else {
         dbg << "Disman::Mode(NULL)";

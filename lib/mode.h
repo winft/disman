@@ -24,6 +24,7 @@
 
 #include <QDebug>
 #include <QSize>
+#include <string>
 
 namespace Disman
 {
@@ -36,11 +37,11 @@ public:
 
     ModePtr clone() const;
 
-    const QString id() const;
-    void setId(const QString& id);
+    std::string id() const;
+    void setId(std::string const& id);
 
-    QString name() const;
-    void setName(const QString& name);
+    std::string name() const;
+    void setName(std::string const& name);
 
     QSize size() const;
     void setSize(const QSize& size);

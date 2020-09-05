@@ -147,7 +147,7 @@ void Doctor::parsePositionalArgs()
                 } else if (ops.count() == 4 && ops[2] == QLatin1String("mode")) {
                     QString mode_id = ops[3];
                     // set mode
-                    if (!setMode(output_id, mode_id)) {
+                    if (!setMode(output_id, mode_id.toStdString())) {
                         qApp->exit(9);
                         return;
                     }
@@ -285,7 +285,7 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
         auto _type = typeString[output->type()];
         cout << " " << yellow << (_type.isEmpty() ? QStringLiteral("UnmappedOutputType") : _type);
         cout << blue << " Modes: " << cr;
-        for (auto const& mode : output->modes()) {
+        for (auto const& [key, mode] : output->modes()) {
             auto name = QStringLiteral("%1x%2@%3")
                             .arg(QString::number(mode->size().width()),
                                  QString::number(mode->size().height()),
@@ -296,7 +296,7 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
             if (mode == output->preferred_mode()) {
                 name = name + QLatin1Char('!');
             }
-            cout << mode->id() << ":" << name << " ";
+            cout << mode->id().c_str() << ":" << name << " ";
         }
         const auto g = output->geometry();
         cout << yellow << "Geometry: " << cr << g.x() << "," << g.y() << " " << g.width() << "x"
@@ -356,7 +356,7 @@ bool Doctor::setPosition(int id, const QPoint& pos)
     return false;
 }
 
-bool Doctor::setMode(int id, const QString& mode_id)
+bool Doctor::setMode(int id, std::string const& mode_id)
 {
     if (!m_config) {
         qCWarning(DISMAN_CTL) << "Invalid config.";
@@ -366,13 +366,13 @@ bool Doctor::setMode(int id, const QString& mode_id)
     for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
             // find mode
-            for (auto const& mode : output->modes()) {
+            for (auto const& [key, mode] : output->modes()) {
                 auto name = QStringLiteral("%1x%2@%3")
                                 .arg(QString::number(mode->size().width()),
                                      QString::number(mode->size().height()),
                                      QString::number(qRound(mode->refreshRate())));
-                if (mode->id() == mode_id || name == mode_id) {
-                    qCDebug(DISMAN_CTL) << "Taddaaa! Found mode" << mode->id() << name;
+                if (mode->id() == mode_id || name.toStdString() == mode_id) {
+                    qCDebug(DISMAN_CTL) << "Taddaaa! Found mode" << mode->id().c_str() << name;
                     output->set_mode(mode);
                     m_changed = true;
                     return true;
@@ -380,7 +380,7 @@ bool Doctor::setMode(int id, const QString& mode_id)
             }
         }
     }
-    cout << "Output mode " << mode_id << " not found." << Qt::endl;
+    cout << "Output mode " << mode_id.c_str() << " not found." << Qt::endl;
     return false;
 }
 

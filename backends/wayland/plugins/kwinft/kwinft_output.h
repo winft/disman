@@ -66,7 +66,7 @@ private:
     Wrapland::Client::Registry* m_registry;
 
     // left-hand-side: Disman::Mode, right-hand-side: Wrapland's mode.id
-    QMap<QString, int> m_modeIdMap;
+    std::map<std::string, int> m_modeIdMap;
 };
 
 }

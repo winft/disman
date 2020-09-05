@@ -122,7 +122,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->setRotation(s_rotationMap[m_head->transform()]);
 
     ModeList modeList;
-    QStringList preferredModeIds;
+    std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
     QString currentModeId = QStringLiteral("-1");
 
@@ -131,7 +131,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
 
     int modeCounter = 0;
     for (auto wlMode : m_head->modes()) {
-        const auto modeId = QString::number(++modeCounter);
+        auto const modeId = std::to_string(++modeCounter);
 
         ModePtr mode(new Mode());
 
@@ -140,17 +140,17 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
         // Wrapland gives the refresh rate as int in mHz.
         mode->setRefreshRate(wlMode->refresh() / 1000.0);
         mode->setSize(wlMode->size());
-        mode->setName(modeName(wlMode));
+        mode->setName(modeName(wlMode).toStdString());
 
         if (wlMode->preferred()) {
-            preferredModeIds << modeId;
+            preferredModeIds.push_back(modeId);
         }
         if (current_head_mode == wlMode) {
             current_mode = mode;
         }
 
         // Update the Disman => Wrapland mode id translation map.
-        m_modeIdMap.insert(modeId, wlMode);
+        m_modeIdMap.insert({modeId, wlMode});
 
         // Add to the modelist which gets set on the output.
         modeList[modeId] = mode;
@@ -160,7 +160,10 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->setModes(modeList);
 
     if (current_mode.isNull()) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
+        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
+        for (auto const& [key, mode] : modeList) {
+            qCWarning(DISMAN_WAYLAND) << "  " << mode;
+        }
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
@@ -204,14 +207,18 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     }
 
     // mode
-    if (auto mode_id = output->auto_mode()->id(); m_modeIdMap.contains(mode_id)) {
-        auto newMode = m_modeIdMap.value(mode_id, nullptr);
+    if (auto mode_id = output->auto_mode()->id(); m_modeIdMap.find(mode_id) != m_modeIdMap.end()) {
+        auto newMode = m_modeIdMap.at(mode_id);
         if (newMode != m_head->currentMode()) {
             changed = true;
             wlConfig->setMode(m_head, newMode);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << mode_id << "\n\n" << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:" << mode_id.c_str()
+                                  << "\n  -> available were:";
+        for (auto const& [key, value] : m_modeIdMap) {
+            qCWarning(DISMAN_WAYLAND).nospace() << value << ": " << key.c_str();
+        }
     }
 
     return changed;

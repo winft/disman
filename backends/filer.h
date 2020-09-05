@@ -325,7 +325,7 @@ public:
             return default_value;
         }
 
-        for (auto const& mode : output->modes()) {
+        for (auto const& [key, mode] : output->modes()) {
             if (mode->size() == resolution && mode->refreshRate() == refresh) {
                 return mode;
             }

@@ -214,7 +214,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         }
 
         XRandRMode* currentMode
-            = currentOutput->modes().value(dismanOutput->auto_mode()->id().toInt());
+            = currentOutput->modes().value(std::stoi(dismanOutput->auto_mode()->id()));
         // For some reason, in some environments currentMode is null
         // which doesn't make sense because it is the *current* mode...
         // Since we haven't been able to figure out the reason why
@@ -222,7 +222,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         // figure out how this happened.
         if (!currentMode) {
             qWarning() << "Current mode is null:"
-                       << "ModeId:" << currentOutput->currentModeId()
+                       << "ModeId:" << currentOutput->currentModeId().c_str()
                        << "Mode: " << currentOutput->currentMode()
                        << "Output: " << currentOutput->id();
             printConfig(config);
@@ -389,15 +389,18 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
             qCDebug(DISMAN_XRANDR) << "Size: " << output->auto_mode()->size();
         }
 
-        qCDebug(DISMAN_XRANDR) << "Mode: " << output->auto_mode()->id() << "\n"
-                               << "Preferred Mode: " << output->preferred_mode()->id() << "\n"
-                               << "Preferred modes: " << output->preferredModes() << "\n"
-                               << "Modes: ";
+        qCDebug(DISMAN_XRANDR) << "Mode: " << output->auto_mode()->id().c_str() << "\n"
+                               << "Preferred Mode: " << output->preferred_mode()->id().c_str()
+                               << "\n"
+                               << "Preferred modes:";
+        for (auto const& mode_string : output->preferredModes()) {
+            qCDebug(DISMAN_XRANDR) << "\t" << mode_string.c_str();
+        }
 
-        ModeList modes = output->modes();
-        for (const ModePtr& mode : modes) {
-            qCDebug(DISMAN_XRANDR) << "\t" << mode->id() << "  " << mode->name() << " "
-                                   << mode->size() << " " << mode->refreshRate();
+        qCDebug(DISMAN_XRANDR) << "Modes: ";
+        for (auto const& [key, mode] : output->modes()) {
+            qCDebug(DISMAN_XRANDR) << "\t" << mode->id().c_str() << "  " << mode->name().c_str()
+                                   << " " << mode->size() << " " << mode->refreshRate();
         }
     }
 }
@@ -408,7 +411,7 @@ void XRandRConfig::printInternalCond() const
     for (const XRandROutput* output : m_outputs) {
         qCDebug(DISMAN_XRANDR) << "Id: " << output->id() << "\n"
                                << "Current Mode: " << output->currentMode() << "\n"
-                               << "Current mode id: " << output->currentModeId() << "\n"
+                               << "Current mode id: " << output->currentModeId().c_str() << "\n"
                                << "Connected: " << output->isConnected() << "\n"
                                << "Enabled: " << output->isEnabled() << "\n"
                                << "Primary: " << output->isPrimary();
@@ -555,8 +558,8 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput, bool primary) con
     }
 
     XRandROutput* xOutput = output(dismanOutput->id());
-    const int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
-                                                 : dismanOutput->preferred_mode()->id().toInt();
+    auto const modeId = std::stoi(dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id()
+                                                            : dismanOutput->preferred_mode()->id());
     xOutput->updateLogicalSize(dismanOutput, freeCrtc);
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (enable output)"
@@ -567,7 +570,7 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput, bool primary) con
                            << "\tNew CRTC:" << freeCrtc->crtc() << "\n"
                            << "\tPos:" << dismanOutput->position() << "\n"
                            << "\tMode:" << dismanOutput->auto_mode()
-                           << "Preferred:" << dismanOutput->preferred_mode()->id() << "\n"
+                           << "Preferred:" << dismanOutput->preferred_mode()->id().c_str() << "\n"
                            << "\tRotation:" << dismanOutput->rotation();
 
     if (!sendConfig(dismanOutput, freeCrtc)) {
@@ -589,8 +592,8 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput, bool prim
         return enableOutput(dismanOutput, primary);
     }
 
-    int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
-                                           : dismanOutput->preferred_mode()->id().toInt();
+    auto const modeId = std::stoi(dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id()
+                                                            : dismanOutput->preferred_mode()->id());
     xOutput->updateLogicalSize(dismanOutput);
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (change output)"
@@ -614,8 +617,8 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput, bool prim
 bool XRandRConfig::sendConfig(const Disman::OutputPtr& dismanOutput, XRandRCrtc* crtc) const
 {
     xcb_randr_output_t outputs[1]{static_cast<xcb_randr_output_t>(dismanOutput->id())};
-    const int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
-                                                 : dismanOutput->preferred_mode()->id().toInt();
+    auto const modeId = std::stoi(dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id()
+                                                            : dismanOutput->preferred_mode()->id());
 
     auto cookie = xcb_randr_set_crtc_config(XCB::connection(),
                                             crtc->crtc(),

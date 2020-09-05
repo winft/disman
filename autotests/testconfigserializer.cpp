@@ -110,16 +110,16 @@ private Q_SLOTS:
     void testSerializeMode()
     {
         Disman::ModePtr mode(new Disman::Mode);
-        mode->setId(QStringLiteral("755"));
-        mode->setName(QStringLiteral("1280x1024"));
+        mode->setId("755");
+        mode->setName("1280x1024");
         mode->setRefreshRate(50.666);
         mode->setSize(QSize(1280, 1024));
 
         const QJsonObject obj = Disman::ConfigSerializer::serializeMode(mode);
         QVERIFY(!obj.isEmpty());
 
-        QCOMPARE(obj[QLatin1String("id")].toString(), mode->id());
-        QCOMPARE(obj[QLatin1String("name")].toString(), mode->name());
+        QCOMPARE(obj[QLatin1String("id")].toString().toStdString(), mode->id());
+        QCOMPARE(obj[QLatin1String("name")].toString().toStdString(), mode->name());
         QCOMPARE(obj[QLatin1String("refreshRate")].toDouble(), mode->refreshRate());
         const QJsonObject size = obj[QLatin1String("size")].toObject();
         QCOMPARE(size[QLatin1String("width")].toInt(), mode->size().width());
@@ -130,11 +130,11 @@ private Q_SLOTS:
     {
         Disman::ModeList modes;
         Disman::ModePtr mode(new Disman::Mode);
-        mode->setId(QStringLiteral("1"));
-        mode->setName(QStringLiteral("800x600"));
+        mode->setId("1");
+        mode->setName("800x600");
         mode->setSize(QSize(800, 600));
         mode->setRefreshRate(50.4);
-        modes.insert(mode->id(), mode);
+        modes.insert({mode->id(), mode});
 
         Disman::OutputPtr output(new Disman::Output);
         output->setId(60);
@@ -144,7 +144,7 @@ private Q_SLOTS:
         output->setModes(modes);
         output->setPosition(QPoint(1280, 0));
         output->setRotation(Disman::Output::None);
-        output->setPreferredModes(QStringList() << QStringLiteral("1"));
+        output->setPreferredModes({"1"});
         output->setEnabled(true);
         output->setSizeMm(QSize(310, 250));
 
@@ -157,7 +157,7 @@ private Q_SLOTS:
                  output->type());
         QCOMPARE(obj[QLatin1String("icon")].toString(), output->icon());
         const QJsonArray arr = obj[QLatin1String("modes")].toArray();
-        QCOMPARE(arr.size(), output->modes().count());
+        QCOMPARE(arr.size(), output->modes().size());
 
         QJsonObject pos = obj[QLatin1String("position")].toObject();
         QCOMPARE(pos[QLatin1String("x")].toInt(), output->position().x());

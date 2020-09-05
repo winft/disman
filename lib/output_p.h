@@ -96,8 +96,8 @@ public:
     QSize resolution;
     double refresh_rate{0};
 
-    QString preferredMode;
-    QStringList preferredModes;
+    std::string preferredMode;
+    std::vector<std::string> preferredModes;
     QSize sizeMm;
     QPointF position;
     QRectF enforced_geometry;
@@ -116,12 +116,19 @@ public:
 };
 
 template<>
-ModePtr Output::Private::get_mode(const QString& modeId) const
+ModePtr Output::Private::get_mode(std::string const& modeId) const
 {
-    if (!modeList.contains(modeId)) {
-        return ModePtr();
+    if (auto mode = modeList.find(modeId); mode != modeList.end()) {
+        return mode->second;
     }
-    return modeList[modeId];
+    return ModePtr();
+}
+
+template<>
+ModePtr
+Output::Private::get_mode(std::pair<std::string const, QSharedPointer<Mode>> const& mode) const
+{
+    return mode.second;
 }
 
 }

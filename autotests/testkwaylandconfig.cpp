@@ -106,7 +106,7 @@ void TestKWaylandConfig::changeConfig()
     // The first output is currently disabled, let's try to enable it
     auto output = config->outputs().first();
     QVERIFY(output->isEnabled());
-    output->set_mode(output->mode(QStringLiteral("76")));
+    output->set_mode(output->mode("76"));
 
     auto output2 = config->outputs()[2]; // is this id stable enough?
     output2->setPosition(QPoint(4000, 1080));
@@ -250,8 +250,7 @@ void TestKWaylandConfig::testModeChange()
 
     auto output = config->outputs()[1]; // is this id stable enough?
 
-    QString new_mode = QStringLiteral("74");
-    output->set_mode(output->mode(new_mode));
+    output->set_mode(output->mode("74"));
     output->set_auto_resolution(false);
     output->set_auto_refresh_rate(false);
 

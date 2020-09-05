@@ -123,7 +123,7 @@ public:
     QString icon() const;
     void setIcon(const QString& icon);
 
-    Q_INVOKABLE ModePtr mode(const QString& id) const;
+    Q_INVOKABLE ModePtr mode(std::string const& id) const;
     ModePtr mode(QSize const& resolution, double refresh_rate) const;
 
     ModeList modes() const;
@@ -174,8 +174,8 @@ public:
     QSize best_resolution() const;
     double best_refresh_rate(QSize const& resolution) const;
 
-    void setPreferredModes(const QStringList& modes);
-    QStringList preferredModes() const;
+    void setPreferredModes(std::vector<std::string> const& modes);
+    std::vector<std::string> const& preferredModes() const;
 
     /**
      * Returns a mode that the hardware marked as preferred and that is the best one in the sense

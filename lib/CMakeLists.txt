@@ -35,7 +35,10 @@ add_library(Disman SHARED ${disman_SRCS})
 add_library(Disman::Disman ALIAS Disman)
 
 generate_export_header(Disman)
-target_compile_features(Disman PUBLIC cxx_std_11)
+target_compile_features(Disman
+    PUBLIC cxx_std_11
+    PRIVATE cxx_std_17
+)
 
 target_link_libraries(Disman
   PUBLIC

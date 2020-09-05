@@ -81,11 +81,11 @@ void TestGenerator::single_output()
 
     auto output = config->outputs().value(1);
     output->setEnabled(false);
-    output->set_mode(output->modes().value(QStringLiteral("2")));
+    output->set_mode(output->modes().at("2"));
 
     QVERIFY(!config->primaryOutput());
     QCOMPARE(output->isEnabled(), false);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("2"));
+    QCOMPARE(output->auto_mode()->id(), "2");
 
     // Now optimize the config.
     Generator generator(config);
@@ -97,7 +97,7 @@ void TestGenerator::single_output()
     QVERIFY(generated_config->primaryOutput());
     QCOMPARE(generated_config->primaryOutput()->id(), output->id());
 
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+    QCOMPARE(output->auto_mode()->id(), "3");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
 }
@@ -116,10 +116,10 @@ void TestGenerator::multi_output_embedded()
 
     for (auto output : config->outputs()) {
         output->setEnabled(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+        output->set_mode(output->modes().at("3"));
 
         QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
@@ -132,14 +132,14 @@ void TestGenerator::multi_output_embedded()
     QCOMPARE(generated_config->primaryOutput()->id(), output->id());
 
     QCOMPARE(generator.embedded(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+    QCOMPARE(output->auto_mode()->id(), "3");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
 
     output = generated_config->outputs().value(2);
 
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
+    QCOMPARE(output->auto_mode()->id(), "4");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->position(), QPointF(1280, 0));
 }
@@ -159,10 +159,10 @@ void TestGenerator::replicate_embedded()
 
     for (auto output : config->outputs()) {
         output->setEnabled(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+        output->set_mode(output->modes().at("3"));
 
         QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
@@ -175,14 +175,14 @@ void TestGenerator::replicate_embedded()
     QCOMPARE(generated_config->primaryOutput()->id(), output->id());
 
     QCOMPARE(generator.embedded(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+    QCOMPARE(output->auto_mode()->id(), "3");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
     QCOMPARE(output->replicationSource(), 0);
 
     output = generated_config->outputs().value(2);
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
+    QCOMPARE(output->auto_mode()->id(), "4");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->replicationSource(), 1);
 }
@@ -201,11 +201,11 @@ void TestGenerator::multi_output_pc()
 
     for (auto output : config->outputs()) {
         output->setEnabled(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+        output->set_mode(output->modes().at("3"));
         output->setType(Output::Type::HDMI);
 
         QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
@@ -214,7 +214,7 @@ void TestGenerator::multi_output_pc()
     auto generated_config = generator.config();
     auto output = generated_config->outputs().value(1);
 
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+    QCOMPARE(output->auto_mode()->id(), "3");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->position(), QPoint(1920, 0));
 
@@ -223,7 +223,7 @@ void TestGenerator::multi_output_pc()
     QCOMPARE(generated_config->primaryOutput()->id(), output->id());
 
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
+    QCOMPARE(output->auto_mode()->id(), "4");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->position(), QPointF(0, 0));
 }
@@ -243,11 +243,11 @@ void TestGenerator::replicate_pc()
 
     for (auto output : config->outputs()) {
         output->setEnabled(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+        output->set_mode(output->modes().at("3"));
         output->setType(Output::Type::HDMI);
 
         QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
@@ -256,7 +256,7 @@ void TestGenerator::replicate_pc()
     auto generated_config = generator.config();
     auto output = generated_config->outputs().value(1);
 
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+    QCOMPARE(output->auto_mode()->id(), "3");
     QCOMPARE(output->isEnabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
     QCOMPARE(output->replicationSource(), 2);
@@ -266,7 +266,7 @@ void TestGenerator::replicate_pc()
     QCOMPARE(generated_config->primaryOutput()->id(), output->id());
 
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
+    QCOMPARE(output->auto_mode()->id(), "4");
     QCOMPARE(output->isEnabled(), true);
 
     // Position is unchanged from initial config.

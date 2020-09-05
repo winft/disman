@@ -42,7 +42,7 @@ private:
     QSize s2 = QSize(1280, 1024);
     QSize s3 = QSize(800, 600);
     QSize snew = QSize(777, 888);
-    QString idnew = QStringLiteral("666");
+    std::string idnew = "666";
 
 private Q_SLOTS:
     void initTestCase();
@@ -71,31 +71,31 @@ Disman::ModeList TestModeListChange::createModeList()
 
     Disman::ModeList newmodes;
     {
-        QString _id = QString::number(11);
+        auto _id = std::to_string(11);
         Disman::ModePtr dismanMode(new Disman::Mode);
         dismanMode->setId(_id);
         dismanMode->setName(_id);
         dismanMode->setSize(s0);
         dismanMode->setRefreshRate(60);
-        newmodes.insert(_id, dismanMode);
+        newmodes.insert({_id, dismanMode});
     }
     {
-        QString _id = QString::number(22);
+        auto _id = std::to_string(22);
         Disman::ModePtr dismanMode(new Disman::Mode);
         dismanMode->setId(_id);
         dismanMode->setName(_id);
         dismanMode->setSize(s1);
         dismanMode->setRefreshRate(60);
-        newmodes.insert(_id, dismanMode);
+        newmodes.insert({_id, dismanMode});
     }
     {
-        QString _id = QString::number(33);
+        auto _id = std::to_string(33);
         Disman::ModePtr dismanMode(new Disman::Mode);
         dismanMode->setId(_id);
         dismanMode->setName(_id);
         dismanMode->setSize(s2);
         dismanMode->setRefreshRate(60);
-        newmodes.insert(_id, dismanMode);
+        newmodes.insert({_id, dismanMode});
     }
     return newmodes;
 }
@@ -123,14 +123,14 @@ void TestModeListChange::modeListChange()
     QVERIFY(!output.isNull());
     auto modelist = output->modes();
 
-    auto mode = modelist.first();
-    mode->setId(QStringLiteral("44"));
+    auto mode = modelist.begin()->second;
+    mode->setId("44");
     mode->setSize(QSize(880, 440));
     output->setModes(modelist);
 
-    QCOMPARE(output->modes().first()->id(), QStringLiteral("44"));
-    QCOMPARE(output->modes().first()->size(), QSize(880, 440));
-    QVERIFY(!modelist.isEmpty());
+    QCOMPARE(output->modes().begin()->second->id(), "44");
+    QCOMPARE(output->modes().begin()->second->size(), QSize(880, 440));
+    QVERIFY(!modelist.empty());
 
     ConfigMonitor::instance()->addConfig(config);
 
@@ -138,35 +138,35 @@ void TestModeListChange::modeListChange()
     output->setModes(before);
     output->setModes(before);
     output->setModes(before);
-    QCOMPARE(output->modes().first()->size(), s0);
-    QCOMPARE(output->modes().first()->id(), QStringLiteral("11"));
+    QCOMPARE(output->modes().begin()->second->size(), s0);
+    QCOMPARE(output->modes().begin()->second->id(), "11");
 
     auto after = createModeList();
-    auto firstmode = after.first();
+    auto firstmode = after.begin()->second;
     QVERIFY(!firstmode.isNull());
     QCOMPARE(firstmode->size(), s0);
-    QCOMPARE(firstmode->id(), QStringLiteral("11"));
+    QCOMPARE(firstmode->id(), "11");
     firstmode->setSize(snew);
     firstmode->setId(idnew);
     output->setModes(after);
 
-    QString _id = QString::number(11);
+    auto _id = std::to_string(11);
     Disman::ModePtr dismanMode(new Disman::Mode);
     dismanMode->setId(_id);
     dismanMode->setName(_id);
     dismanMode->setSize(s0);
     dismanMode->setRefreshRate(60);
-    before.insert(_id, dismanMode);
+    before.insert({_id, dismanMode});
     output->setModes(before);
     QCOMPARE(output->modes().size(), 3);
 
-    QString _id2 = QString::number(999);
+    auto _id2 = std::to_string(999);
     Disman::ModePtr dismanMode2(new Disman::Mode);
     dismanMode2->setId(_id2);
     dismanMode2->setName(_id2);
     dismanMode2->setSize(s0);
     dismanMode2->setRefreshRate(60);
-    before.insert(_id2, dismanMode2);
+    before.insert({_id2, dismanMode2});
     output->setModes(before);
     QCOMPARE(output->modes().size(), 4);
     QCOMPARE(output->modes()[_id2]->id(), _id2);

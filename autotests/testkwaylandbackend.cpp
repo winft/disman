@@ -156,8 +156,8 @@ void testWaylandBackend::verifyOutputs()
 void testWaylandBackend::verifyModes()
 {
     Q_FOREACH (const auto& output, m_config->outputs()) {
-        Q_FOREACH (auto mode, output->modes()) {
-            QVERIFY(!mode->name().isEmpty());
+        for (auto const& [key, mode] : output->modes()) {
+            QVERIFY(!mode->name().empty());
             QVERIFY(mode->refreshRate() > 0);
             QVERIFY(mode->size().isValid());
         }
@@ -183,8 +183,7 @@ void testWaylandBackend::simpleWrite()
     auto output = m_config->output(18);
     QVERIFY(output);
 
-    auto n_mode = QStringLiteral("1");
-    output->set_mode(output->mode(n_mode));
+    output->set_mode(output->mode("1"));
     QCOMPARE(output->commanded_mode()->size(), QSize(800, 600));
 
     auto setop = new SetConfigOperation(m_config);
