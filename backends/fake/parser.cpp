@@ -212,8 +212,10 @@ ModePtr Parser::modeFromJson(const QVariant& data)
 {
     const QVariantMap map = data.toMap();
     ModePtr mode(new Mode);
-    Parser::qvariant2qobject(map, mode.data());
 
+    mode->setId(map[QStringLiteral("id")].toString());
+    mode->setName(map[QStringLiteral("name")].toString());
+    mode->setRefreshRate(map[QStringLiteral("refreshRate")].toDouble());
     mode->setSize(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
 
     return mode;

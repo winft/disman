@@ -76,7 +76,7 @@ Output::Private::Private(const Private& other)
 ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) const
 {
     for (auto mode : modeList) {
-        if (resolution == mode->size() && refresh_rate == mode->refreshRate()) {
+        if (resolution == mode->size() && qFuzzyCompare(refresh_rate, mode->refreshRate())) {
             return mode;
         }
     }
@@ -234,7 +234,7 @@ void Output::set_to_preferred_mode()
 ModePtr Output::commanded_mode() const
 {
     for (auto mode : d->modeList) {
-        if (mode->size() == d->resolution && mode->refreshRate() == d->refresh_rate) {
+        if (mode->size() == d->resolution && qFuzzyCompare(mode->refreshRate(), d->refresh_rate)) {
             return mode;
         }
     }

@@ -38,7 +38,7 @@ public:
     QString id;
     QString name;
     QSize size;
-    float rate;
+    double rate;
 };
 
 Mode::Mode()
@@ -111,12 +111,12 @@ void Mode::setSize(const QSize& size)
     Q_EMIT modeChanged();
 }
 
-float Mode::refreshRate() const
+double Mode::refreshRate() const
 {
     return d->rate;
 }
 
-void Mode::setRefreshRate(float refresh)
+void Mode::setRefreshRate(double refresh)
 {
     if (qFuzzyCompare(d->rate, refresh)) {
         return;

@@ -53,8 +53,8 @@ public:
     QSize size() const;
     void setSize(const QSize& size);
 
-    float refreshRate() const;
-    void setRefreshRate(float refresh);
+    double refreshRate() const;
+    void setRefreshRate(double refresh);
 
 Q_SIGNALS:
     void modeChanged();

@@ -120,7 +120,7 @@ private Q_SLOTS:
 
         QCOMPARE(obj[QLatin1String("id")].toString(), mode->id());
         QCOMPARE(obj[QLatin1String("name")].toString(), mode->name());
-        QCOMPARE((float)obj[QLatin1String("refreshRate")].toDouble(), mode->refreshRate());
+        QCOMPARE(obj[QLatin1String("refreshRate")].toDouble(), mode->refreshRate());
         const QJsonObject size = obj[QLatin1String("size")].toObject();
         QCOMPARE(size[QLatin1String("width")].toInt(), mode->size().width());
         QCOMPARE(size[QLatin1String("height")].toInt(), mode->size().height());
