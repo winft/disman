@@ -41,7 +41,6 @@ Output::Private::Private()
     , rotation(None)
     , scale(1.0)
     , enabled(false)
-    , primary(false)
 {
 }
 
@@ -62,7 +61,6 @@ Output::Private::Private(const Private& other)
     , rotation(other.rotation)
     , scale(other.scale)
     , enabled(other.enabled)
-    , primary(other.primary)
     , followPreferredMode(other.followPreferredMode)
     , auto_resolution{other.auto_resolution}
     , auto_refresh_rate{other.auto_refresh_rate}
@@ -381,22 +379,6 @@ void Output::setEnabled(bool enabled)
     d->enabled = enabled;
 }
 
-bool Output::isPrimary() const
-{
-    return d->primary;
-}
-
-void Output::setPrimary(bool primary)
-{
-    if (d->primary == primary) {
-        return;
-    }
-
-    d->primary = primary;
-
-    Q_EMIT isPrimaryChanged();
-}
-
 int Output::replicationSource() const
 {
     return d->replicationSource;
@@ -507,11 +489,6 @@ void Output::apply(const OutputPtr& other)
     setScale(other->d->scale);
     setEnabled(other->d->enabled);
 
-    if (d->primary != other->d->primary) {
-        changes << &Output::isPrimaryChanged;
-        setPrimary(other->d->primary);
-    }
-
     setReplicationSource(other->d->replicationSource);
 
     setPreferredModes(other->d->preferredModes);
@@ -570,7 +547,6 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 
            // basic properties
            << (output->isEnabled() ? " [enabled]" : "[disabled]")
-           << (output->isPrimary() ? " [primary]" : "")
            << (output->retention() == Disman::Output::Retention::Global
                    ? "[global retention]"
                    : output->retention() == Disman::Output::Retention::Individual

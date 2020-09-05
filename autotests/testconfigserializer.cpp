@@ -146,7 +146,6 @@ private Q_SLOTS:
         output->setRotation(Disman::Output::None);
         output->setPreferredModes(QStringList() << QStringLiteral("1"));
         output->setEnabled(true);
-        output->setPrimary(true);
         output->setSizeMm(QSize(310, 250));
 
         const QJsonObject obj = Disman::ConfigSerializer::serializeOutput(output);
@@ -171,7 +170,6 @@ private Q_SLOTS:
         QVERIFY(!obj.contains(QStringLiteral("refresh_rate")));
 
         QCOMPARE(obj[QLatin1String("enabled")].toBool(), output->isEnabled());
-        QCOMPARE(obj[QLatin1String("primary")].toBool(), output->isPrimary());
         const QJsonObject sizeMm = obj[QLatin1String("sizeMM")].toObject();
         QCOMPARE(sizeMm[QLatin1String("width")].toInt(), output->sizeMm().width());
         QCOMPARE(sizeMm[QLatin1String("height")].toInt(), output->sizeMm().height());

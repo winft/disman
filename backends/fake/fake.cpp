@@ -139,18 +139,24 @@ void Fake::setEnabled(int outputId, bool enabled)
 
 void Fake::setPrimary(int outputId, bool primary)
 {
-    Disman::OutputPtr output = config()->output(outputId);
-    if (output->isPrimary() == primary) {
-        return;
-    }
+    auto output = config()->output(outputId);
 
-    Q_FOREACH (Disman::OutputPtr output, config()->outputs()) {
-        if (output->id() == outputId) {
-            output->setPrimary(primary);
-        } else {
-            output->setPrimary(false);
+    if (primary) {
+        if (auto cur_prim = mConfig->primaryOutput()) {
+            if (output == cur_prim) {
+                return;
+            }
+            mConfig->setPrimaryOutput(output);
+        }
+    } else {
+        if (auto cur_prim = mConfig->primaryOutput()) {
+            if (output != cur_prim) {
+                return;
+            }
+            mConfig->setPrimaryOutput(nullptr);
         }
     }
+
     Q_EMIT configChanged(mConfig);
 }
 

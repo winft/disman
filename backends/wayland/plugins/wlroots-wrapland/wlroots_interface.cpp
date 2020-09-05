@@ -179,11 +179,6 @@ void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
         } else {
             output->updateDismanOutput(dismanOutput);
         }
-        if (dismanOutput && m_outputMap.count() == 1) {
-            dismanOutput->setPrimary(true);
-        } else if (m_outputMap.count() > 1) {
-            // primaryScreen concept doesn't exist in Wayland, so we don't set one
-        }
     }
     config->setOutputs(dismanOutputs);
 }

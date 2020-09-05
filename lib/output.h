@@ -199,9 +199,6 @@ public:
     bool isEnabled() const;
     void setEnabled(bool enabled);
 
-    bool isPrimary() const;
-    void setPrimary(bool primary);
-
     /**
      * @brief Provides the source for an ongoing replication
      *
@@ -303,7 +300,6 @@ Q_SIGNALS:
      * An update to the output was applied. Changes to its properties could have occured.
      */
     void updated();
-    void isPrimaryChanged();
 
 private:
     Q_DISABLE_COPY(Output)

@@ -49,12 +49,18 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
     }
 
     OutputList outputList;
+    OutputPtr primary;
     Q_FOREACH (const QVariant& value, outputs) {
-        const OutputPtr output = Parser::outputFromJson(value.toMap());
+        bool is_primary = false;
+        const OutputPtr output = Parser::outputFromJson(value.toMap(), is_primary);
         outputList.insert(output->id(), output);
+        if (is_primary) {
+            primary = output;
+        }
     }
 
     config->setOutputs(outputList);
+    config->setPrimaryOutput(primary);
     return config;
 }
 
@@ -111,16 +117,17 @@ void Parser::qvariant2qobject(const QVariantMap& variant, QObject* object)
     }
 }
 
-OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map)
+OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
 {
     OutputPtr output(new Output);
     output->setId(map[QStringLiteral("id")].toInt());
     output->set_name(map[QStringLiteral("name")].toString().toStdString());
     output->set_description(map[QStringLiteral("description")].toString().toStdString());
     output->setEnabled(map[QStringLiteral("enabled")].toBool());
-    output->setPrimary(map[QStringLiteral("primary")].toBool());
     output->setIcon(map[QStringLiteral("icon")].toString());
     output->setRotation((Output::Rotation)map[QStringLiteral("rotation")].toInt());
+
+    primary = map[QStringLiteral("primary")].toBool();
 
     QStringList preferredModes;
     const QVariantList prefModes = map[QStringLiteral("preferredModes")].toList();

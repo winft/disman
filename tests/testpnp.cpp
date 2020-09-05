@@ -115,6 +115,10 @@ void TestPnp::print()
     qDebug() << "\tminSize:" << m_config->screen()->minSize();
     qDebug() << "\tcurrentSize:" << m_config->screen()->currentSize();
 
+    qDebug() << "Primary:"
+             << (m_config->primaryOutput() ? std::to_string(m_config->primaryOutput()->id()).c_str()
+                                           : "none");
+
     const OutputList outputs = m_config->outputs();
     Q_FOREACH (const OutputPtr& output, outputs) {
         qDebug() << "\n-----------------------------------------------------\n";
@@ -122,7 +126,6 @@ void TestPnp::print()
         qDebug() << "Name: " << output->name().c_str();
         qDebug() << "Type: " << typetoString(output->type());
         qDebug() << "Enabled: " << output->isEnabled();
-        qDebug() << "Primary: " << output->isPrimary();
         qDebug() << "Rotation: " << output->rotation();
         qDebug() << "Pos: " << output->position();
         qDebug() << "MMSize: " << output->sizeMm();

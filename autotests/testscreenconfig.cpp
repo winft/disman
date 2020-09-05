@@ -92,6 +92,9 @@ void testScreenConfig::singleOutput()
     const OutputPtr output = config->outputs().take(1);
     QVERIFY(!output.isNull());
 
+    QVERIFY(config->primaryOutput());
+    QCOMPARE(config->primaryOutput()->id(), output->id());
+
     QCOMPARE(output->name(), "LVDS1");
     QCOMPARE(output->type(), Output::Panel);
     QCOMPARE(output->modes().count(), 3);
@@ -102,7 +105,6 @@ void testScreenConfig::singleOutput()
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.0);
     QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), true);
     // QCOMPARE(output->isEmbedded(), true);
 
     const ModePtr mode = output->auto_mode();
@@ -141,6 +143,9 @@ void testScreenConfig::multiOutput()
     const OutputPtr output = config->outputs().take(2);
     QVERIFY(!output.isNull());
 
+    QVERIFY(config->primaryOutput());
+    QVERIFY(config->primaryOutput()->id() != output->id());
+
     QCOMPARE(output->name(), "HDMI1");
     QCOMPARE(output->type(), Output::HDMI);
     QCOMPARE(output->modes().count(), 4);
@@ -151,7 +156,6 @@ void testScreenConfig::multiOutput()
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.4);
     QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), false);
 
     const ModePtr mode = output->auto_mode();
     QVERIFY(!mode.isNull());

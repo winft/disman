@@ -59,8 +59,8 @@ private:
     void setPrimaryOutput(xcb_randr_output_t outputId) const;
 
     bool disableOutput(const Disman::OutputPtr& output) const;
-    bool enableOutput(const Disman::OutputPtr& output) const;
-    bool changeOutput(const Disman::OutputPtr& output) const;
+    bool enableOutput(const Disman::OutputPtr& output, bool primary) const;
+    bool changeOutput(const Disman::OutputPtr& output, bool primary) const;
 
     bool sendConfig(const Disman::OutputPtr& dismanOutput, XRandRCrtc* crtc) const;
 

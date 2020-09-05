@@ -64,6 +64,9 @@ QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr& config)
 
     obj[QLatin1String("origin")] = static_cast<int>(config->origin());
     obj[QLatin1String("features")] = static_cast<int>(config->supportedFeatures());
+    if (auto primary = config->primaryOutput()) {
+        obj[QLatin1String("primary-output")] = primary->id();
+    }
 
     QJsonArray outputs;
     Q_FOREACH (const OutputPtr& output, config->outputs()) {
@@ -100,7 +103,6 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("preferredModes")] = serializeList(output->preferredModes());
     obj[QLatin1String("followPreferredMode")] = output->followPreferredMode();
     obj[QLatin1String("enabled")] = output->isEnabled();
-    obj[QLatin1String("primary")] = output->isPrimary();
     obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
     obj[QLatin1String("replicationSource")] = output->replicationSource();
     obj[QLatin1String("auto_rotate")] = output->auto_rotate();
@@ -278,6 +280,15 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap& map)
         config->setOutputs(outputs);
     }
 
+    if (map.contains(QLatin1String("primary-output"))) {
+        auto const id = map[QStringLiteral("primary-output")].toInt();
+        auto output = config->output(id);
+        if (!output) {
+            return ConfigPtr();
+        }
+        config->setPrimaryOutput(output);
+    }
+
     if (map.contains(QLatin1String("screen"))) {
         const QDBusArgument& screenArg = map[QStringLiteral("screen")].value<QDBusArgument>();
         const Disman::ScreenPtr screen = deserializeScreen(screenArg);
@@ -336,8 +347,6 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->setFollowPreferredMode(value.toBool());
         } else if (key == QLatin1String("enabled")) {
             output->setEnabled(value.toBool());
-        } else if (key == QLatin1String("primary")) {
-            output->setPrimary(value.toBool());
         } else if (key == QLatin1String("replicationSource")) {
             output->setReplicationSource(value.toInt());
         } else if (key == QLatin1String("sizeMM")) {

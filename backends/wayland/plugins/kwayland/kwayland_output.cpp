@@ -91,7 +91,6 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
     output->setEnabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
-    output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->set_name(name().toStdString());
     output->set_description(name().toStdString());
     output->set_hash(name().toStdString());

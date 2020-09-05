@@ -282,7 +282,6 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
         cout << " "
              << (output->isEnabled() ? green + QLatin1String("enabled")
                                      : red + QLatin1String("disabled"));
-        cout << " " << (output->isPrimary() ? green + QLatin1String("primary") : QString());
         auto _type = typeString[output->type()];
         cout << " " << yellow << (_type.isEmpty() ? QStringLiteral("UnmappedOutputType") : _type);
         cout << blue << " Modes: " << cr;
@@ -304,10 +303,11 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
              << g.height() << " ";
         cout << yellow << "Scale: " << cr << output->scale() << " ";
         cout << yellow << "Rotation: " << cr << output->rotation() << " ";
-        if (output->isPrimary()) {
-            cout << blue << "primary";
-        }
         cout << cr << Qt::endl;
+    }
+
+    if (auto primary = config->primaryOutput()) {
+        cout << blue << "Primary:" << cr << primary->name().c_str() << Qt::endl;
     }
 }
 

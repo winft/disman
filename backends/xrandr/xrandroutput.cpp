@@ -490,7 +490,6 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
         }
         dismanOutput->setModes(dismanModes);
         dismanOutput->setPreferredModes(m_preferredModes);
-        dismanOutput->setPrimary(m_primary);
         dismanOutput->setEnabled(isEnabled());
         if (isEnabled()) {
             dismanOutput->setPosition(position());

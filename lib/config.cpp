@@ -44,26 +44,6 @@ public:
     {
     }
 
-    Disman::OutputPtr findPrimaryOutput() const
-    {
-        auto iter = std::find_if(
-            outputs.constBegin(), outputs.constEnd(), [](const Disman::OutputPtr& output) -> bool {
-                return output->isPrimary();
-            });
-        return iter == outputs.constEnd() ? Disman::OutputPtr() : iter.value();
-    }
-
-    void onPrimaryOutputChanged()
-    {
-        const Disman::OutputPtr output(qobject_cast<Disman::Output*>(sender()), [](void*) {});
-        Q_ASSERT(output);
-        if (output->isPrimary()) {
-            q->setPrimaryOutput(output);
-        } else {
-            q->setPrimaryOutput(findPrimaryOutput());
-        }
-    }
-
     OutputList::Iterator removeOutput(OutputList::Iterator iter)
     {
         if (iter == outputs.end()) {
@@ -222,13 +202,20 @@ ConfigPtr Config::clone() const
 {
     ConfigPtr newConfig(new Config(origin()));
     newConfig->d->screen = d->screen->clone();
+
     for (const OutputPtr& ourOutput : d->outputs) {
-        newConfig->addOutput(ourOutput->clone());
+        auto cloned_output = ourOutput->clone();
+        newConfig->addOutput(cloned_output);
+
+        if (d->primaryOutput == ourOutput) {
+            newConfig->setPrimaryOutput(cloned_output);
+        }
     }
-    newConfig->d->primaryOutput = newConfig->d->findPrimaryOutput();
+
     newConfig->setSupportedFeatures(supportedFeatures());
     newConfig->setTabletModeAvailable(tabletModeAvailable());
     newConfig->setTabletModeEngaged(tabletModeEngaged());
+
     return newConfig;
 }
 
@@ -307,38 +294,13 @@ OutputList Config::outputs() const
 
 OutputPtr Config::primaryOutput() const
 {
-    if (d->primaryOutput) {
-        return d->primaryOutput;
-    }
-
-    d->primaryOutput = d->findPrimaryOutput();
     return d->primaryOutput;
 }
 
 void Config::setPrimaryOutput(const OutputPtr& newPrimary)
 {
-    // Don't call primaryOutput(): at this point d->primaryOutput is either
-    // initialized, or we need to look for the primary anyway
     if (d->primaryOutput == newPrimary) {
         return;
-    }
-
-    //     qCDebug(DISMAN) << "Primary output changed from" << primaryOutput()
-    //                      << "(" << (primaryOutput().isNull() ? "none" : primaryOutput()->name())
-    //                      << ") to"
-    //                      << newPrimary << "(" << (newPrimary.isNull() ? "none" :
-    //                      newPrimary->name()) << ")";
-
-    for (OutputPtr& output : d->outputs) {
-        disconnect(output.data(),
-                   &Disman::Output::isPrimaryChanged,
-                   d,
-                   &Disman::Config::Private::onPrimaryOutputChanged);
-        output->setPrimary(output == newPrimary);
-        connect(output.data(),
-                &Disman::Output::isPrimaryChanged,
-                d,
-                &Disman::Config::Private::onPrimaryOutputChanged);
     }
 
     d->primaryOutput = newPrimary;
@@ -360,16 +322,8 @@ OutputPtr Config::replication_source(OutputPtr const& output)
 void Config::addOutput(const OutputPtr& output)
 {
     d->outputs.insert(output->id(), output);
-    connect(output.data(),
-            &Disman::Output::isPrimaryChanged,
-            d,
-            &Disman::Config::Private::onPrimaryOutputChanged);
 
     Q_EMIT outputAdded(output);
-
-    if (output->isPrimary()) {
-        setPrimaryOutput(output);
-    }
 }
 
 void Config::removeOutput(int outputId)
@@ -379,6 +333,7 @@ void Config::removeOutput(int outputId)
 
 void Config::setOutputs(const OutputList& outputs)
 {
+    auto primary = primaryOutput();
     for (auto iter = d->outputs.begin(), end = d->outputs.end(); iter != end;) {
         iter = d->removeOutput(iter);
         end = d->outputs.end();
@@ -386,6 +341,10 @@ void Config::setOutputs(const OutputList& outputs)
 
     for (const OutputPtr& output : outputs) {
         addOutput(output);
+        if (primary && primary->id() == output->id()) {
+            setPrimaryOutput(output);
+            primary = nullptr;
+        }
     }
 }
 
@@ -412,11 +371,19 @@ void Config::apply(const ConfigPtr& other)
 
     Q_FOREACH (const OutputPtr& otherOutput, other->d->outputs) {
         // Add new outputs
+        OutputPtr output;
+        auto primary = other->primaryOutput() && other->primaryOutput()->id() == otherOutput->id();
+
         if (!d->outputs.contains(otherOutput->id())) {
-            addOutput(otherOutput->clone());
+            output = otherOutput->clone();
+            addOutput(output);
         } else {
             // Update existing outputs
-            d->outputs[otherOutput->id()]->apply(otherOutput);
+            output = d->outputs[otherOutput->id()];
+            output->apply(otherOutput);
+        }
+        if (primary) {
+            setPrimaryOutput(output);
         }
     }
 
@@ -428,6 +395,9 @@ QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
 {
     if (config) {
         dbg << "Disman::Config(";
+        if (auto primary = config->primaryOutput()) {
+            dbg << "Primary:" << primary->id();
+        }
         const auto outputs = config->outputs();
         for (const auto& output : outputs) {
             dbg << Qt::endl << output;

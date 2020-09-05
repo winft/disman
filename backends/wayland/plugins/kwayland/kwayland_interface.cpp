@@ -171,11 +171,6 @@ void KWaylandInterface::updateConfig(Disman::ConfigPtr& config)
             dismanOutput = output->toDismanOutput();
             dismanOutputs.insert(dismanOutput->id(), dismanOutput);
         }
-        if (dismanOutput && m_outputMap.count() == 1) {
-            dismanOutput->setPrimary(true);
-        } else if (m_outputMap.count() > 1) {
-            // primaryScreen concept doesn't exist in Wayland, so we don't set one
-        }
         output->updateDismanOutput(dismanOutput);
     }
     config->setOutputs(dismanOutputs);

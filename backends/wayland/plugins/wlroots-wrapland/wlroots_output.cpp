@@ -114,7 +114,6 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
     output->setEnabled(m_head->enabled());
-    output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->set_name(m_head->name().toStdString());
     output->set_description(m_head->description().toStdString());
     output->set_hash(hash().toStdString());

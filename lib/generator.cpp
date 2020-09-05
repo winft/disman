@@ -207,7 +207,7 @@ void Generator::single_output(ConfigPtr const& config)
         return;
     }
 
-    output->setPrimary(true);
+    config->setPrimaryOutput(output);
     output->setPosition(QPointF(0, 0));
 }
 
@@ -237,6 +237,7 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
+    config->setPrimaryOutput(start_output);
     line_up(start_output, OutputList(), outputs, direction);
 }
 
@@ -247,6 +248,7 @@ void Generator::extend_derived(ConfigPtr const& config,
     OutputList old_outputs;
     OutputList new_outputs;
 
+    config->setPrimaryOutput(first);
     get_outputs_division(first, config, old_outputs, new_outputs);
     line_up(first, old_outputs, new_outputs, direction);
 }
@@ -285,7 +287,6 @@ void Generator::line_up(OutputPtr const& first,
                         OutputList const& new_outputs,
                         Extend_direction direction)
 {
-    first->setPrimary(true);
     first->setPosition(QPointF(0, 0));
 
     double globalWidth
@@ -331,7 +332,7 @@ void Generator::replicate_impl(const ConfigPtr& config)
     auto outputs = config->outputs();
 
     auto source = primary_impl(outputs, OutputList());
-    source->setPrimary(true);
+    config->setPrimaryOutput(source);
 
     if (m_derived) {
         replicate_derived(config, source);

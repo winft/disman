@@ -93,7 +93,6 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
     output->setEnabled(m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled);
-    output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
     output->set_name(m_device->name().toStdString());
     output->set_description(m_device->description().toStdString());
     output->set_hash(hash().toStdString());

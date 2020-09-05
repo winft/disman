@@ -135,19 +135,9 @@ void testWaylandBackend::verifyScreen()
 
 void testWaylandBackend::verifyOutputs()
 {
-    bool primaryFound = false;
-    Q_FOREACH (const Disman::OutputPtr op, m_config->outputs()) {
-        if (op->isPrimary()) {
-            primaryFound = true;
-        }
-    }
-    // qCDebug(DISMAN_WAYLAND) << "Primary found? " << primaryFound << m_config->outputs();
-    QVERIFY(primaryFound);
+    QVERIFY(!m_config->primaryOutput());
     QVERIFY(m_config->outputs().count());
     QCOMPARE(m_server->outputCount(), m_config->outputs().count());
-
-    Disman::OutputPtr primary = m_config->primaryOutput();
-    QVERIFY(primary->isEnabled());
 
     QList<int> ids;
     Q_FOREACH (const auto& output, m_config->outputs()) {
@@ -165,10 +155,6 @@ void testWaylandBackend::verifyOutputs()
 
 void testWaylandBackend::verifyModes()
 {
-    Disman::OutputPtr primary = m_config->primaryOutput();
-    QVERIFY(primary);
-    QVERIFY(primary->modes().count() > 0);
-
     Q_FOREACH (const auto& output, m_config->outputs()) {
         Q_FOREACH (auto mode, output->modes()) {
             QVERIFY(!mode->name().isEmpty());

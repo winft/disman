@@ -93,14 +93,7 @@ void testQScreenBackend::verifyScreen()
 
 void testQScreenBackend::verifyOutputs()
 {
-    bool primaryFound = false;
-    foreach (const Disman::OutputPtr& op, m_config->outputs()) {
-        if (op->isPrimary()) {
-            primaryFound = true;
-        }
-    }
-    qDebug() << "Primary found? " << primaryFound;
-    QVERIFY(primaryFound);
+    QVERIFY(m_config->primaryOutput());
     if (m_backend == QLatin1String("screen")) {
         QCOMPARE(m_config->outputs().count(), QGuiApplication::screens().count());
     }
@@ -162,7 +155,6 @@ void testQScreenBackend::commonUsagePattern()
     Q_FOREACH (const Disman::OutputPtr& output, outputs) {
         QVariantMap info;
         info[QStringLiteral("id")] = output->id();
-        info[QStringLiteral("primary")] = output->isPrimary();
         info[QStringLiteral("enabled")] = output->isEnabled();
         info[QStringLiteral("rotation")] = output->rotation();
 
