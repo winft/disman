@@ -140,7 +140,6 @@ private Q_SLOTS:
         output->setId(60);
         output->set_name("LVDS-0");
         output->setType(Disman::Output::Panel);
-        output->setIcon(QString());
         output->setModes(modes);
         output->setPosition(QPoint(1280, 0));
         output->setRotation(Disman::Output::None);
@@ -155,7 +154,6 @@ private Q_SLOTS:
         QCOMPARE(obj[QLatin1String("name")].toString(), QString::fromStdString(output->name()));
         QCOMPARE(static_cast<Disman::Output::Type>(obj[QLatin1String("type")].toInt()),
                  output->type());
-        QCOMPARE(obj[QLatin1String("icon")].toString(), output->icon());
         const QJsonArray arr = obj[QLatin1String("modes")].toArray();
         QCOMPARE(arr.size(), output->modes().size());
 

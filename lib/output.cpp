@@ -50,7 +50,6 @@ Output::Private::Private(const Private& other)
     , description(other.description)
     , hash(other.hash)
     , type(other.type)
-    , icon(other.icon)
     , replicationSource(other.replicationSource)
     , resolution(other.resolution)
     , refresh_rate(other.refresh_rate)
@@ -191,16 +190,6 @@ Output::Type Output::type() const
 void Output::setType(Type type)
 {
     d->type = type;
-}
-
-QString Output::icon() const
-{
-    return d->icon;
-}
-
-void Output::setIcon(const QString& icon)
-{
-    d->icon = icon;
 }
 
 ModePtr Output::mode(std::string const& id) const
@@ -476,7 +465,6 @@ void Output::apply(const OutputPtr& other)
     set_description(other->d->description);
     d->hash = other->d->hash;
     setType(other->d->type);
-    setIcon(other->d->icon);
     setPosition(other->geometry().topLeft());
     setRotation(other->d->rotation);
     setScale(other->d->scale);

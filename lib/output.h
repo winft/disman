@@ -29,7 +29,6 @@
 #include <QObject>
 #include <QPoint>
 #include <QSize>
-#include <QStringList>
 
 #include <string>
 
@@ -119,9 +118,6 @@ public:
 
     Type type() const;
     void setType(Type type);
-
-    QString icon() const;
-    void setIcon(const QString& icon);
 
     Q_INVOKABLE ModePtr mode(std::string const& id) const;
     ModePtr mode(QSize const& resolution, double refresh_rate) const;

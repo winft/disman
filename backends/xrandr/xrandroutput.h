@@ -90,7 +90,6 @@ private:
     XRandRConfig* m_config;
     xcb_randr_output_t m_id;
     QString m_name;
-    QString m_icon;
     mutable QByteArray m_edid;
 
     xcb_randr_connection_t m_connected;

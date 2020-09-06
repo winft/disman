@@ -95,7 +95,6 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("description")] = QString::fromStdString(output->description());
     obj[QLatin1String("hash")] = QString::fromStdString(output->hash());
     obj[QLatin1String("type")] = static_cast<int>(output->type());
-    obj[QLatin1String("icon")] = output->icon();
     obj[QLatin1String("position")] = serializePoint(output->position());
     obj[QLatin1String("scale")] = output->scale();
     obj[QLatin1String("rotation")] = static_cast<int>(output->rotation());
@@ -330,8 +329,6 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->set_hash_raw(value.toString().toStdString());
         } else if (key == QLatin1String("type")) {
             output->setType(static_cast<Output::Type>(value.toInt()));
-        } else if (key == QLatin1String("icon")) {
-            output->setIcon(value.toString());
         } else if (key == QLatin1String("position")) {
             output->setPosition(deserializePoint(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("scale")) {

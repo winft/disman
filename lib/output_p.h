@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <QRectF>
 #include <QScopedPointer>
-#include <QStringList>
 
 namespace Disman
 {
@@ -89,7 +88,6 @@ public:
     std::string description;
     std::string hash;
     Type type;
-    QString icon;
     ModeList modeList;
     int replicationSource;
 

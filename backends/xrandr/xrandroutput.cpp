@@ -261,7 +261,6 @@ void XRandROutput::init()
     m_name = QString::fromUtf8((const char*)xcb_randr_get_output_info_name(outputInfo.data()),
                                outputInfo->name_len);
     m_type = fetchOutputType(m_id, m_name);
-    m_icon = QString();
     m_connected = (xcb_randr_connection_t)outputInfo->connection;
     m_primary = (primary->output == m_id);
 
@@ -469,7 +468,6 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
     dismanOutput->set_name(m_name.toStdString());
     dismanOutput->set_description(description());
     dismanOutput->set_hash(this->hash());
-    dismanOutput->setIcon(m_icon);
 
     // Currently we do not set the edid since it messes with our control files.
     // TODO: Decide on a common principle for identifying outputs in Wayland and X11. EDID, name,

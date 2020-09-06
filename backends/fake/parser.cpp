@@ -124,7 +124,6 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
     output->set_name(map[QStringLiteral("name")].toString().toStdString());
     output->set_description(map[QStringLiteral("description")].toString().toStdString());
     output->setEnabled(map[QStringLiteral("enabled")].toBool());
-    output->setIcon(map[QStringLiteral("icon")].toString());
     output->setRotation((Output::Rotation)map[QStringLiteral("rotation")].toInt());
 
     primary = map[QStringLiteral("primary")].toBool();
