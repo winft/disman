@@ -19,15 +19,11 @@
  *************************************************************************************/
 #include "output_p.h"
 
-#include "abstractbackend.h"
-#include "backendmanager_p.h"
 #include "disman_debug.h"
 #include "mode.h"
 
 #include <QCryptographicHash>
 #include <QRect>
-#include <QScopedPointer>
-#include <QStringList>
 
 #include <sstream>
 
@@ -358,6 +354,11 @@ void Output::force_geometry(QRectF const& geo)
 QPointF Output::position() const
 {
     return d->position;
+}
+
+bool Output::isHorizontal() const
+{
+    return ((rotation() == Output::None) || (rotation() == Output::Inverted));
 }
 
 bool Output::isEnabled() const

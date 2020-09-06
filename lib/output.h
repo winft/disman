@@ -75,7 +75,7 @@ public:
     };
     Q_ENUM(Retention)
 
-    explicit Output();
+    Output();
     ~Output() override;
 
     OutputPtr clone() const;
@@ -119,7 +119,7 @@ public:
     Type type() const;
     void setType(Type type);
 
-    Q_INVOKABLE ModePtr mode(std::string const& id) const;
+    ModePtr mode(std::string const& id) const;
     ModePtr mode(QSize const& resolution, double refresh_rate) const;
 
     ModeList modes() const;
@@ -183,14 +183,11 @@ public:
 
     Rotation rotation() const;
     void setRotation(Rotation rotation);
+
     /**
-     * A comfortable function that returns true when output is not rotated
-     * or is rotated upside down.
+     * Helper that returns true when output is not rotated or is rotated upside down.
      */
-    Q_INVOKABLE inline bool isHorizontal() const
-    {
-        return ((rotation() == Output::None) || (rotation() == Output::Inverted));
-    }
+    bool isHorizontal() const;
 
     bool isEnabled() const;
     void setEnabled(bool enabled);
