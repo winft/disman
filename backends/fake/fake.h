@@ -41,11 +41,11 @@ public:
     void init(const QVariantMap& arguments) override;
 
     QString name() const override;
-    QString serviceName() const override;
+    QString service_name() const override;
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr& config) override;
+    void set_config(const Disman::ConfigPtr& config) override;
     QByteArray edid(int outputId) const override;
-    bool isValid() const override;
+    bool valid() const override;
 
     void setEnabled(int outputId, bool enabled);
     void setPrimary(int outputId, bool primary);

@@ -27,7 +27,7 @@
         {
             "id" : 3,
             "name" : "128000x80000",
-            "refreshRate" : 59.9,
+            "refresh" : 59.9,
             "size" : {
                 "width" : 128000,
                 "height" : 80000
@@ -36,7 +36,7 @@
         {
             "id" : 42,
             "name" : "1280x800",
-            "refreshRate" : 59.9,
+            "refresh" : 59.9,
             "size" : {
                 "width" : 1280,
                 "height" : 800
@@ -45,7 +45,7 @@
         {
             "id" : 2,
             "name" : "1024x768",
-            "refreshRate" : 59.9,
+            "refresh" : 59.9,
             "size" : {
                 "width" : 1024,
                 "height" : 768
@@ -54,7 +54,7 @@
         {
             "id" : 1,
             "name" : "800x600",
-            "refreshRate" : 60,
+            "refresh" : 60,
             "size" : {
                 "width" : 800,
                 "height" : 600

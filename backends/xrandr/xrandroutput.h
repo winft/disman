@@ -54,7 +54,7 @@ public:
 
     xcb_randr_output_t id() const;
 
-    bool isEnabled() const;
+    bool enabled() const;
     bool isConnected() const;
     bool isPrimary() const;
 

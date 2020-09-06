@@ -29,13 +29,13 @@ QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
 
 QScreenBackend::QScreenBackend()
     : Disman::AbstractBackend()
-    , m_isValid(true)
+    , m_valid(true)
     , m_filer_controller{new Filer_controller}
 {
     if (s_internalConfig == nullptr) {
         s_internalConfig = new QScreenConfig();
-        connect(s_internalConfig, &QScreenConfig::configChanged, this, [this] {
-            Q_EMIT configChanged(config());
+        connect(s_internalConfig, &QScreenConfig::config_changed, this, [this] {
+            Q_EMIT config_changed(config());
         });
     }
 }
@@ -49,7 +49,7 @@ QString QScreenBackend::name() const
     return QStringLiteral("QScreen");
 }
 
-QString QScreenBackend::serviceName() const
+QString QScreenBackend::service_name() const
 {
     return QStringLiteral("org.kde.Disman.Backend.QScreen");
 }
@@ -65,7 +65,7 @@ ConfigPtr QScreenBackend::config() const
     return config;
 }
 
-void QScreenBackend::setConfig(const ConfigPtr& config)
+void QScreenBackend::set_config(const ConfigPtr& config)
 {
     if (!config) {
         return;
@@ -76,7 +76,7 @@ void QScreenBackend::setConfig(const ConfigPtr& config)
     qWarning() << "You can force another backend using the DISMAN_BACKEND env var.";
 }
 
-bool QScreenBackend::isValid() const
+bool QScreenBackend::valid() const
 {
-    return m_isValid;
+    return m_valid;
 }

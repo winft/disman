@@ -113,13 +113,13 @@ QString modeName(const Wl::WlrOutputModeV1* mode)
 void WlrootsOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
-    output->setEnabled(m_head->enabled());
+    output->set_enabled(m_head->enabled());
     output->set_name(m_head->name().toStdString());
     output->set_description(m_head->description().toStdString());
     output->set_hash(hash().toStdString());
-    output->setSizeMm(m_head->physicalSize());
-    output->setPosition(m_head->position());
-    output->setRotation(s_rotationMap[m_head->transform()]);
+    output->set_physical_size(m_head->physicalSize());
+    output->set_position(m_head->position());
+    output->set_rotation(s_rotationMap[m_head->transform()]);
 
     ModeList modeList;
     std::vector<std::string> preferredModeIds;
@@ -135,12 +135,12 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
 
         ModePtr mode(new Mode());
 
-        mode->setId(modeId);
+        mode->set_id(modeId);
 
         // Wrapland gives the refresh rate as int in mHz.
-        mode->setRefreshRate(wlMode->refresh() / 1000.0);
-        mode->setSize(wlMode->size());
-        mode->setName(modeName(wlMode).toStdString());
+        mode->set_refresh(wlMode->refresh() / 1000.0);
+        mode->set_size(wlMode->size());
+        mode->set_name(modeName(wlMode).toStdString());
 
         if (wlMode->preferred()) {
             preferredModeIds.push_back(modeId);
@@ -156,8 +156,8 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
         modeList[modeId] = mode;
     }
 
-    output->setPreferredModes(preferredModeIds);
-    output->setModes(modeList);
+    output->set_preferred_modes(preferredModeIds);
+    output->set_modes(modeList);
 
     if (current_mode.isNull()) {
         qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
@@ -167,11 +167,11 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
-        auto success = output->set_refresh_rate(current_mode->refreshRate());
+        auto success = output->set_refresh_rate(current_mode->refresh());
         assert(success);
     }
 
-    output->setScale(m_head->scale());
+    output->set_scale(m_head->scale());
     output->setType(guessType(m_head->name(), m_head->name()));
 }
 
@@ -181,12 +181,12 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     bool changed = false;
 
     // enabled?
-    if (m_head->enabled() != output->isEnabled()) {
+    if (m_head->enabled() != output->enabled()) {
         changed = true;
     }
 
     // In any case set the enabled state to initialize the output's native handle.
-    wlConfig->setEnabled(m_head, output->isEnabled());
+    wlConfig->setEnabled(m_head, output->enabled());
 
     // position
     if (m_head->position() != output->position()) {

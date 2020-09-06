@@ -55,11 +55,11 @@ void QScreenScreen::updateDismanScreen(ScreenPtr& screen) const
     if (primary) {
         QSize _s = primary->availableVirtualGeometry().size();
 
-        screen->setCurrentSize(_s);
-        screen->setId(1);
-        screen->setMaxSize(_s);
-        screen->setMinSize(_s);
-        screen->setCurrentSize(_s);
-        screen->setMaxActiveOutputsCount(QGuiApplication::screens().count());
+        screen->set_current_size(_s);
+        screen->set_id(1);
+        screen->set_max_size(_s);
+        screen->set_min_size(_s);
+        screen->set_current_size(_s);
+        screen->set_max_outputs_count(QGuiApplication::screens().count());
     }
 }

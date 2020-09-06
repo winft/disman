@@ -34,7 +34,7 @@ const static QString cr = QStringLiteral("\033[0;0m");
 namespace Disman::ConfigSerializer
 {
 // Exported private symbol in configserializer_p.h in Disman
-extern QJsonObject serializeConfig(const Disman::ConfigPtr& config);
+extern QJsonObject serialize_config(const Disman::ConfigPtr& config);
 }
 
 namespace Disman::Ctl
@@ -95,10 +95,10 @@ void Doctor::showBackends() const
     cout << "  * DISMAN_LOGGING       : " << env_disman_logging << Qt::endl;
 
     cout << "Logging to               : "
-         << (Log::instance()->enabled() ? Log::instance()->logFile()
+         << (Log::instance()->enabled() ? Log::instance()->file()
                                         : QStringLiteral("[logging disabled]"))
          << Qt::endl;
-    auto backends = BackendManager::instance()->listBackends();
+    auto backends = BackendManager::instance()->list_backends();
     auto preferred = BackendManager::instance()->preferred_backend();
     cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << Qt::endl;
     cout << "Available Disman backends:" << Qt::endl;
@@ -224,7 +224,7 @@ void Doctor::parsePositionalArgs()
 
 void Doctor::configReceived(Disman::ConfigOperation* op)
 {
-    if (op->hasError()) {
+    if (op->has_error()) {
         qCWarning(DISMAN_CTL) << "Received initial config has error.";
         qApp->exit(1);
     }
@@ -280,8 +280,8 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
     for (auto const& output : config->outputs()) {
         cout << green << "Output: " << cr << output->id() << " " << output->name().c_str();
         cout << " "
-             << (output->isEnabled() ? green + QLatin1String("enabled")
-                                     : red + QLatin1String("disabled"));
+             << (output->enabled() ? green + QLatin1String("enabled")
+                                   : red + QLatin1String("disabled"));
         auto _type = typeString[output->type()];
         cout << " " << yellow << (_type.isEmpty() ? QStringLiteral("UnmappedOutputType") : _type);
         cout << blue << " Modes: " << cr;
@@ -289,7 +289,7 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
             auto name = QStringLiteral("%1x%2@%3")
                             .arg(QString::number(mode->size().width()),
                                  QString::number(mode->size().height()),
-                                 QString::number(qRound(mode->refreshRate())));
+                                 QString::number(qRound(mode->refresh())));
             if (mode == output->auto_mode()) {
                 name = green + name + QLatin1Char('*') + cr;
             }
@@ -306,14 +306,14 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
         cout << cr << Qt::endl;
     }
 
-    if (auto primary = config->primaryOutput()) {
+    if (auto primary = config->primary_output()) {
         cout << blue << "Primary:" << cr << primary->name().c_str() << Qt::endl;
     }
 }
 
 void Doctor::showJson() const
 {
-    QJsonDocument doc(Disman::ConfigSerializer::serializeConfig(m_config));
+    QJsonDocument doc(Disman::ConfigSerializer::serialize_config(m_config));
     cout << doc.toJson(QJsonDocument::Indented);
 }
 
@@ -327,7 +327,7 @@ bool Doctor::setEnabled(int id, bool enabled = true)
     for (auto const& output : m_config->outputs()) {
         if (output->id() == id) {
             cout << (enabled ? "Enabling " : "Disabling ") << "output " << id << Qt::endl;
-            output->setEnabled(enabled);
+            output->set_enabled(enabled);
             m_changed = true;
             return true;
         }
@@ -347,7 +347,7 @@ bool Doctor::setPosition(int id, const QPoint& pos)
     for (auto const& output : m_config->outputs()) {
         if (output->id() == id) {
             qCDebug(DISMAN_CTL) << "Set output position" << pos;
-            output->setPosition(pos);
+            output->set_position(pos);
             m_changed = true;
             return true;
         }
@@ -370,7 +370,7 @@ bool Doctor::setMode(int id, std::string const& mode_id)
                 auto name = QStringLiteral("%1x%2@%3")
                                 .arg(QString::number(mode->size().width()),
                                      QString::number(mode->size().height()),
-                                     QString::number(qRound(mode->refreshRate())));
+                                     QString::number(qRound(mode->refresh())));
                 if (mode->id() == mode_id || name.toStdString() == mode_id) {
                     qCDebug(DISMAN_CTL) << "Taddaaa! Found mode" << mode->id().c_str() << name;
                     output->set_mode(mode);
@@ -393,7 +393,7 @@ bool Doctor::setScale(int id, qreal scale)
 
     for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
-            output->setScale(scale);
+            output->set_scale(scale);
             m_changed = true;
             return true;
         }
@@ -411,7 +411,7 @@ bool Doctor::setRotation(int id, Disman::Output::Rotation rot)
 
     for (auto& output : m_config->outputs()) {
         if (output->id() == id) {
-            output->setRotation(rot);
+            output->set_rotation(rot);
             m_changed = true;
             return true;
         }

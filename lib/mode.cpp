@@ -68,7 +68,7 @@ std::string Mode::id() const
     return d->id;
 }
 
-void Mode::setId(std::string const& id)
+void Mode::set_id(std::string const& id)
 {
     if (d->id == id) {
         return;
@@ -82,7 +82,7 @@ std::string Mode::name() const
     return d->name;
 }
 
-void Mode::setName(std::string const& name)
+void Mode::set_name(std::string const& name)
 {
     if (d->name == name) {
         return;
@@ -96,7 +96,7 @@ QSize Mode::size() const
     return d->size;
 }
 
-void Mode::setSize(const QSize& size)
+void Mode::set_size(const QSize& size)
 {
     if (d->size == size) {
         return;
@@ -105,12 +105,12 @@ void Mode::setSize(const QSize& size)
     d->size = size;
 }
 
-double Mode::refreshRate() const
+double Mode::refresh() const
 {
     return d->rate;
 }
 
-void Mode::setRefreshRate(double refresh)
+void Mode::set_refresh(double refresh)
 {
     if (qFuzzyCompare(d->rate, refresh)) {
         return;
@@ -125,7 +125,7 @@ QDebug operator<<(QDebug dbg, const Disman::ModePtr& mode)
 {
     if (mode) {
         dbg << "Disman::Mode(Id:" << mode->id().c_str() << ", Size:" << mode->size() << "@"
-            << mode->refreshRate() << ")";
+            << mode->refresh() << ")";
     } else {
         dbg << "Disman::Mode(NULL)";
     }

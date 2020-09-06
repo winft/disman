@@ -92,13 +92,13 @@ void KwinftOutput::createOutputDevice(Wl::Registry* registry, quint32 name, quin
 void KwinftOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
-    output->setEnabled(m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled);
+    output->set_enabled(m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled);
     output->set_name(m_device->name().toStdString());
     output->set_description(m_device->description().toStdString());
     output->set_hash(hash().toStdString());
-    output->setSizeMm(m_device->physicalSize());
-    output->setPosition(m_device->geometry().topLeft());
-    output->setRotation(s_rotationMap[m_device->transform()]);
+    output->set_physical_size(m_device->physicalSize());
+    output->set_position(m_device->geometry().topLeft());
+    output->set_rotation(s_rotationMap[m_device->transform()]);
 
     ModeList modeList;
 
@@ -120,12 +120,12 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
         if (m_modeIdMap.find(modeId) != m_modeIdMap.end()) {
             qCWarning(DISMAN_WAYLAND) << "Mode id already in use:" << modeId.c_str();
         }
-        mode->setId(modeId);
+        mode->set_id(modeId);
 
         // Wrapland gives the refresh rate as int in mHz
-        mode->setRefreshRate(wlMode.refreshRate / 1000.0);
-        mode->setSize(wlMode.size);
-        mode->setName(name);
+        mode->set_refresh(wlMode.refreshRate / 1000.0);
+        mode->set_size(wlMode.size);
+        mode->set_name(name);
 
         if (wlMode == m_device->currentMode()) {
             current_mode = mode;
@@ -140,8 +140,8 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
         modeList[modeId] = mode;
     }
 
-    output->setPreferredModes(preferredModeIds);
-    output->setModes(modeList);
+    output->set_preferred_modes(preferredModeIds);
+    output->set_modes(modeList);
 
     if (current_mode.isNull()) {
         qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
@@ -151,7 +151,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
-        auto success = output->set_refresh_rate(current_mode->refreshRate());
+        auto success = output->set_refresh_rate(current_mode->refresh());
         if (!success) {
             qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
         }
@@ -165,10 +165,10 @@ bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1* wlConfig, const Disman
     bool changed = false;
 
     // enabled?
-    if ((m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled) != output->isEnabled()) {
+    if ((m_device->enabled() == Wl::OutputDeviceV1::Enablement::Enabled) != output->enabled()) {
         changed = true;
-        const auto enablement = output->isEnabled() ? Wl::OutputDeviceV1::Enablement::Enabled
-                                                    : Wl::OutputDeviceV1::Enablement::Disabled;
+        const auto enablement = output->enabled() ? Wl::OutputDeviceV1::Enablement::Enabled
+                                                  : Wl::OutputDeviceV1::Enablement::Disabled;
         wlConfig->setEnabled(m_device, enablement);
     }
 

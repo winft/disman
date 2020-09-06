@@ -59,8 +59,8 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
         }
     }
 
-    config->setOutputs(outputList);
-    config->setPrimaryOutput(primary);
+    config->set_outputs(outputList);
+    config->set_primary_output(primary);
     return config;
 }
 
@@ -79,11 +79,11 @@ ConfigPtr Parser::fromJson(const QString& path)
 ScreenPtr Parser::screenFromJson(const QVariantMap& data)
 {
     ScreenPtr screen(new Screen);
-    screen->setId(data[QStringLiteral("id")].toInt());
-    screen->setMinSize(Parser::sizeFromJson(data[QStringLiteral("minSize")].toMap()));
-    screen->setMaxSize(Parser::sizeFromJson(data[QStringLiteral("maxSize")].toMap()));
-    screen->setCurrentSize(Parser::sizeFromJson(data[QStringLiteral("currentSize")].toMap()));
-    screen->setMaxActiveOutputsCount(data[QStringLiteral("maxActiveOutputsCount")].toInt());
+    screen->set_id(data[QStringLiteral("id")].toInt());
+    screen->set_min_size(Parser::sizeFromJson(data[QStringLiteral("minSize")].toMap()));
+    screen->set_max_size(Parser::sizeFromJson(data[QStringLiteral("maxSize")].toMap()));
+    screen->set_current_size(Parser::sizeFromJson(data[QStringLiteral("currentSize")].toMap()));
+    screen->set_max_outputs_count(data[QStringLiteral("maxActiveOutputsCount")].toInt());
 
     return screen;
 }
@@ -120,11 +120,11 @@ void Parser::qvariant2qobject(const QVariantMap& variant, QObject* object)
 OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
 {
     OutputPtr output(new Output);
-    output->setId(map[QStringLiteral("id")].toInt());
+    output->set_id(map[QStringLiteral("id")].toInt());
     output->set_name(map[QStringLiteral("name")].toString().toStdString());
     output->set_description(map[QStringLiteral("description")].toString().toStdString());
-    output->setEnabled(map[QStringLiteral("enabled")].toBool());
-    output->setRotation((Output::Rotation)map[QStringLiteral("rotation")].toInt());
+    output->set_enabled(map[QStringLiteral("enabled")].toBool());
+    output->set_rotation((Output::Rotation)map[QStringLiteral("rotation")].toInt());
 
     primary = map[QStringLiteral("primary")].toBool();
 
@@ -133,7 +133,7 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
     Q_FOREACH (const QVariant& mode, prefModes) {
         preferredModes.push_back(mode.toString().toStdString());
     }
-    output->setPreferredModes(preferredModes);
+    output->set_preferred_modes(preferredModes);
     map.remove(QStringLiteral("preferredModes"));
 
     ModeList modelist;
@@ -142,7 +142,7 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
         const ModePtr mode = Parser::modeFromJson(modeValue);
         modelist.insert({mode->id(), mode});
     }
-    output->setModes(modelist);
+    output->set_modes(modelist);
     map.remove(QStringLiteral("modes"));
 
     if (!map[QStringLiteral("currentModeId")].toString().isEmpty()) {
@@ -190,14 +190,14 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
     map.remove(QStringLiteral("type"));
 
     if (map.contains(QStringLiteral("pos"))) {
-        output->setPosition(Parser::pointFromJson(map[QStringLiteral("pos")].toMap()));
+        output->set_position(Parser::pointFromJson(map[QStringLiteral("pos")].toMap()));
         map.remove(QStringLiteral("pos"));
     }
 
     auto scale = QStringLiteral("scale");
     if (map.contains(scale)) {
         qDebug() << "Scale found:" << map[scale].toReal();
-        output->setScale(map[scale].toReal());
+        output->set_scale(map[scale].toReal());
         map.remove(scale);
     }
 
@@ -213,10 +213,10 @@ ModePtr Parser::modeFromJson(const QVariant& data)
     const QVariantMap map = data.toMap();
     ModePtr mode(new Mode);
 
-    mode->setId(map[QStringLiteral("id")].toString().toStdString());
-    mode->setName(map[QStringLiteral("name")].toString().toStdString());
-    mode->setRefreshRate(map[QStringLiteral("refreshRate")].toDouble());
-    mode->setSize(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
+    mode->set_id(map[QStringLiteral("id")].toString().toStdString());
+    mode->set_name(map[QStringLiteral("name")].toString().toStdString());
+    mode->set_refresh(map[QStringLiteral("refresh")].toDouble());
+    mode->set_size(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
 
     return mode;
 }

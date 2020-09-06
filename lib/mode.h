@@ -38,16 +38,16 @@ public:
     ModePtr clone() const;
 
     std::string id() const;
-    void setId(std::string const& id);
+    void set_id(std::string const& id);
 
     std::string name() const;
-    void setName(std::string const& name);
+    void set_name(std::string const& name);
 
     QSize size() const;
-    void setSize(const QSize& size);
+    void set_size(const QSize& size);
 
-    double refreshRate() const;
-    void setRefreshRate(double refresh);
+    double refresh() const;
+    void set_refresh(double refresh);
 
 private:
     Q_DISABLE_COPY(Mode)

@@ -158,18 +158,18 @@ WaylandOutput* WlrootsInterface::takeOutput(WaylandOutput* output)
 
 void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
 {
-    config->setSupportedFeatures(Config::Feature::Writable | Config::Feature::PerOutputScaling);
-    config->setValid(m_connection->display());
+    config->set_supported_features(Config::Feature::Writable | Config::Feature::PerOutputScaling);
+    config->set_valid(m_connection->display());
 
     // Removing removed outputs
     const Disman::OutputList outputs = config->outputs();
     for (const auto& output : outputs) {
         if (!m_outputMap.contains(output->id())) {
-            config->removeOutput(output->id());
+            config->remove_output(output->id());
         }
     }
 
-    // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
+    // Add Disman::Outputs that aren't in the list yet.
     Disman::OutputList dismanOutputs = config->outputs();
     for (const auto& output : m_outputMap) {
         Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
@@ -180,7 +180,7 @@ void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
             output->updateDismanOutput(dismanOutput);
         }
     }
-    config->setOutputs(dismanOutputs);
+    config->set_outputs(dismanOutputs);
 }
 
 QMap<int, WaylandOutput*> WlrootsInterface::outputMap() const
@@ -234,20 +234,20 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     }
 
     // We now block changes in order to compress events while the compositor is doing its thing
-    // once it's done or failed, we'll trigger configChanged() only once, and not per individual
+    // once it's done or failed, we'll trigger config_changed() only once, and not per individual
     // property change.
     connect(wlConfig, &WlrOutputConfigurationV1::succeeded, this, [this, wlConfig] {
         qCDebug(DISMAN_WAYLAND) << "Config applied successfully.";
         wlConfig->deleteLater();
         unblockSignals();
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
         tryPendingConfig();
     });
     connect(wlConfig, &WlrOutputConfigurationV1::failed, this, [this, wlConfig] {
         qCWarning(DISMAN_WAYLAND) << "Applying config failed.";
         wlConfig->deleteLater();
         unblockSignals();
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
         tryPendingConfig();
     });
     connect(wlConfig, &WlrOutputConfigurationV1::cancelled, this, [this, wlConfig] {
@@ -256,7 +256,7 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
         qCWarning(DISMAN_WAYLAND) << "Applying config failed.";
         wlConfig->deleteLater();
         unblockSignals();
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
         tryPendingConfig();
     });
 

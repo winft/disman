@@ -46,11 +46,11 @@ public:
     ~WaylandBackend() override;
 
     QString name() const override;
-    QString serviceName() const override;
-    bool isValid() const override;
+    QString service_name() const override;
+    bool valid() const override;
 
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr& config) override;
+    void set_config(const Disman::ConfigPtr& config) override;
 
     QByteArray edid(int outputId) const override;
 

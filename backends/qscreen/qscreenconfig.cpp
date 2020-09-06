@@ -65,11 +65,11 @@ void QScreenConfig::screenAdded(const QScreen* qscreen)
 {
     qCDebug(DISMAN_QSCREEN) << "Screen added" << qscreen << qscreen->name();
     QScreenOutput* qscreenoutput = new QScreenOutput(qscreen, this);
-    qscreenoutput->setId(outputId(qscreen));
+    qscreenoutput->set_id(outputId(qscreen));
     m_outputMap.insert(qscreenoutput->id(), qscreenoutput);
 
     if (!m_blockSignals) {
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
     }
 }
 
@@ -85,7 +85,7 @@ void QScreenConfig::screenRemoved(QScreen* qscreen)
             delete output;
         }
     }
-    Q_EMIT configChanged();
+    Q_EMIT config_changed();
 }
 
 void QScreenConfig::update_config(ConfigPtr& config) const
@@ -96,7 +96,7 @@ void QScreenConfig::update_config(ConfigPtr& config) const
     Disman::OutputList outputs = config->outputs();
     Q_FOREACH (const Disman::OutputPtr& output, outputs) {
         if (!m_outputMap.contains(output->id())) {
-            config->removeOutput(output->id());
+            config->remove_output(output->id());
         }
     }
 
@@ -111,10 +111,10 @@ void QScreenConfig::update_config(ConfigPtr& config) const
         }
         output->updateDismanOutput(dismanOutput);
         if (QGuiApplication::primaryScreen() == output->qscreen()) {
-            config->setPrimaryOutput(dismanOutput);
+            config->set_primary_output(dismanOutput);
         }
     }
-    config->setOutputs(dismanOutputs);
+    config->set_outputs(dismanOutputs);
 }
 
 QMap<int, QScreenOutput*> QScreenConfig::outputMap() const

@@ -68,7 +68,7 @@ void TestLog::testContext()
     auto log = Log::instance();
     QString ctx = QStringLiteral("context text");
     QVERIFY(log != nullptr);
-    log->setContext(ctx);
+    log->set_context(ctx);
     QCOMPARE(log->context(), ctx);
 
     delete log;
@@ -80,21 +80,21 @@ void TestLog::testEnabled()
 
     auto log = Log::instance();
     QCOMPARE(log->enabled(), false);
-    QCOMPARE(log->logFile(), QString());
+    QCOMPARE(log->file(), QString());
 
     delete log;
     qunsetenv(DISMAN_LOGGING);
 
     log = Log::instance();
     QCOMPARE(log->enabled(), false);
-    QCOMPARE(log->logFile(), QString());
+    QCOMPARE(log->file(), QString());
 
     delete log;
     qputenv(DISMAN_LOGGING, QByteArray("truE"));
 
     log = Log::instance();
     QCOMPARE(log->enabled(), true);
-    QCOMPARE(log->logFile(), m_defaultLogFile);
+    QCOMPARE(log->file(), m_defaultLogFile);
 
     delete log;
 }

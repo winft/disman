@@ -63,9 +63,9 @@ public:
             if (resolution != mode->size()) {
                 continue;
             }
-            if (best_refresh < mode->refreshRate()) {
+            if (best_refresh < mode->refresh()) {
                 best_mode = mode;
-                best_refresh = mode->refreshRate();
+                best_refresh = mode->refresh();
             }
         }
 
@@ -89,21 +89,21 @@ public:
     std::string hash;
     Type type;
     ModeList modeList;
-    int replicationSource;
+    int replication_source;
 
     QSize resolution;
     double refresh_rate{0};
 
     std::string preferredMode;
-    std::vector<std::string> preferredModes;
-    QSize sizeMm;
+    std::vector<std::string> preferred_modes;
+    QSize physical_size;
     QPointF position;
     QRectF enforced_geometry;
     Rotation rotation;
     qreal scale;
     bool enabled;
     bool primary;
-    bool followPreferredMode = false;
+    bool follow_preferred_mode = false;
 
     bool auto_resolution{false};
     bool auto_refresh_rate{false};

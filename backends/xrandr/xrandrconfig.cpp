@@ -106,7 +106,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
 {
     const Config::Features features = Config::Feature::Writable | Config::Feature::PrimaryDisplay
         | Config::Feature::OutputReplication;
-    config->setSupportedFeatures(features);
+    config->set_supported_features(features);
 
     Disman::OutputList dismanOutputs;
 
@@ -128,7 +128,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
         dismanOutputs.insert(dismanOutput->id(), dismanOutput);
     }
 
-    config->setOutputs(dismanOutputs);
+    config->set_outputs(dismanOutputs);
     config->setScreen(m_screen->toDismanScreen());
 
     return config;
@@ -166,7 +166,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     Disman::OutputList toDisable, toEnable, toChange;
 
     // Only set the output as primary if it is enabled.
-    if (auto primary = config->primaryOutput(); primary && primary->isEnabled()) {
+    if (auto primary = config->primary_output(); primary && primary->enabled()) {
         primaryOutput = primary->id();
     }
 
@@ -174,16 +174,16 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         xcb_randr_output_t outputId = dismanOutput->id();
         XRandROutput* currentOutput = output(outputId);
 
-        const bool currentEnabled = currentOutput->isEnabled();
+        const bool currentEnabled = currentOutput->enabled();
 
-        if (!dismanOutput->isEnabled() && currentEnabled) {
+        if (!dismanOutput->enabled() && currentEnabled) {
             toDisable.insert(outputId, dismanOutput);
             continue;
-        } else if (dismanOutput->isEnabled() && !currentEnabled) {
+        } else if (dismanOutput->enabled() && !currentEnabled) {
             toEnable.insert(outputId, dismanOutput);
             ++neededCrtcs;
             continue;
-        } else if (!dismanOutput->isEnabled() && !currentEnabled) {
+        } else if (!dismanOutput->enabled() && !currentEnabled) {
             continue;
         }
 
@@ -243,10 +243,10 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     }
 
     const Disman::ScreenPtr dismanScreen = config->screen();
-    if (newScreenSize.width() > dismanScreen->maxSize().width()
-        || newScreenSize.height() > dismanScreen->maxSize().height()) {
+    if (newScreenSize.width() > dismanScreen->max_size().width()
+        || newScreenSize.height() > dismanScreen->max_size().height()) {
         qCDebug(DISMAN_XRANDR) << "The new screen size is too big - requested: " << newScreenSize
-                               << ", maximum: " << dismanScreen->maxSize();
+                               << ", maximum: " << dismanScreen->max_size();
         return false;
     }
 
@@ -318,7 +318,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
             /* If we disabled the output before changing it and XRandR failed
              * to re-enable it, then update screen size too */
             if (toDisable.contains(output->id())) {
-                output->setEnabled(false);
+                output->set_enabled(false);
                 qCDebug(DISMAN_XRANDR) << "Output failed to change: " << output->name().c_str();
                 forceScreenSizeUpdate = true;
             }
@@ -363,13 +363,13 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
 
     qCDebug(DISMAN_XRANDR) << "Screen:"
                            << "\n"
-                           << "\tmaxSize:" << config->screen()->maxSize() << "\n"
-                           << "\tminSize:" << config->screen()->minSize() << "\n"
-                           << "\tcurrentSize:" << config->screen()->currentSize();
+                           << "\tmax_size:" << config->screen()->max_size() << "\n"
+                           << "\tmin_size:" << config->screen()->min_size() << "\n"
+                           << "\tcurrent_size:" << config->screen()->current_size();
 
     qCDebug(DISMAN_XRANDR) << "Primary output:"
-                           << (config->primaryOutput()
-                                   ? std::to_string(config->primaryOutput()->id()).c_str()
+                           << (config->primary_output()
+                                   ? std::to_string(config->primary_output()->id()).c_str()
                                    : "none");
 
     const OutputList outputs = config->outputs();
@@ -381,10 +381,10 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                << "Description: " << output->description().c_str() << "\n"
                                << "Type: " << output->type();
 
-        qCDebug(DISMAN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
+        qCDebug(DISMAN_XRANDR) << "Enabled: " << output->enabled() << "\n"
                                << "Rotation: " << output->rotation() << "\n"
                                << "Pos: " << output->position() << "\n"
-                               << "MMSize: " << output->sizeMm();
+                               << "Phyiscal size: " << output->physical_size();
         if (output->auto_mode()) {
             qCDebug(DISMAN_XRANDR) << "Size: " << output->auto_mode()->size();
         }
@@ -393,14 +393,14 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                << "Preferred Mode: " << output->preferred_mode()->id().c_str()
                                << "\n"
                                << "Preferred modes:";
-        for (auto const& mode_string : output->preferredModes()) {
+        for (auto const& mode_string : output->preferred_modes()) {
             qCDebug(DISMAN_XRANDR) << "\t" << mode_string.c_str();
         }
 
         qCDebug(DISMAN_XRANDR) << "Modes: ";
         for (auto const& [key, mode] : output->modes()) {
             qCDebug(DISMAN_XRANDR) << "\t" << mode->id().c_str() << "  " << mode->name().c_str()
-                                   << " " << mode->size() << " " << mode->refreshRate();
+                                   << " " << mode->size() << " " << mode->refresh();
         }
     }
 }
@@ -413,9 +413,9 @@ void XRandRConfig::printInternalCond() const
                                << "Current Mode: " << output->currentMode() << "\n"
                                << "Current mode id: " << output->currentModeId().c_str() << "\n"
                                << "Connected: " << output->isConnected() << "\n"
-                               << "Enabled: " << output->isEnabled() << "\n"
+                               << "Enabled: " << output->enabled() << "\n"
                                << "Primary: " << output->isPrimary();
-        if (!output->isEnabled()) {
+        if (!output->enabled()) {
             continue;
         }
 
@@ -432,7 +432,7 @@ QSize XRandRConfig::screenSize(const Disman::ConfigPtr& config) const
 {
     QRect rect;
     for (const Disman::OutputPtr& output : config->outputs()) {
-        if (!output->isEnabled()) {
+        if (!output->enabled()) {
             continue;
         }
 
@@ -463,7 +463,7 @@ bool XRandRConfig::setScreenSize(const QSize& size) const
                            << "\n"
                            << "\tDPI:" << dpi << "\n"
                            << "\tSize:" << size << "\n"
-                           << "\tSizeMM:" << QSize(widthMM, heightMM);
+                           << "\tPhysical size:" << QSize(widthMM, heightMM);
 
     xcb_randr_set_screen_size(
         XCB::connection(), XRandR::rootWindow(), size.width(), size.height(), widthMM, heightMM);

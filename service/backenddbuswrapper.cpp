@@ -33,7 +33,7 @@ BackendDBusWrapper::BackendDBusWrapper(Disman::AbstractBackend* backend)
     , mBackend(backend)
 {
     connect(mBackend,
-            &Disman::AbstractBackend::configChanged,
+            &Disman::AbstractBackend::config_changed,
             this,
             &BackendDBusWrapper::backendConfigChanged);
 
@@ -70,7 +70,7 @@ QVariantMap BackendDBusWrapper::getConfig() const
         return QVariantMap();
     }
 
-    const QJsonObject obj = Disman::ConfigSerializer::serializeConfig(mBackend->config());
+    const QJsonObject obj = Disman::ConfigSerializer::serialize_config(mBackend->config());
     Q_ASSERT(!obj.isEmpty());
     return obj.toVariantMap();
 }
@@ -82,14 +82,14 @@ QVariantMap BackendDBusWrapper::setConfig(const QVariantMap& configMap)
         return QVariantMap();
     }
 
-    const Disman::ConfigPtr config = Disman::ConfigSerializer::deserializeConfig(configMap);
-    mBackend->setConfig(config);
+    const Disman::ConfigPtr config = Disman::ConfigSerializer::deserialize_config(configMap);
+    mBackend->set_config(config);
 
     mCurrentConfig = mBackend->config();
     QMetaObject::invokeMethod(this, "doEmitConfigChanged", Qt::QueuedConnection);
 
-    // TODO: setConfig should return adjusted config that was actually applied
-    const QJsonObject obj = Disman::ConfigSerializer::serializeConfig(mCurrentConfig);
+    // TODO: set_config should return adjusted config that was actually applied
+    const QJsonObject obj = Disman::ConfigSerializer::serialize_config(mCurrentConfig);
     Q_ASSERT(!obj.isEmpty());
     return obj.toVariantMap();
 }
@@ -123,7 +123,7 @@ void BackendDBusWrapper::doEmitConfigChanged()
         return;
     }
 
-    const QJsonObject obj = Disman::ConfigSerializer::serializeConfig(mCurrentConfig);
+    const QJsonObject obj = Disman::ConfigSerializer::serialize_config(mCurrentConfig);
     Q_EMIT configChanged(obj.toVariantMap());
 
     mCurrentConfig.clear();

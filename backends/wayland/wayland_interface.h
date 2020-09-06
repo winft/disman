@@ -50,7 +50,7 @@ public:
     virtual void updateConfig(Disman::ConfigPtr& config) = 0;
 
 Q_SIGNALS:
-    void configChanged();
+    void config_changed();
     void initialized();
     void connectionFailed(const QString& socketName);
     void outputsChanged();
@@ -75,7 +75,7 @@ private:
 
     /**
      * Finalize: when the output is is initialized, we put it in the known outputs map,
-     * remove it from the list of initializing outputs, and emit configChanged().
+     * remove it from the list of initializing outputs, and emit config_changed().
      */
     virtual void initOutput(WaylandOutput* output);
 

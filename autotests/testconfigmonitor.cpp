@@ -43,7 +43,7 @@ public:
     {
         auto op = new Disman::GetConfigOperation();
         if (!op->exec()) {
-            qWarning("Failed to retrieve backend: %s", qPrintable(op->errorString()));
+            qWarning("Failed to retrieve backend: %s", qPrintable(op->error_string()));
             return Disman::ConfigPtr();
         }
 
@@ -57,44 +57,44 @@ private Q_SLOTS:
         qputenv("DISMAN_BACKEND", "fake");
         // This particular test is only useful for out of process operation, so enforce that
         qputenv("DISMAN_IN_PROCESS", "0");
-        Disman::BackendManager::instance()->shutdownBackend();
+        Disman::BackendManager::instance()->shutdown_backend();
     }
 
     void cleanupTestCase()
     {
-        Disman::BackendManager::instance()->shutdownBackend();
+        Disman::BackendManager::instance()->shutdown_backend();
     }
 
     void testChangeNotifyInProcess()
     {
         qputenv("DISMAN_IN_PROCESS", "1");
-        Disman::BackendManager::instance()->shutdownBackend();
-        Disman::BackendManager::instance()->setMethod(Disman::BackendManager::InProcess);
+        Disman::BackendManager::instance()->shutdown_backend();
+        Disman::BackendManager::instance()->set_method(Disman::BackendManager::InProcess);
         // json file for the fake backend
         qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
         // Prepare monitor
         Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
-        QSignalSpy spy(monitor, SIGNAL(configurationChanged()));
+        QSignalSpy spy(monitor, SIGNAL(configuration_changed()));
 
         // Get config and monitor it for changes
         Disman::ConfigPtr config = getConfig();
-        monitor->addConfig(config);
+        monitor->add_config(config);
 
         auto output = config->outputs().first();
 
-        output->setEnabled(false);
+        output->set_enabled(false);
         auto setop = new Disman::SetConfigOperation(config);
-        QVERIFY(!setop->hasError());
+        QVERIFY(!setop->has_error());
         setop->exec();
         QTRY_VERIFY(!spy.isEmpty());
 
         QCOMPARE(spy.size(), 1);
-        QCOMPARE(config->output(1)->isEnabled(), false);
+        QCOMPARE(config->output(1)->enabled(), false);
 
-        output->setEnabled(false);
+        output->set_enabled(false);
         auto setop2 = new Disman::SetConfigOperation(config);
-        QVERIFY(!setop2->hasError());
+        QVERIFY(!setop2->has_error());
         setop2->exec();
         QTRY_VERIFY(!spy.isEmpty());
         QCOMPARE(spy.size(), 2);

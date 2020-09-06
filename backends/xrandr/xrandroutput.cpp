@@ -108,7 +108,7 @@ bool XRandROutput::isConnected() const
     return m_connected == XCB_RANDR_CONNECTION_CONNECTED;
 }
 
-bool XRandROutput::isEnabled() const
+bool XRandROutput::enabled() const
 {
     return m_crtc != nullptr && m_crtc->mode() != XCB_NONE;
 }
@@ -224,7 +224,7 @@ void XRandROutput::update(xcb_randr_crtc_t crtc,
     }
 
     // A monitor has been enabled or disabled
-    // We don't use isEnabled(), because it checks for crtc && crtc->mode(), however
+    // We don't use enabled(), because it checks for crtc && crtc->mode(), however
     // crtc->mode may already be unset due to xcb_randr_crtc_tChangeNotify coming before
     // xcb_randr_output_tChangeNotify and reseting the CRTC mode
 
@@ -432,7 +432,7 @@ void XRandROutput::updateLogicalSize(const Disman::OutputPtr& output, XRandRCrtc
     auto mode = output->auto_mode() ? output->auto_mode() : output->preferred_mode();
     if (mode && logicalSize.isValid()) {
         QSize modeSize = mode->size();
-        if (!output->isHorizontal()) {
+        if (!output->horizontal()) {
             modeSize.transpose();
         }
 
@@ -462,9 +462,9 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 {
     const bool signalsBlocked = dismanOutput->signalsBlocked();
     dismanOutput->blockSignals(true);
-    dismanOutput->setId(m_id);
+    dismanOutput->set_id(m_id);
     dismanOutput->setType(m_type);
-    dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
+    dismanOutput->set_physical_size(QSize(m_widthMm, m_heightMm));
     dismanOutput->set_name(m_name.toStdString());
     dismanOutput->set_description(description());
     dismanOutput->set_hash(this->hash());
@@ -478,7 +478,7 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 
     // See https://bugzilla.redhat.com/show_bug.cgi?id=1290586
     // QXL will be creating a new mode we need to jump to every time the display is resized
-    dismanOutput->setFollowPreferredMode(m_hotplugModeUpdate);
+    dismanOutput->set_follow_preferred_mode(m_hotplugModeUpdate);
 
     if (isConnected()) {
         Disman::ModeList dismanModes;
@@ -486,12 +486,12 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
             XRandRMode* mode = iter.value();
             dismanModes.insert({std::to_string(iter.key()), mode->toDismanMode()});
         }
-        dismanOutput->setModes(dismanModes);
-        dismanOutput->setPreferredModes(m_preferredModes);
-        dismanOutput->setEnabled(isEnabled());
-        if (isEnabled()) {
-            dismanOutput->setPosition(position());
-            dismanOutput->setRotation(rotation());
+        dismanOutput->set_modes(dismanModes);
+        dismanOutput->set_preferred_modes(m_preferredModes);
+        dismanOutput->set_enabled(enabled());
+        if (enabled()) {
+            dismanOutput->set_position(position());
+            dismanOutput->set_rotation(rotation());
 
             auto cur_mode = currentMode();
             if (cur_mode) {

@@ -40,13 +40,13 @@ public:
     ~QScreenBackend() override;
 
     QString name() const override;
-    QString serviceName() const override;
+    QString service_name() const override;
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr& config) override;
-    bool isValid() const override;
+    void set_config(const Disman::ConfigPtr& config) override;
+    bool valid() const override;
 
 private:
-    bool m_isValid;
+    bool m_valid;
 
     std::unique_ptr<Filer_controller> m_filer_controller;
     static QScreenConfig* s_internalConfig;

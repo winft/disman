@@ -38,7 +38,7 @@ public:
     void updateDismanOutput(Disman::OutputPtr& output) const;
 
     int id() const;
-    void setId(const int newId);
+    void set_id(const int newId);
 
     const QScreen* qscreen() const;
 

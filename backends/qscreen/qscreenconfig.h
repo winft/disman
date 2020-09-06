@@ -46,7 +46,7 @@ private Q_SLOTS:
     void screenRemoved(QScreen* qscreen);
 
 Q_SIGNALS:
-    void configChanged();
+    void config_changed();
 
 private:
     QMap<int, QScreenOutput*> m_outputMap;

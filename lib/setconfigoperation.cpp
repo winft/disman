@@ -41,7 +41,7 @@ class SetConfigOperationPrivate : public ConfigOperationPrivate
 public:
     explicit SetConfigOperationPrivate(const Disman::ConfigPtr& config, ConfigOperation* qq);
 
-    void backendReady(org::kwinft::disman::backend* backend) override;
+    void backend_ready(org::kwinft::disman::backend* backend) override;
     void onConfigSet(QDBusPendingCallWatcher* watcher);
     void normalizeOutputPositions();
 
@@ -59,22 +59,22 @@ SetConfigOperationPrivate::SetConfigOperationPrivate(const ConfigPtr& config, Co
 {
 }
 
-void SetConfigOperationPrivate::backendReady(org::kwinft::disman::backend* backend)
+void SetConfigOperationPrivate::backend_ready(org::kwinft::disman::backend* backend)
 {
-    ConfigOperationPrivate::backendReady(backend);
+    ConfigOperationPrivate::backend_ready(backend);
 
     Q_Q(SetConfigOperation);
 
     if (!backend) {
-        q->setError(tr("Failed to prepare backend"));
-        q->emitResult();
+        q->set_error(tr("Failed to prepare backend"));
+        q->emit_result();
         return;
     }
 
-    const QVariantMap map = ConfigSerializer::serializeConfig(config).toVariantMap();
+    const QVariantMap map = ConfigSerializer::serialize_config(config).toVariantMap();
     if (map.isEmpty()) {
-        q->setError(tr("Failed to serialize request"));
-        q->emitResult();
+        q->set_error(tr("Failed to serialize request"));
+        q->emit_result();
         return;
     }
 
@@ -91,17 +91,17 @@ void SetConfigOperationPrivate::onConfigSet(QDBusPendingCallWatcher* watcher)
     watcher->deleteLater();
 
     if (reply.isError()) {
-        q->setError(reply.error().message());
-        q->emitResult();
+        q->set_error(reply.error().message());
+        q->emit_result();
         return;
     }
 
-    config = ConfigSerializer::deserializeConfig(reply.value());
+    config = ConfigSerializer::deserialize_config(reply.value());
     if (!config) {
-        q->setError(tr("Failed to deserialize backend response"));
+        q->set_error(tr("Failed to deserialize backend response"));
     }
 
-    q->emitResult();
+    q->emit_result();
 }
 
 SetConfigOperation::SetConfigOperation(const ConfigPtr& config, QObject* parent)
@@ -125,10 +125,10 @@ void SetConfigOperation::start()
     d->normalizeOutputPositions();
     if (BackendManager::instance()->method() == BackendManager::InProcess) {
         auto backend = d->loadBackend();
-        backend->setConfig(d->config);
-        emitResult();
+        backend->set_config(d->config);
+        emit_result();
     } else {
-        d->requestBackend();
+        d->request_backend();
     }
 }
 
@@ -140,7 +140,7 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     double offsetX = INT_MAX;
     double offsetY = INT_MAX;
     Q_FOREACH (const Disman::OutputPtr& output, config->outputs()) {
-        if (!output->isPositionable()) {
+        if (!output->positionable()) {
             continue;
         }
         offsetX = qMin(output->geometry().left(), offsetX);
@@ -152,13 +152,13 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     }
     qCDebug(DISMAN) << "Correcting output positions by:" << QPoint(offsetX, offsetY);
     Q_FOREACH (const Disman::OutputPtr& output, config->outputs()) {
-        if (!output->isEnabled()) {
+        if (!output->enabled()) {
             continue;
         }
         auto newPos
             = QPointF(output->geometry().left() - offsetX, output->geometry().top() - offsetY);
         qCDebug(DISMAN) << "Moved output from" << output->geometry().topLeft() << "to" << newPos;
-        output->setPosition(newPos);
+        output->set_position(newPos);
     }
 }
 

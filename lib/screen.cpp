@@ -25,24 +25,24 @@ class Q_DECL_HIDDEN Screen::Private
 public:
     Private()
         : id(0)
-        , maxActiveOutputsCount(0)
+        , max_outputs_count(0)
     {
     }
 
     Private(const Private& other)
         : id(other.id)
-        , maxActiveOutputsCount(other.maxActiveOutputsCount)
-        , currentSize(other.currentSize)
-        , minSize(other.minSize)
-        , maxSize(other.maxSize)
+        , max_outputs_count(other.max_outputs_count)
+        , current_size(other.current_size)
+        , min_size(other.min_size)
+        , max_size(other.max_size)
     {
     }
 
     int id;
-    int maxActiveOutputsCount;
-    QSize currentSize;
-    QSize minSize;
-    QSize maxSize;
+    int max_outputs_count;
+    QSize current_size;
+    QSize min_size;
+    QSize max_size;
 };
 
 Screen::Screen()
@@ -72,60 +72,60 @@ int Screen::id() const
     return d->id;
 }
 
-void Screen::setId(int id)
+void Screen::set_id(int id)
 {
     d->id = id;
 }
 
-QSize Screen::currentSize() const
+QSize Screen::current_size() const
 {
-    return d->currentSize;
+    return d->current_size;
 }
 
-void Screen::setCurrentSize(const QSize& currentSize)
+void Screen::set_current_size(const QSize& current_size)
 {
-    if (d->currentSize == currentSize) {
+    if (d->current_size == current_size) {
         return;
     }
 
-    d->currentSize = currentSize;
+    d->current_size = current_size;
 
-    Q_EMIT currentSizeChanged();
+    Q_EMIT current_size_changed();
 }
 
-QSize Screen::maxSize() const
+QSize Screen::max_size() const
 {
-    return d->maxSize;
+    return d->max_size;
 }
 
-void Screen::setMaxSize(const QSize& maxSize)
+void Screen::set_max_size(const QSize& max_size)
 {
-    d->maxSize = maxSize;
+    d->max_size = max_size;
 }
 
-QSize Screen::minSize() const
+QSize Screen::min_size() const
 {
-    return d->minSize;
+    return d->min_size;
 }
 
-void Screen::setMinSize(const QSize& minSize)
+void Screen::set_min_size(const QSize& min_size)
 {
-    d->minSize = minSize;
+    d->min_size = min_size;
 }
 
-int Screen::maxActiveOutputsCount() const
+int Screen::max_outputs_count() const
 {
-    return d->maxActiveOutputsCount;
+    return d->max_outputs_count;
 }
 
-void Screen::setMaxActiveOutputsCount(int maxActiveOutputsCount)
+void Screen::set_max_outputs_count(int max_outputs_count)
 {
-    d->maxActiveOutputsCount = maxActiveOutputsCount;
+    d->max_outputs_count = max_outputs_count;
 }
 
 void Screen::apply(const ScreenPtr& other)
 {
     // Only set values that can change
-    setMaxActiveOutputsCount(other->d->maxActiveOutputsCount);
-    setCurrentSize(other->d->currentSize);
+    set_max_outputs_count(other->d->max_outputs_count);
+    set_current_size(other->d->current_size);
 }

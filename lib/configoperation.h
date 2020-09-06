@@ -37,8 +37,8 @@ class DISMAN_EXPORT ConfigOperation : public QObject
 public:
     ~ConfigOperation() override;
 
-    bool hasError() const;
-    QString errorString() const;
+    bool has_error() const;
+    QString error_string() const;
 
     virtual Disman::ConfigPtr config() const = 0;
 
@@ -50,8 +50,8 @@ Q_SIGNALS:
 protected:
     explicit ConfigOperation(ConfigOperationPrivate* dd, QObject* parent = nullptr);
 
-    void setError(const QString& error);
-    void emitResult();
+    void set_error(const QString& error);
+    void emit_result();
 
 protected Q_SLOTS:
     virtual void start() = 0;

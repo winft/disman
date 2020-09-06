@@ -58,7 +58,7 @@ class Q_DECL_HIDDEN Log::Private
 public:
     QString context;
     bool enabled = false;
-    QString logFile;
+    QString file;
 };
 
 Log::Log()
@@ -76,11 +76,11 @@ Log::Log()
     if (!d->enabled) {
         return;
     }
-    d->logFile = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+    d->file = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
         + QLatin1String("/disman/disman.log");
 
     QLoggingCategory::setFilterRules(QStringLiteral("disman.*=true"));
-    QFileInfo fi(d->logFile);
+    QFileInfo fi(d->file);
     if (!QDir().mkpath(fi.absolutePath())) {
         qWarning() << "Failed to create logging dir" << fi.absolutePath();
     }
@@ -106,7 +106,7 @@ QString Log::context() const
     return d->context;
 }
 
-void Log::setContext(const QString& context)
+void Log::set_context(const QString& context)
 {
     d->context = context;
 }
@@ -116,9 +116,9 @@ bool Log::enabled() const
     return d->enabled;
 }
 
-QString Log::logFile() const
+QString Log::file() const
 {
-    return d->logFile;
+    return d->file;
 }
 
 void Log::log(const QString& msg, const QString& category)
@@ -132,7 +132,7 @@ void Log::log(const QString& msg, const QString& category)
         = QDateTime::currentDateTime().toString(QStringLiteral("dd.MM.yyyy hh:mm:ss.zzz"));
     QString logMessage
         = QStringLiteral("\n%1 ; %2 ; %3 : %4").arg(timestamp, _cat, instance()->context(), msg);
-    QFile file(instance()->logFile());
+    QFile file(instance()->file());
     if (!file.open(QIODevice::Append | QIODevice::Text)) {
         return;
     }

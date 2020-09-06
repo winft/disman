@@ -33,12 +33,13 @@ class DISMAN_EXPORT Screen : public QObject
 
 public:
     Q_PROPERTY(int id READ id CONSTANT)
-    Q_PROPERTY(QSize currentSize READ currentSize WRITE setCurrentSize NOTIFY currentSizeChanged)
-    Q_PROPERTY(QSize minSize READ minSize CONSTANT)
-    Q_PROPERTY(QSize maxSize READ maxSize CONSTANT)
-    Q_PROPERTY(int maxActiveOutputsCount READ maxActiveOutputsCount CONSTANT)
+    Q_PROPERTY(
+        QSize current_size READ current_size WRITE set_current_size NOTIFY current_size_changed)
+    Q_PROPERTY(QSize min_size READ min_size CONSTANT)
+    Q_PROPERTY(QSize max_size READ max_size CONSTANT)
+    Q_PROPERTY(int max_outputs_count READ max_outputs_count CONSTANT)
 
-    explicit Screen();
+    Screen();
     ~Screen() override;
 
     ScreenPtr clone() const;
@@ -52,48 +53,48 @@ public:
      * The identifier of this screen.
      * @param id id of the screen
      */
-    void setId(int id);
+    void set_id(int id);
 
     /**
      * The current screen size in pixels.
      * @return Screen size in pixels
      */
-    QSize currentSize() const;
+    QSize current_size() const;
     /**
      * Set the current screen size in pixels.
-     * @param currentSize Screen size in pixels
+     * @param current_size Screen size in pixels
      */
-    void setCurrentSize(const QSize& currentSize);
+    void set_current_size(const QSize& current_size);
 
     /**
      * The minimum screen size in pixels.
      * @return Minimum screen size in pixels
      */
-    QSize minSize() const;
+    QSize min_size() const;
     /**
      * Set the minimum screen size in pixels.
-     * @param minSize Minimum screen size in pixels
+     * @param min_size Minimum screen size in pixels
      */
-    void setMinSize(const QSize& minSize);
+    void set_min_size(const QSize& min_size);
 
     /**
      * The maximum screen size in pixels.
      * @return Maximum screen size in pixels
      */
-    QSize maxSize() const;
+    QSize max_size() const;
     /**
      * Set the maximum screen size in pixels.
-     * @param maxSize Maximum screen size in pixels
+     * @param max_size Maximum screen size in pixels
      */
-    void setMaxSize(const QSize& maxSize);
+    void set_max_size(const QSize& max_size);
 
-    int maxActiveOutputsCount() const;
-    void setMaxActiveOutputsCount(int maxActiveOutputsCount);
+    int max_outputs_count() const;
+    void set_max_outputs_count(int max_outputs_count);
 
     void apply(const ScreenPtr& other);
 
 Q_SIGNALS:
-    void currentSizeChanged();
+    void current_size_changed();
 
 private:
     Q_DISABLE_COPY(Screen)

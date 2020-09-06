@@ -81,7 +81,7 @@ public:
     OutputPtr clone() const;
 
     int id() const;
-    void setId(int id);
+    void set_id(int id);
 
     /**
      * The name of the output uniquely identifies it and usually describes the connector in some way
@@ -123,7 +123,7 @@ public:
     ModePtr mode(QSize const& resolution, double refresh_rate) const;
 
     ModeList modes() const;
-    void setModes(const ModeList& modes);
+    void set_modes(const ModeList& modes);
 
     /**
      * Sets the mode.
@@ -170,8 +170,8 @@ public:
     QSize best_resolution() const;
     double best_refresh_rate(QSize const& resolution) const;
 
-    void setPreferredModes(std::vector<std::string> const& modes);
-    std::vector<std::string> const& preferredModes() const;
+    void set_preferred_modes(std::vector<std::string> const& modes);
+    std::vector<std::string> const& preferred_modes() const;
 
     /**
      * Returns a mode that the hardware marked as preferred and that is the best one in the sense
@@ -182,15 +182,15 @@ public:
     ModePtr preferred_mode() const;
 
     Rotation rotation() const;
-    void setRotation(Rotation rotation);
+    void set_rotation(Rotation rotation);
 
     /**
      * Helper that returns true when output is not rotated or is rotated upside down.
      */
-    bool isHorizontal() const;
+    bool horizontal() const;
 
-    bool isEnabled() const;
-    void setEnabled(bool enabled);
+    bool enabled() const;
+    void set_enabled(bool enabled);
 
     /**
      * @brief Provides the source for an ongoing replication
@@ -201,12 +201,12 @@ public:
      *
      * @return Replication source output id of this output
      */
-    int replicationSource() const;
+    int replication_source() const;
     /**
      * @brief Set the replication source.
      * @param source
      */
-    void setReplicationSource(int source);
+    void set_replication_source(int source);
 
     /**
      * Returns the physical size of the screen in milimeters.
@@ -214,8 +214,8 @@ public:
      * @note Some broken GPUs or monitors return the size in centimeters instead
      * of millimeters. Disman at the moment is not sanitizing the values.
      */
-    QSize sizeMm() const;
-    void setSizeMm(const QSize& size);
+    QSize physical_size() const;
+    void set_physical_size(const QSize& size);
 
     /**
      * Returns if the output needs to be taken account for in the overall compositor/screen
@@ -225,7 +225,7 @@ public:
      *
      * @since 5.17
      */
-    bool isPositionable() const;
+    bool positionable() const;
 
     /**
      * Returns a rectangle containing the currently set output position and
@@ -253,23 +253,23 @@ public:
     void force_geometry(QRectF const& geo);
 
     QPointF position() const;
-    void setPosition(const QPointF& position);
+    void set_position(const QPointF& position);
 
     double scale() const;
-    void setScale(double scale);
+    void set_scale(double scale);
 
     /**
      * @returns whether the mode should be changed to the new preferred mode
      * once it changes
      */
-    bool followPreferredMode() const;
+    bool follow_preferred_mode() const;
 
     /**
      * Set whether the preferred mode should be followed through @arg follow
      *
      * @since 5.15
      */
-    void setFollowPreferredMode(bool follow);
+    void set_follow_preferred_mode(bool follow);
 
     bool auto_resolution() const;
     void set_auto_resolution(bool auto_res);

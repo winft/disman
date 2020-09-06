@@ -87,7 +87,7 @@ void WaylandBackend::initKWinTabletMode()
                 }
                 m_tabletModeEngaged = tabletMode;
                 if (m_interface && m_interface->isInitialized()) {
-                    Q_EMIT configChanged(config());
+                    Q_EMIT config_changed(config());
                 }
             });
     connect(interface,
@@ -99,7 +99,7 @@ void WaylandBackend::initKWinTabletMode()
                 }
                 m_tabletModeAvailable = available;
                 if (m_interface && m_interface->isInitialized()) {
-                    Q_EMIT configChanged(config());
+                    Q_EMIT config_changed(config());
                 }
             });
 }
@@ -109,7 +109,7 @@ QString WaylandBackend::name() const
     return QStringLiteral("wayland");
 }
 
-QString WaylandBackend::serviceName() const
+QString WaylandBackend::service_name() const
 {
     return QStringLiteral("org.kwinft.disman.backend.wayland");
 }
@@ -136,7 +136,7 @@ ConfigPtr WaylandBackend::config() const
     return config;
 }
 
-void WaylandBackend::setConfig(const Disman::ConfigPtr& newconfig)
+void WaylandBackend::set_config(const Disman::ConfigPtr& newconfig)
 {
     if (!newconfig) {
         return;
@@ -156,9 +156,9 @@ bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
 
     auto outputs = config->outputs();
     for (auto output : outputs) {
-        if (auto source_id = output->replicationSource()) {
+        if (auto source_id = output->replication_source()) {
             auto source = config->output(source_id);
-            output->setPosition(source->position());
+            output->set_position(source->position());
             output->force_geometry(source->geometry());
         }
     }
@@ -179,7 +179,7 @@ QMap<int, WaylandOutput*> WaylandBackend::outputMap() const
     return m_interface->outputMap();
 }
 
-bool WaylandBackend::isValid() const
+bool WaylandBackend::valid() const
 {
     return m_interface && m_interface->isInitialized();
 }
@@ -265,9 +265,9 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
 {
     m_interface = pending.interface;
     m_thread = pending.thread;
-    connect(m_interface, &WaylandInterface::configChanged, this, [this] {
+    connect(m_interface, &WaylandInterface::config_changed, this, [this] {
         auto cfg = config();
-        if (!m_config || m_config->connectedOutputsHash() != cfg->connectedOutputsHash()) {
+        if (!m_config || m_config->hash() != cfg->hash()) {
             qCDebug(DISMAN_WAYLAND) << "Config with new output pattern received:" << cfg;
 
             if (cfg->origin() == Config::Origin::unknown) {
@@ -291,7 +291,7 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
         }
 
         m_syncLoop.quit();
-        Q_EMIT configChanged(cfg);
+        Q_EMIT config_changed(cfg);
     });
 
     setScreenOutputs();

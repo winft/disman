@@ -37,7 +37,7 @@ class GetConfigOperationPrivate : public ConfigOperationPrivate
 public:
     GetConfigOperationPrivate(GetConfigOperation* qq);
 
-    void backendReady(org::kwinft::disman::backend* backend) override;
+    void backend_ready(org::kwinft::disman::backend* backend) override;
     void onConfigReceived(QDBusPendingCallWatcher* watcher);
 
 public:
@@ -57,16 +57,16 @@ GetConfigOperationPrivate::GetConfigOperationPrivate(GetConfigOperation* qq)
 {
 }
 
-void GetConfigOperationPrivate::backendReady(org::kwinft::disman::backend* backend)
+void GetConfigOperationPrivate::backend_ready(org::kwinft::disman::backend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
-    ConfigOperationPrivate::backendReady(backend);
+    ConfigOperationPrivate::backend_ready(backend);
 
     Q_Q(GetConfigOperation);
 
     if (!backend) {
-        q->setError(tr("Failed to prepare backend"));
-        q->emitResult();
+        q->set_error(tr("Failed to prepare backend"));
+        q->emit_result();
         return;
     }
 
@@ -86,17 +86,17 @@ void GetConfigOperationPrivate::onConfigReceived(QDBusPendingCallWatcher* watche
     QDBusPendingReply<QVariantMap> reply = *watcher;
     watcher->deleteLater();
     if (reply.isError()) {
-        q->setError(reply.error().message());
-        q->emitResult();
+        q->set_error(reply.error().message());
+        q->emit_result();
         return;
     }
 
-    config = ConfigSerializer::deserializeConfig(reply.value());
+    config = ConfigSerializer::deserialize_config(reply.value());
     if (!config) {
-        q->setError(tr("Failed to deserialize backend response"));
+        q->set_error(tr("Failed to deserialize backend response"));
     }
 
-    q->emitResult();
+    q->emit_result();
 }
 
 GetConfigOperation::GetConfigOperation(QObject* parent)
@@ -120,12 +120,12 @@ void GetConfigOperation::start()
     if (BackendManager::instance()->method() == BackendManager::InProcess) {
         auto backend = d->loadBackend();
         if (!backend) {
-            return; // loadBackend() already set error and called emitResult() for us
+            return; // loadBackend() already set error and called emit_result() for us
         }
         d->config = backend->config()->clone();
-        emitResult();
+        emit_result();
     } else {
-        d->requestBackend();
+        d->request_backend();
     }
 }
 

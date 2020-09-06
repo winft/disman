@@ -63,12 +63,12 @@ void Generator::prepare_config()
     for (auto& output : outputs) {
         // The scale will generally be independent no matter where the output is
         // scale will affect geometry, so do this first.
-        if (m_config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling)) {
-            output->setScale(best_scale(output));
+        if (m_config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling)) {
+            output->set_scale(best_scale(output));
         }
         output->set_auto_resolution(true);
         output->set_auto_refresh_rate(true);
-        output->setEnabled(true);
+        output->set_enabled(true);
     }
 }
 
@@ -166,12 +166,12 @@ ConfigPtr Generator::optimize_impl()
 double Generator::best_scale(OutputPtr const& output)
 {
     // If we have no physical size, we can't determine the DPI properly. Fallback to scale 1.
-    if (output->sizeMm().height() <= 0) {
+    if (output->physical_size().height() <= 0) {
         return 1.0;
     }
 
     const auto mode = output->auto_mode();
-    const qreal dpi = mode->size().height() / (output->sizeMm().height() / 25.4);
+    const qreal dpi = mode->size().height() / (output->physical_size().height() / 25.4);
 
     // We see 110 DPI as a good standard. That corresponds to 1440p at 27" and 2160p/UHD at 40".
     // This is smaller than usual but with high dpi screens this is often easily possible and
@@ -207,15 +207,15 @@ void Generator::single_output(ConfigPtr const& config)
         return;
     }
 
-    config->setPrimaryOutput(output);
-    output->setPosition(QPointF(0, 0));
+    config->set_primary_output(output);
+    output->set_position(QPointF(0, 0));
 }
 
 void Generator::extend_impl(ConfigPtr const& config,
                             OutputPtr const& first,
                             Extend_direction direction)
 {
-    assert(!first || first->isEnabled());
+    assert(!first || first->enabled());
 
     auto outputs = config->outputs();
 
@@ -237,7 +237,7 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    config->setPrimaryOutput(start_output);
+    config->set_primary_output(start_output);
     line_up(start_output, OutputList(), outputs, direction);
 }
 
@@ -248,7 +248,7 @@ void Generator::extend_derived(ConfigPtr const& config,
     OutputList old_outputs;
     OutputList new_outputs;
 
-    config->setPrimaryOutput(first);
+    config->set_primary_output(first);
     get_outputs_division(first, config, old_outputs, new_outputs);
     line_up(first, old_outputs, new_outputs, direction);
 }
@@ -287,7 +287,7 @@ void Generator::line_up(OutputPtr const& first,
                         OutputList const& new_outputs,
                         Extend_direction direction)
 {
-    first->setPosition(QPointF(0, 0));
+    first->set_position(QPointF(0, 0));
 
     double globalWidth
         = direction == Extend_direction::right ? first->geometry().width() : first->position().x();
@@ -316,9 +316,9 @@ void Generator::line_up(OutputPtr const& first,
 
         if (direction == Extend_direction::left) {
             globalWidth -= output->geometry().width();
-            output->setPosition(QPointF(globalWidth, 0));
+            output->set_position(QPointF(globalWidth, 0));
         } else if (direction == Extend_direction::right) {
-            output->setPosition(QPointF(globalWidth, 0));
+            output->set_position(QPointF(globalWidth, 0));
             globalWidth += output->geometry().width();
         } else {
             // We only have two directions at the moment.
@@ -332,7 +332,7 @@ void Generator::replicate_impl(const ConfigPtr& config)
     auto outputs = config->outputs();
 
     auto source = primary_impl(outputs, OutputList());
-    config->setPrimaryOutput(source);
+    config->set_primary_output(source);
 
     if (m_derived) {
         replicate_derived(config, source);
@@ -346,7 +346,7 @@ void Generator::replicate_impl(const ConfigPtr& config)
         if (output == source) {
             continue;
         }
-        output->setReplicationSource(source->id());
+        output->set_replication_source(source->id());
     }
 }
 
@@ -358,7 +358,7 @@ void Generator::replicate_derived(ConfigPtr const& config, OutputPtr const& sour
     get_outputs_division(source, config, old_outputs, new_outputs);
 
     for (auto output : new_outputs) {
-        output->setReplicationSource(source->id());
+        output->set_replication_source(source->id());
     }
 }
 
@@ -378,7 +378,7 @@ bool Generator::check_config(ConfigPtr const& config)
 {
     int enabled = 0;
     for (auto output : config->outputs()) {
-        enabled += output->isEnabled();
+        enabled += output->enabled();
     }
     if (m_validities & Config::ValidityFlag::RequireAtLeastOneEnabledScreen && enabled == 0) {
         qCDebug(DISMAN) << "Generator check failed: no enabled display, but required by flag.";
@@ -404,14 +404,14 @@ OutputPtr Generator::biggest(OutputList const& exclusions) const
 
 OutputPtr Generator::primary_impl(OutputList const& outputs, OutputList const& exclusions) const
 {
-    if (auto output = m_config->primaryOutput()) {
+    if (auto output = m_config->primary_output()) {
         if (m_derived && !exclusions.contains(output->id())) {
             return output;
         }
     }
     // If one of the outputs is a embedded (panel) display, then we take this one as primary.
     if (auto output = embedded_impl(outputs, exclusions)) {
-        if (output->isEnabled()) {
+        if (output->enabled()) {
             return output;
         }
     }
@@ -442,7 +442,7 @@ OutputPtr Generator::biggest_impl(OutputList const& outputs,
         if (!mode) {
             continue;
         }
-        if (only_enabled && !output->isEnabled()) {
+        if (only_enabled && !output->enabled()) {
             continue;
         }
         auto const area = mode->size().width() * mode->size().height();

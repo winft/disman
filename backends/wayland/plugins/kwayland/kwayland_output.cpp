@@ -90,13 +90,13 @@ void KWaylandOutput::createOutputDevice(Wl::Registry* registry, quint32 name, qu
 void KWaylandOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
-    output->setEnabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
+    output->set_enabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
     output->set_name(name().toStdString());
     output->set_description(name().toStdString());
     output->set_hash(name().toStdString());
-    output->setSizeMm(m_device->physicalSize());
-    output->setPosition(m_device->globalPosition());
-    output->setRotation(s_rotationMap[m_device->transform()]);
+    output->set_physical_size(m_device->physicalSize());
+    output->set_position(m_device->globalPosition());
+    output->set_rotation(s_rotationMap[m_device->transform()]);
 
     ModeList modeList;
     std::vector<std::string> preferredModeIds;
@@ -117,12 +117,12 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
         if (m_modeIdMap.find(modeId) != m_modeIdMap.end()) {
             qCWarning(DISMAN_WAYLAND) << "Mode id already in use:" << modeId.c_str();
         }
-        mode->setId(modeId);
+        mode->set_id(modeId);
 
         // KWayland gives the refresh rate as int in mHz
-        mode->setRefreshRate(wlMode.refreshRate / 1000.0);
-        mode->setSize(wlMode.size);
-        mode->setName(name);
+        mode->set_refresh(wlMode.refreshRate / 1000.0);
+        mode->set_size(wlMode.size);
+        mode->set_name(name);
 
         if (wlMode.flags.testFlag(Wl::OutputDevice::Mode::Flag::Current)) {
             current_mode = mode;
@@ -137,8 +137,8 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
         modeList[modeId] = mode;
     }
 
-    output->setPreferredModes(preferredModeIds);
-    output->setModes(modeList);
+    output->set_preferred_modes(preferredModeIds);
+    output->set_modes(modeList);
 
     if (current_mode.isNull()) {
         qCWarning(DISMAN_WAYLAND) << "Could not find the current mode. Available modes:";
@@ -148,12 +148,12 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
-        auto success = output->set_refresh_rate(current_mode->refreshRate());
+        auto success = output->set_refresh_rate(current_mode->refresh());
         if (!success) {
             qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
         }
     }
-    output->setScale(m_device->scaleF());
+    output->set_scale(m_device->scaleF());
     output->setType(guessType(m_device->model(), m_device->model()));
 }
 
@@ -162,10 +162,10 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration* wlConfig, const Disman
     bool changed = false;
 
     // enabled?
-    if ((m_device->enabled() == Wl::OutputDevice::Enablement::Enabled) != output->isEnabled()) {
+    if ((m_device->enabled() == Wl::OutputDevice::Enablement::Enabled) != output->enabled()) {
         changed = true;
-        const auto enablement = output->isEnabled() ? Wl::OutputDevice::Enablement::Enabled
-                                                    : Wl::OutputDevice::Enablement::Disabled;
+        const auto enablement = output->enabled() ? Wl::OutputDevice::Enablement::Enabled
+                                                  : Wl::OutputDevice::Enablement::Disabled;
         wlConfig->setEnabled(m_device, enablement);
     }
 

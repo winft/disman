@@ -35,7 +35,7 @@ quint32 WaylandOutput::id() const
 OutputPtr WaylandOutput::toDismanOutput()
 {
     OutputPtr output(new Output());
-    output->setId(m_id);
+    output->set_id(m_id);
     updateDismanOutput(output);
     return output;
 }

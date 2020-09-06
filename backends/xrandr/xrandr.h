@@ -48,10 +48,10 @@ public:
     ~XRandR() override;
 
     QString name() const override;
-    QString serviceName() const override;
+    QString service_name() const override;
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr& config) override;
-    bool isValid() const override;
+    void set_config(const Disman::ConfigPtr& config) override;
+    bool valid() const override;
     QByteArray edid(int outputId) const override;
 
     static QByteArray outputEdid(xcb_randr_output_t outputId);
@@ -70,7 +70,8 @@ private:
                      xcb_randr_mode_t mode,
                      xcb_randr_rotation_t rotation,
                      const QRect& geom);
-    void screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& sizeMm);
+    void
+    screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& physical_size);
     void handle_change();
 
     static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
@@ -89,7 +90,7 @@ private:
     static bool s_xorgCacheInitialized;
 
     XCBEventListener* m_x11Helper;
-    bool m_isValid;
+    bool m_valid;
 
     std::unique_ptr<Disman::Filer_controller> m_filer_controller;
     QTimer* m_configChangeCompressor;

@@ -102,7 +102,7 @@ void TestPnp::configReady(Disman::ConfigOperation* op)
 
     print();
     if (m_monitor) {
-        ConfigMonitor::instance()->addConfig(m_config);
+        ConfigMonitor::instance()->add_config(m_config);
     } else {
         qApp->quit();
     }
@@ -111,13 +111,14 @@ void TestPnp::configReady(Disman::ConfigOperation* op)
 void TestPnp::print()
 {
     qDebug() << "Screen:";
-    qDebug() << "\tmaxSize:" << m_config->screen()->maxSize();
-    qDebug() << "\tminSize:" << m_config->screen()->minSize();
-    qDebug() << "\tcurrentSize:" << m_config->screen()->currentSize();
+    qDebug() << "\tmax_size:" << m_config->screen()->max_size();
+    qDebug() << "\tmin_size:" << m_config->screen()->min_size();
+    qDebug() << "\tcurrent_size:" << m_config->screen()->current_size();
 
     qDebug() << "Primary:"
-             << (m_config->primaryOutput() ? std::to_string(m_config->primaryOutput()->id()).c_str()
-                                           : "none");
+             << (m_config->primary_output()
+                     ? std::to_string(m_config->primary_output()->id()).c_str()
+                     : "none");
 
     const OutputList outputs = m_config->outputs();
     Q_FOREACH (const OutputPtr& output, outputs) {
@@ -125,24 +126,24 @@ void TestPnp::print()
         qDebug() << "Id: " << output->id();
         qDebug() << "Name: " << output->name().c_str();
         qDebug() << "Type: " << typetoString(output->type());
-        qDebug() << "Enabled: " << output->isEnabled();
+        qDebug() << "Enabled: " << output->enabled();
         qDebug() << "Rotation: " << output->rotation();
         qDebug() << "Pos: " << output->position();
-        qDebug() << "MMSize: " << output->sizeMm();
+        qDebug() << "MMSize: " << output->physical_size();
         if (output->auto_mode()) {
             qDebug() << "Size: " << output->auto_mode()->size();
         }
         qDebug() << "Mode: " << output->auto_mode()->id().c_str();
         qDebug() << "Preferred Mode: " << output->preferred_mode()->id().c_str();
         qDebug() << "Preferred modes: ";
-        for (auto const& mode_string : output->preferredModes()) {
+        for (auto const& mode_string : output->preferred_modes()) {
             qDebug() << "\t" << mode_string.c_str();
         }
 
         qDebug() << "Modes: ";
         for (auto const& [key, mode] : output->modes()) {
             qDebug() << "\t" << mode->id().c_str() << "  " << mode->name().c_str() << " "
-                     << mode->size() << " " << mode->refreshRate();
+                     << mode->size() << " " << mode->refresh();
         }
     }
 }

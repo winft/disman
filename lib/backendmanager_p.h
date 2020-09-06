@@ -58,7 +58,7 @@ public:
     ~BackendManager() override;
 
     Disman::ConfigPtr config() const;
-    void setConfig(Disman::ConfigPtr c);
+    void set_config(Disman::ConfigPtr c);
 
     /** Choose which backend to use
      *
@@ -81,7 +81,7 @@ public:
      * @return a list of installed backend plugins
      * @since 5.7
      */
-    static QFileInfoList listBackends();
+    static QFileInfoList list_backends();
 
     /** Encapsulates the plugin loading logic.
      *
@@ -93,28 +93,19 @@ public:
      * @since 5.6
      */
     static Disman::AbstractBackend*
-    loadBackendPlugin(QPluginLoader* loader, const QString& name, const QVariantMap& arguments);
+    load_backend_plugin(QPluginLoader* loader, const QString& name, const QVariantMap& arguments);
 
-    Disman::AbstractBackend* loadBackendInProcess(const QString& name);
+    Disman::AbstractBackend* load_backend_in_process(const QString& name);
 
     BackendManager::Method method() const;
-    void setMethod(BackendManager::Method m);
+    void set_method(BackendManager::Method m);
 
     // For out-of-process operation
-    void requestBackend();
-    void shutdownBackend();
+    void request_backend();
+    void shutdown_backend();
 
 Q_SIGNALS:
-    void backendReady(OrgKwinftDismanBackendInterface* backend);
-
-private Q_SLOTS:
-    void emitBackendReady();
-
-    void startBackend(const QString& backend = QString(),
-                      const QVariantMap& arguments = QVariantMap());
-    void onBackendRequestDone(QDBusPendingCallWatcher* watcher);
-
-    void backendServiceUnregistered(const QString& serviceName);
+    void backend_ready(OrgKwinftDismanBackendInterface* backend);
 
 private:
     friend class SetInProcessOperation;
@@ -125,11 +116,16 @@ private:
     explicit BackendManager();
     static BackendManager* sInstance;
 
-    void initMethod();
+    void init_method();
+    Q_INVOKABLE void emit_backend_ready();
+
+    void start_backend(const QString& backend = QString(),
+                       const QVariantMap& arguments = QVariantMap());
+    void on_backend_request_done(QDBusPendingCallWatcher* watcher);
+    void backend_service_unregistered(const QString& service_name);
 
     // For out-of-process operation
-    void invalidateInterface();
-    void backendServiceReady();
+    void invalidate_interface();
 
     static const int sMaxCrashCount;
     OrgKwinftDismanBackendInterface* mInterface;

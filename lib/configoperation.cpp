@@ -36,28 +36,28 @@ ConfigOperationPrivate::~ConfigOperationPrivate()
 {
 }
 
-void ConfigOperationPrivate::requestBackend()
+void ConfigOperationPrivate::request_backend()
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     connect(BackendManager::instance(),
-            &BackendManager::backendReady,
+            &BackendManager::backend_ready,
             this,
-            &ConfigOperationPrivate::backendReady);
-    BackendManager::instance()->requestBackend();
+            &ConfigOperationPrivate::backend_ready);
+    BackendManager::instance()->request_backend();
 }
 
-void ConfigOperationPrivate::backendReady(org::kwinft::disman::backend* backend)
+void ConfigOperationPrivate::backend_ready(org::kwinft::disman::backend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::OutOfProcess);
     Q_UNUSED(backend);
 
     disconnect(BackendManager::instance(),
-               &BackendManager::backendReady,
+               &BackendManager::backend_ready,
                this,
-               &ConfigOperationPrivate::backendReady);
+               &ConfigOperationPrivate::backend_ready);
 }
 
-void ConfigOperationPrivate::doEmitResult()
+void ConfigOperationPrivate::do_emit_result()
 {
     Q_Q(ConfigOperation);
 
@@ -66,7 +66,7 @@ void ConfigOperationPrivate::doEmitResult()
     // Don't call deleteLater() when this operation is running from exec()
     // because then the operation will be deleted when we return control to
     // the nested QEventLoop in exec() (i.e. before loop.exec() returns)
-    // and subsequent hasError() call references deleted "this". Instead we
+    // and subsequent has_error() call references deleted "this". Instead we
     // shedule the operation for deletion manually in exec(), so that it will
     // be deleted when control returns to parent event loop (or QApplication).
     if (!isExec) {
@@ -88,28 +88,28 @@ ConfigOperation::~ConfigOperation()
     delete d_ptr;
 }
 
-bool ConfigOperation::hasError() const
+bool ConfigOperation::has_error() const
 {
     Q_D(const ConfigOperation);
     return !d->error.isEmpty();
 }
 
-QString ConfigOperation::errorString() const
+QString ConfigOperation::error_string() const
 {
     Q_D(const ConfigOperation);
     return d->error;
 }
 
-void ConfigOperation::setError(const QString& error)
+void ConfigOperation::set_error(const QString& error)
 {
     Q_D(ConfigOperation);
     d->error = error;
 }
 
-void ConfigOperation::emitResult()
+void ConfigOperation::emit_result()
 {
     Q_D(ConfigOperation);
-    const bool ok = QMetaObject::invokeMethod(d, "doEmitResult", Qt::QueuedConnection);
+    const bool ok = QMetaObject::invokeMethod(d, "do_emit_result", Qt::QueuedConnection);
     Q_ASSERT(ok);
     Q_UNUSED(ok);
 }
@@ -127,9 +127,9 @@ bool ConfigOperation::exec()
     d->isExec = true;
     loop.exec(QEventLoop::ExcludeUserInputEvents);
 
-    // Schedule the operation for deletion, see doEmitResult()
+    // Schedule the operation for deletion, see doemit_result()
     deleteLater();
-    return !hasError();
+    return !has_error();
 }
 
 Disman::AbstractBackend* ConfigOperationPrivate::loadBackend()
@@ -137,12 +137,12 @@ Disman::AbstractBackend* ConfigOperationPrivate::loadBackend()
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
     Q_Q(ConfigOperation);
     const QString& name = QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
-    auto backend = Disman::BackendManager::instance()->loadBackendInProcess(name);
+    auto backend = Disman::BackendManager::instance()->load_backend_in_process(name);
     if (backend == nullptr) {
         const QString& e = QStringLiteral("Plugin does not provide valid Disman backend");
         qCDebug(DISMAN) << e;
-        q->setError(e);
-        q->emitResult();
+        q->set_error(e);
+        q->emit_result();
     }
     return backend;
 }

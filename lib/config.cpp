@@ -36,15 +36,15 @@ public:
     Private(Config* parent, Origin origin)
         : QObject(parent)
         , valid(true)
-        , supportedFeatures(Config::Feature::None)
-        , tabletModeAvailable(false)
-        , tabletModeEngaged(false)
+        , supported_features(Config::Feature::None)
+        , tablet_mode_available(false)
+        , tablet_mode_engaged(false)
         , origin{origin}
         , q(parent)
     {
     }
 
-    OutputList::Iterator removeOutput(OutputList::Iterator iter)
+    OutputList::Iterator remove_output(OutputList::Iterator iter)
     {
         if (iter == outputs.end()) {
             return iter;
@@ -58,43 +58,43 @@ public:
         const int outputId = iter.key();
         iter = outputs.erase(iter);
 
-        if (primaryOutput == output) {
-            q->setPrimaryOutput(OutputPtr());
+        if (primary_output == output) {
+            q->set_primary_output(OutputPtr());
         }
         output->disconnect(q);
 
-        Q_EMIT q->outputRemoved(outputId);
+        Q_EMIT q->output_removed(outputId);
 
         return iter;
     }
 
     bool valid;
     ScreenPtr screen;
-    OutputPtr primaryOutput;
+    OutputPtr primary_output;
     OutputList outputs;
-    Features supportedFeatures;
-    bool tabletModeAvailable;
-    bool tabletModeEngaged;
+    Features supported_features;
+    bool tablet_mode_available;
+    bool tablet_mode_engaged;
     Origin origin;
 
 private:
     Config* q;
 };
 
-bool Config::canBeApplied(const ConfigPtr& config)
+bool Config::can_be_applied(const ConfigPtr& config)
 {
-    return canBeApplied(config, ValidityFlag::None);
+    return can_be_applied(config, ValidityFlag::None);
 }
 
-bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
+bool Config::can_be_applied(const ConfigPtr& config, ValidityFlags flags)
 {
     if (!config) {
-        qCDebug(DISMAN) << "canBeApplied: Config not available, returning false";
+        qCDebug(DISMAN) << "can_be_applied: Config not available, returning false";
         return false;
     }
     ConfigPtr currentConfig = BackendManager::instance()->config();
     if (!currentConfig) {
-        qCDebug(DISMAN) << "canBeApplied: Current config not available, returning false";
+        qCDebug(DISMAN) << "can_be_applied: Current config not available, returning false";
         return false;
     }
 
@@ -103,7 +103,7 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
     const OutputList outputs = config->outputs();
     int enabledOutputsCount = 0;
     Q_FOREACH (const OutputPtr& output, outputs) {
-        if (!output->isEnabled()) {
+        if (!output->enabled()) {
             continue;
         }
 
@@ -112,18 +112,18 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
         currentOutput = currentConfig->output(output->id());
         // If there is no such output
         if (!currentOutput) {
-            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id() << "does not exists";
+            qCDebug(DISMAN) << "can_be_applied: The output:" << output->id() << "does not exists";
             return false;
         }
         // if there is no currentMode
         if (output->auto_mode().isNull()) {
-            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
+            qCDebug(DISMAN) << "can_be_applied: The output:" << output->id()
                             << "has no currentModeId";
             return false;
         }
         // If the mode is not found in the current output
         if (!currentOutput->mode(output->auto_mode()->id())) {
-            qCDebug(DISMAN) << "canBeApplied: The output:" << output->id()
+            qCDebug(DISMAN) << "can_be_applied: The output:" << output->id()
                             << "has no mode:" << output->auto_mode()->id().c_str();
             return false;
         }
@@ -139,7 +139,7 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
         }
 
         QPoint bottomRight;
-        if (output->isHorizontal()) {
+        if (output->horizontal()) {
             bottomRight = QPoint(output->position().x() + outputSize.width(),
                                  output->position().y() + outputSize.height());
         } else {
@@ -161,21 +161,21 @@ bool Config::canBeApplied(const ConfigPtr& config, ValidityFlags flags)
         return false;
     }
 
-    const int maxEnabledOutputsCount = config->screen()->maxActiveOutputsCount();
+    const int maxEnabledOutputsCount = config->screen()->max_outputs_count();
     if (enabledOutputsCount > maxEnabledOutputsCount) {
-        qCDebug(DISMAN) << "canBeApplied: Too many active screens. Requested: "
+        qCDebug(DISMAN) << "can_be_applied: Too many active screens. Requested: "
                         << enabledOutputsCount << ", Max: " << maxEnabledOutputsCount;
         return false;
     }
 
     // TODO: Why we do this again? Isn't the screen size determined by the outer rect of all
     //       outputs? At least it's that way in the Wayland case.
-    if (rect.width() > config->screen()->maxSize().width()) {
-        qCDebug(DISMAN) << "canBeApplied: The configuration is too wide:" << rect.width();
+    if (rect.width() > config->screen()->max_size().width()) {
+        qCDebug(DISMAN) << "can_be_applied: The configuration is too wide:" << rect.width();
         return false;
     }
-    if (rect.height() > config->screen()->maxSize().height()) {
-        qCDebug(DISMAN) << "canBeApplied: The configuration is too high:" << rect.height();
+    if (rect.height() > config->screen()->max_size().height()) {
+        qCDebug(DISMAN) << "can_be_applied: The configuration is too high:" << rect.height();
         return false;
     }
 
@@ -205,21 +205,21 @@ ConfigPtr Config::clone() const
 
     for (const OutputPtr& ourOutput : d->outputs) {
         auto cloned_output = ourOutput->clone();
-        newConfig->addOutput(cloned_output);
+        newConfig->add_output(cloned_output);
 
-        if (d->primaryOutput == ourOutput) {
-            newConfig->setPrimaryOutput(cloned_output);
+        if (d->primary_output == ourOutput) {
+            newConfig->set_primary_output(cloned_output);
         }
     }
 
-    newConfig->setSupportedFeatures(supportedFeatures());
-    newConfig->setTabletModeAvailable(tabletModeAvailable());
-    newConfig->setTabletModeEngaged(tabletModeEngaged());
+    newConfig->set_supported_features(supported_features());
+    newConfig->set_tablet_mode_available(tablet_mode_available());
+    newConfig->set_tablet_mode_engaged(tablet_mode_engaged());
 
     return newConfig;
 }
 
-QString Config::connectedOutputsHash() const
+QString Config::hash() const
 {
     QStringList hashedOutputs;
     for (OutputPtr const& output : d->outputs) {
@@ -257,34 +257,34 @@ OutputPtr Config::output(int outputId) const
     return d->outputs.value(outputId);
 }
 
-Config::Features Config::supportedFeatures() const
+Config::Features Config::supported_features() const
 {
-    return d->supportedFeatures;
+    return d->supported_features;
 }
 
-void Config::setSupportedFeatures(const Config::Features& features)
+void Config::set_supported_features(const Config::Features& features)
 {
-    d->supportedFeatures = features;
+    d->supported_features = features;
 }
 
-bool Config::tabletModeAvailable() const
+bool Config::tablet_mode_available() const
 {
-    return d->tabletModeAvailable;
+    return d->tablet_mode_available;
 }
 
-void Config::setTabletModeAvailable(bool available)
+void Config::set_tablet_mode_available(bool available)
 {
-    d->tabletModeAvailable = available;
+    d->tablet_mode_available = available;
 }
 
-bool Config::tabletModeEngaged() const
+bool Config::tablet_mode_engaged() const
 {
-    return d->tabletModeEngaged;
+    return d->tablet_mode_engaged;
 }
 
-void Config::setTabletModeEngaged(bool engaged)
+void Config::set_tablet_mode_engaged(bool engaged)
 {
-    d->tabletModeEngaged = engaged;
+    d->tablet_mode_engaged = engaged;
 }
 
 OutputList Config::outputs() const
@@ -292,24 +292,24 @@ OutputList Config::outputs() const
     return d->outputs;
 }
 
-OutputPtr Config::primaryOutput() const
+OutputPtr Config::primary_output() const
 {
-    return d->primaryOutput;
+    return d->primary_output;
 }
 
-void Config::setPrimaryOutput(const OutputPtr& newPrimary)
+void Config::set_primary_output(const OutputPtr& newPrimary)
 {
-    if (d->primaryOutput == newPrimary) {
+    if (d->primary_output == newPrimary) {
         return;
     }
 
-    d->primaryOutput = newPrimary;
-    Q_EMIT primaryOutputChanged(newPrimary);
+    d->primary_output = newPrimary;
+    Q_EMIT primary_output_changed(newPrimary);
 }
 
 OutputPtr Config::replication_source(OutputPtr const& output)
 {
-    if (auto source_id = output->replicationSource()) {
+    if (auto source_id = output->replication_source()) {
         for (auto const& output : d->outputs) {
             if (output->id() == source_id) {
                 return output;
@@ -319,41 +319,41 @@ OutputPtr Config::replication_source(OutputPtr const& output)
     return nullptr;
 }
 
-void Config::addOutput(const OutputPtr& output)
+void Config::add_output(const OutputPtr& output)
 {
     d->outputs.insert(output->id(), output);
 
-    Q_EMIT outputAdded(output);
+    Q_EMIT output_added(output);
 }
 
-void Config::removeOutput(int outputId)
+void Config::remove_output(int outputId)
 {
-    d->removeOutput(d->outputs.find(outputId));
+    d->remove_output(d->outputs.find(outputId));
 }
 
-void Config::setOutputs(const OutputList& outputs)
+void Config::set_outputs(const OutputList& outputs)
 {
-    auto primary = primaryOutput();
+    auto primary = primary_output();
     for (auto iter = d->outputs.begin(), end = d->outputs.end(); iter != end;) {
-        iter = d->removeOutput(iter);
+        iter = d->remove_output(iter);
         end = d->outputs.end();
     }
 
     for (const OutputPtr& output : outputs) {
-        addOutput(output);
+        add_output(output);
         if (primary && primary->id() == output->id()) {
-            setPrimaryOutput(output);
+            set_primary_output(output);
             primary = nullptr;
         }
     }
 }
 
-bool Config::isValid() const
+bool Config::valid() const
 {
     return d->valid;
 }
 
-void Config::setValid(bool valid)
+void Config::set_valid(bool valid)
 {
     d->valid = valid;
 }
@@ -365,37 +365,38 @@ void Config::apply(const ConfigPtr& other)
     // Remove removed outputs
     Q_FOREACH (const OutputPtr& output, d->outputs) {
         if (!other->d->outputs.contains(output->id())) {
-            removeOutput(output->id());
+            remove_output(output->id());
         }
     }
 
     Q_FOREACH (const OutputPtr& otherOutput, other->d->outputs) {
         // Add new outputs
         OutputPtr output;
-        auto primary = other->primaryOutput() && other->primaryOutput()->id() == otherOutput->id();
+        auto primary
+            = other->primary_output() && other->primary_output()->id() == otherOutput->id();
 
         if (!d->outputs.contains(otherOutput->id())) {
             output = otherOutput->clone();
-            addOutput(output);
+            add_output(output);
         } else {
             // Update existing outputs
             output = d->outputs[otherOutput->id()];
             output->apply(otherOutput);
         }
         if (primary) {
-            setPrimaryOutput(output);
+            set_primary_output(output);
         }
     }
 
     // Update validity
-    setValid(other->isValid());
+    set_valid(other->valid());
 }
 
 QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
 {
     if (config) {
         dbg << "Disman::Config(";
-        if (auto primary = config->primaryOutput()) {
+        if (auto primary = config->primary_output()) {
             dbg << "Primary:" << primary->id();
         }
         const auto outputs = config->outputs();
