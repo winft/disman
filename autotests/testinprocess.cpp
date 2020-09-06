@@ -131,7 +131,7 @@ void TestInProcess::testModeSwitching()
     auto ic = ip->config();
     QVERIFY(ic != nullptr);
     QVERIFY(ic->valid());
-    QVERIFY(ic->outputs().count());
+    QVERIFY(ic->outputs().size());
 
     Disman::ConfigPtr xc(nullptr);
     if (m_backendServiceInstalled) {
@@ -146,7 +146,7 @@ void TestInProcess::testModeSwitching()
         xc = xp->config();
         QVERIFY(xc != nullptr);
         QVERIFY(xc->valid());
-        QVERIFY(xc->outputs().count());
+        QVERIFY(xc->outputs().size());
     }
 
     qDebug() << "TT fake in-process";
@@ -161,7 +161,7 @@ void TestInProcess::testModeSwitching()
     auto fc = fp->config();
     QVERIFY(fc != nullptr);
     QVERIFY(fc->valid());
-    QVERIFY(fc->outputs().count());
+    QVERIFY(fc->outputs().size());
 
     QVERIFY(oc->valid());
     QVERIFY(ic->valid());
@@ -189,7 +189,7 @@ void TestInProcess::testBackendCaching()
         t_cold = t.nsecsElapsed();
         QVERIFY(cc != nullptr);
         QVERIFY(cc->valid());
-        QVERIFY(cc->outputs().count());
+        QVERIFY(cc->outputs().size());
     }
     {
         // Disman::BackendManager::instance()->shutdown_backend();
@@ -201,7 +201,7 @@ void TestInProcess::testBackendCaching()
         t_warm = t.nsecsElapsed();
         QVERIFY(cc != nullptr);
         QVERIFY(cc->valid());
-        QVERIFY(cc->outputs().count());
+        QVERIFY(cc->outputs().size());
     }
     {
         auto cp = new GetConfigOperation();
@@ -210,7 +210,7 @@ void TestInProcess::testBackendCaching()
         auto cc = cp->config();
         QVERIFY(cc != nullptr);
         QVERIFY(cc->valid());
-        QVERIFY(cc->outputs().count());
+        QVERIFY(cc->outputs().size());
     }
     // Check if all our configs are still valid after the backend is gone
     Disman::BackendManager::instance()->shutdown_backend();
@@ -289,8 +289,8 @@ void TestInProcess::testConfigApply()
     auto op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
-    //     qDebug() << "op:" << config->outputs().count();
-    auto output = config->outputs().first();
+    //     qDebug() << "op:" << config->outputs().size();
+    auto output = config->outputs().begin()->second;
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().begin()->second;
@@ -315,8 +315,8 @@ void TestInProcess::testConfigMonitor()
     auto op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
-    //     qDebug() << "op:" << config->outputs().count();
-    auto output = config->outputs().first();
+    //     qDebug() << "op:" << config->outputs().size();
+    auto output = config->outputs().begin()->second;
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
     auto m0 = output->modes().begin()->second;

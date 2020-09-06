@@ -163,7 +163,7 @@ void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
 
     // Removing removed outputs
     const Disman::OutputList outputs = config->outputs();
-    for (const auto& output : outputs) {
+    for (auto const& [key, output] : outputs) {
         if (!m_outputMap.contains(output->id())) {
             config->remove_output(output->id());
         }
@@ -171,14 +171,19 @@ void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
 
     // Add Disman::Outputs that aren't in the list yet.
     Disman::OutputList dismanOutputs = config->outputs();
+
     for (const auto& output : m_outputMap) {
-        Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
-        if (!dismanOutput) {
+        Disman::OutputPtr dismanOutput;
+
+        auto it = dismanOutputs.find(output->id());
+        if (it == dismanOutputs.end()) {
             dismanOutput = output->toDismanOutput();
-            dismanOutputs.insert(dismanOutput->id(), dismanOutput);
+            dismanOutputs.insert({dismanOutput->id(), dismanOutput});
         } else {
-            output->updateDismanOutput(dismanOutput);
+            dismanOutput = it->second;
         }
+
+        output->updateDismanOutput(dismanOutput);
     }
     config->set_outputs(dismanOutputs);
 }
@@ -223,7 +228,7 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
         return false;
     }
 
-    for (const auto& output : newConfig->outputs()) {
+    for (auto const& [key, output] : newConfig->outputs()) {
         changed |= m_outputMap[output->id()]->setWlConfig(wlConfig, output);
     }
 

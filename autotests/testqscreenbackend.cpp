@@ -95,7 +95,7 @@ void testQScreenBackend::verifyOutputs()
 {
     QVERIFY(m_config->primary_output());
     if (m_backend == QLatin1String("screen")) {
-        QCOMPARE(m_config->outputs().count(), QGuiApplication::screens().count());
+        QCOMPARE(m_config->outputs().size(), QGuiApplication::screens().size());
     }
 
     const Disman::OutputPtr primary = m_config->primary_output();
@@ -104,7 +104,7 @@ void testQScreenBackend::verifyOutputs()
     // qDebug() << " prim modes: " << primary->modes();
 
     QList<int> ids;
-    foreach (const Disman::OutputPtr& output, m_config->outputs()) {
+    for (auto const& [key, output] : m_config->outputs()) {
         qDebug() << " _____________________ Output: " << output;
         qDebug() << "   output name: " << output->name().c_str();
         qDebug() << "   output modes: " << output->modes().size();
@@ -137,8 +137,8 @@ void testQScreenBackend::verifyModes()
     QVERIFY(primary);
     QVERIFY(primary->modes().size() > 0);
 
-    for (auto const& output : m_config->outputs()) {
-        for (auto const& [key, mode] : output->modes()) {
+    for (auto const& [output_key, output] : m_config->outputs()) {
+        for (auto const& [mode_key, mode] : output->modes()) {
             qDebug() << "   Mode   : " << mode->name().c_str();
             QVERIFY(!mode->name().empty());
             QVERIFY(mode->refresh() > 0);
@@ -155,7 +155,7 @@ void testQScreenBackend::commonUsagePattern()
     const Disman::OutputList outputs = op->config()->outputs();
 
     QVariantList outputList;
-    Q_FOREACH (const Disman::OutputPtr& output, outputs) {
+    for (auto const& [key, output] : outputs) {
         QVariantMap info;
         info[QStringLiteral("id")] = output->id();
         info[QStringLiteral("enabled")] = output->enabled();

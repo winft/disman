@@ -104,7 +104,7 @@ void TestKWaylandConfig::changeConfig()
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     // The first output is currently disabled, let's try to enable it
-    auto output = config->outputs().first();
+    auto output = config->outputs().begin()->second;
     QVERIFY(output->enabled());
     output->set_mode(output->mode("76"));
 
@@ -176,7 +176,7 @@ void TestKWaylandConfig::testRotationChange()
     monitor->add_config(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
-    auto output = config->outputs().first(); // is this id stable enough?
+    auto output = config->outputs().begin()->second; // is this id stable enough?
     output->set_rotation(rotation);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
@@ -195,7 +195,7 @@ void TestKWaylandConfig::testRotationChange()
     auto newconfig = newop->config();
     QVERIFY(newconfig);
 
-    auto newoutput = newconfig->outputs().first();
+    auto newoutput = newconfig->outputs().begin()->second;
     QCOMPARE(newoutput->rotation(), rotation);
 }
 

@@ -54,8 +54,8 @@ public:
         // to be able to tell apart multiple identical outputs, these need special treatment
         QStringList allIds;
         const auto outputs = config->outputs();
-        allIds.reserve(outputs.count());
-        for (const Disman::OutputPtr& output : outputs) {
+        allIds.reserve(outputs.size());
+        for (auto const& [key, output] : outputs) {
             const auto outputId = QString::fromStdString(output->hash());
             if (allIds.contains(outputId) && !m_duplicateOutputIds.contains(outputId)) {
                 m_duplicateOutputIds << outputId;
@@ -63,7 +63,7 @@ public:
             allIds << outputId;
         }
 
-        for (auto output : outputs) {
+        for (auto const& [key, output] : outputs) {
             m_output_filers.push_back(
                 std::unique_ptr<Output_filer>(new Output_filer(output, m_controller, m_dir_path)));
         }
@@ -73,7 +73,7 @@ public:
     {
         auto outputs = config->outputs();
 
-        for (auto& output : outputs) {
+        for (auto& [key, output] : outputs) {
             //
             // First we must set the retention for all later calls to get_value().
             auto retention = get_value(
@@ -122,7 +122,7 @@ public:
     void set_values(ConfigPtr const& config)
     {
         auto outputs = config->outputs();
-        for (auto output : outputs) {
+        for (auto const& [key, output] : outputs) {
             auto const retention = output->retention();
             Output_filer* filer = nullptr;
 
@@ -360,17 +360,17 @@ public:
     {
         auto replicate_hash = get_value(output, "replicate", QString(), nullptr).toStdString();
 
-        auto replication_source_it = std::find_if(
-            outputs.constBegin(), outputs.constEnd(), [replicate_hash](OutputPtr const& out) {
-                return out->hash() == replicate_hash;
-            });
+        auto replication_source_it
+            = std::find_if(outputs.cbegin(), outputs.cend(), [replicate_hash](auto const& out) {
+                  return out.second->hash() == replicate_hash;
+              });
 
-        if (replication_source_it != outputs.constEnd()) {
+        if (replication_source_it != outputs.cend()) {
             if (replicate_hash == output->hash()) {
                 qCWarning(DISMAN_BACKEND) << "Control file has sets" << output
                                           << "as its own replica. This is not allowed.";
             } else {
-                output->set_replication_source((*replication_source_it)->id());
+                output->set_replication_source(replication_source_it->first);
             }
         } else {
             output->set_replication_source(0);

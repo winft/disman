@@ -139,7 +139,7 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
     }
     double offsetX = INT_MAX;
     double offsetY = INT_MAX;
-    Q_FOREACH (const Disman::OutputPtr& output, config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         if (!output->positionable()) {
             continue;
         }
@@ -151,7 +151,7 @@ void SetConfigOperationPrivate::normalizeOutputPositions()
         return;
     }
     qCDebug(DISMAN) << "Correcting output positions by:" << QPoint(offsetX, offsetY);
-    Q_FOREACH (const Disman::OutputPtr& output, config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         if (!output->enabled()) {
             continue;
         }

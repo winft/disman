@@ -44,18 +44,18 @@ public:
     {
     }
 
-    OutputList::Iterator remove_output(OutputList::Iterator iter)
+    auto remove_output(OutputList::iterator iter)
     {
         if (iter == outputs.end()) {
             return iter;
         }
 
-        OutputPtr output = iter.value();
+        OutputPtr output = iter->second;
         if (!output) {
             return outputs.erase(iter);
         }
 
-        const int outputId = iter.key();
+        auto const outputId = iter->first;
         iter = outputs.erase(iter);
 
         if (primary_output == output) {
@@ -100,9 +100,9 @@ bool Config::can_be_applied(const ConfigPtr& config, ValidityFlags flags)
 
     QRect rect;
     OutputPtr currentOutput;
-    const OutputList outputs = config->outputs();
     int enabledOutputsCount = 0;
-    Q_FOREACH (const OutputPtr& output, outputs) {
+
+    for (auto const& [key, output] : config->outputs()) {
         if (!output->enabled()) {
             continue;
         }
@@ -115,6 +115,7 @@ bool Config::can_be_applied(const ConfigPtr& config, ValidityFlags flags)
             qCDebug(DISMAN) << "can_be_applied: The output:" << output->id() << "does not exists";
             return false;
         }
+
         // if there is no currentMode
         if (output->auto_mode().isNull()) {
             qCDebug(DISMAN) << "can_be_applied: The output:" << output->id()
@@ -203,7 +204,7 @@ ConfigPtr Config::clone() const
     ConfigPtr newConfig(new Config(origin()));
     newConfig->d->screen = d->screen->clone();
 
-    for (const OutputPtr& ourOutput : d->outputs) {
+    for (auto const& [key, ourOutput] : d->outputs) {
         auto cloned_output = ourOutput->clone();
         newConfig->add_output(cloned_output);
 
@@ -222,7 +223,7 @@ ConfigPtr Config::clone() const
 QString Config::hash() const
 {
     QStringList hashedOutputs;
-    for (OutputPtr const& output : d->outputs) {
+    for (auto const& [key, output] : d->outputs) {
         hashedOutputs << QString::fromStdString(output->hash());
     }
 
@@ -254,7 +255,10 @@ void Config::setScreen(const ScreenPtr& screen)
 
 OutputPtr Config::output(int outputId) const
 {
-    return d->outputs.value(outputId);
+    if (auto out = d->outputs.find(outputId); out != d->outputs.end()) {
+        return out->second;
+    }
+    return nullptr;
 }
 
 Config::Features Config::supported_features() const
@@ -310,7 +314,7 @@ void Config::set_primary_output(const OutputPtr& newPrimary)
 OutputPtr Config::replication_source(OutputPtr const& output)
 {
     if (auto source_id = output->replication_source()) {
-        for (auto const& output : d->outputs) {
+        for (auto const& [key, output] : d->outputs) {
             if (output->id() == source_id) {
                 return output;
             }
@@ -321,7 +325,7 @@ OutputPtr Config::replication_source(OutputPtr const& output)
 
 void Config::add_output(const OutputPtr& output)
 {
-    d->outputs.insert(output->id(), output);
+    d->outputs.insert({output->id(), output});
 
     Q_EMIT output_added(output);
 }
@@ -339,7 +343,7 @@ void Config::set_outputs(const OutputList& outputs)
         end = d->outputs.end();
     }
 
-    for (const OutputPtr& output : outputs) {
+    for (auto const& [key, output] : outputs) {
         add_output(output);
         if (primary && primary->id() == output->id()) {
             set_primary_output(output);
@@ -363,19 +367,22 @@ void Config::apply(const ConfigPtr& other)
     d->screen->apply(other->screen());
 
     // Remove removed outputs
-    Q_FOREACH (const OutputPtr& output, d->outputs) {
-        if (!other->d->outputs.contains(output->id())) {
-            remove_output(output->id());
+    for (auto iter = d->outputs.begin(), end = d->outputs.end(); iter != end;) {
+        if (other->d->outputs.find(iter->second->id()) == other->d->outputs.end()) {
+            iter = d->remove_output(iter);
+            end = d->outputs.end();
+        } else {
+            iter++;
         }
     }
 
-    Q_FOREACH (const OutputPtr& otherOutput, other->d->outputs) {
+    for (auto const& [key, otherOutput] : other->d->outputs) {
         // Add new outputs
         OutputPtr output;
         auto primary
             = other->primary_output() && other->primary_output()->id() == otherOutput->id();
 
-        if (!d->outputs.contains(otherOutput->id())) {
+        if (d->outputs.find(otherOutput->id()) == d->outputs.end()) {
             output = otherOutput->clone();
             add_output(output);
         } else {

@@ -121,7 +121,7 @@ void Doctor::parsePositionalArgs()
             bool ok;
             int output_id = -1;
             if (ops[0] == QLatin1String("output")) {
-                for (auto const& output : m_config->outputs()) {
+                for (auto const& [key, output] : m_config->outputs()) {
                     if (output->name() == ops[1].toStdString()) {
                         output_id = output->id();
                     }
@@ -277,7 +277,7 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
     typeString[Disman::Output::TVC4] = QStringLiteral("TVC4");
     typeString[Disman::Output::DisplayPort] = QStringLiteral("DisplayPort");
 
-    for (auto const& output : config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         cout << green << "Output: " << cr << output->id() << " " << output->name().c_str();
         cout << " "
              << (output->enabled() ? green + QLatin1String("enabled")
@@ -324,7 +324,7 @@ bool Doctor::setEnabled(int id, bool enabled = true)
         return false;
     }
 
-    for (auto const& output : m_config->outputs()) {
+    for (auto& [key, output] : m_config->outputs()) {
         if (output->id() == id) {
             cout << (enabled ? "Enabling " : "Disabling ") << "output " << id << Qt::endl;
             output->set_enabled(enabled);
@@ -344,7 +344,7 @@ bool Doctor::setPosition(int id, const QPoint& pos)
         return false;
     }
 
-    for (auto const& output : m_config->outputs()) {
+    for (auto& [key, output] : m_config->outputs()) {
         if (output->id() == id) {
             qCDebug(DISMAN_CTL) << "Set output position" << pos;
             output->set_position(pos);
@@ -363,7 +363,7 @@ bool Doctor::setMode(int id, std::string const& mode_id)
         return false;
     }
 
-    for (auto& output : m_config->outputs()) {
+    for (auto& [key, output] : m_config->outputs()) {
         if (output->id() == id) {
             // find mode
             for (auto const& [key, mode] : output->modes()) {
@@ -391,7 +391,7 @@ bool Doctor::setScale(int id, qreal scale)
         return false;
     }
 
-    for (auto& output : m_config->outputs()) {
+    for (auto& [key, output] : m_config->outputs()) {
         if (output->id() == id) {
             output->set_scale(scale);
             m_changed = true;
@@ -409,7 +409,7 @@ bool Doctor::setRotation(int id, Disman::Output::Rotation rot)
         return false;
     }
 
-    for (auto& output : m_config->outputs()) {
+    for (auto& [key, output] : m_config->outputs()) {
         if (output->id() == id) {
             output->set_rotation(rot);
             m_changed = true;

@@ -121,7 +121,7 @@ void TestPnp::print()
                      : "none");
 
     const OutputList outputs = m_config->outputs();
-    Q_FOREACH (const OutputPtr& output, outputs) {
+    for (auto const& [key, output] : outputs) {
         qDebug() << "\n-----------------------------------------------------\n";
         qDebug() << "Id: " << output->id();
         qDebug() << "Name: " << output->name().c_str();

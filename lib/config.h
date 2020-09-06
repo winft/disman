@@ -46,7 +46,6 @@ class DISMAN_EXPORT Config : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(ScreenPtr screen READ screen)
-    Q_PROPERTY(OutputList outputs READ outputs)
 
 public:
     enum class Origin {

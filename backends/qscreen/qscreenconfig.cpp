@@ -92,28 +92,33 @@ void QScreenConfig::update_config(ConfigPtr& config) const
 {
     config->setScreen(m_screen->toDismanScreen());
 
-    // Removing removed outputs
-    Disman::OutputList outputs = config->outputs();
-    Q_FOREACH (const Disman::OutputPtr& output, outputs) {
+    // Removing removed outputs.
+    for (auto const& [key, output] : config->outputs()) {
         if (!m_outputMap.contains(output->id())) {
             config->remove_output(output->id());
         }
     }
 
-    // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
-    Disman::OutputList dismanOutputs = config->outputs();
-    foreach (QScreenOutput* output, m_outputMap) {
-        Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
+    // Add Disman::Outputs that aren't in the list yet.
+    auto dismanOutputs = config->outputs();
 
-        if (!dismanOutput) {
+    for (QScreenOutput* output : m_outputMap) {
+        Disman::OutputPtr dismanOutput;
+
+        auto it = dismanOutputs.find(output->id());
+        if (it == dismanOutputs.end()) {
             dismanOutput = output->toDismanOutput();
-            dismanOutputs.insert(dismanOutput->id(), dismanOutput);
+            dismanOutputs.insert({dismanOutput->id(), dismanOutput});
+        } else {
+            dismanOutput = it->second;
         }
+
         output->updateDismanOutput(dismanOutput);
         if (QGuiApplication::primaryScreen() == output->qscreen()) {
             config->set_primary_output(dismanOutput);
         }
     }
+
     config->set_outputs(dismanOutputs);
 }
 

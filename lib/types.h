@@ -33,7 +33,7 @@ class Screen;
 typedef QSharedPointer<Disman::Screen> ScreenPtr;
 class Output;
 typedef QSharedPointer<Disman::Output> OutputPtr;
-typedef QMap<int, Disman::OutputPtr> OutputList;
+typedef std::map<int, Disman::OutputPtr> OutputList;
 
 class Mode;
 typedef QSharedPointer<Disman::Mode> ModePtr;

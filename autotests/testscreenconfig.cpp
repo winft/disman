@@ -87,9 +87,9 @@ void testScreenConfig::singleOutput()
     QCOMPARE(screen->max_size(), QSize(8192, 8192));
     QCOMPARE(screen->current_size(), QSize(1280, 800));
 
-    QCOMPARE(config->outputs().count(), 1);
+    QCOMPARE(config->outputs().size(), 1);
 
-    const OutputPtr output = config->outputs().take(1);
+    const OutputPtr output = config->outputs().at(1);
     QVERIFY(!output.isNull());
 
     QVERIFY(config->primary_output());
@@ -118,7 +118,7 @@ void testScreenConfig::singleOutputWithoutPreferred()
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
-    const OutputPtr output = config->outputs().take(1);
+    const OutputPtr output = config->outputs().at(1);
     QVERIFY(!output.isNull());
 
     QVERIFY(output->preferred_modes().empty());
@@ -138,9 +138,9 @@ void testScreenConfig::multiOutput()
     QCOMPARE(screen->max_size(), QSize(8192, 8192));
     QCOMPARE(screen->current_size(), QSize(3200, 1880));
 
-    QCOMPARE(config->outputs().count(), 2);
+    QCOMPARE(config->outputs().size(), 2);
 
-    const OutputPtr output = config->outputs().take(2);
+    const OutputPtr output = config->outputs().at(2);
     QVERIFY(!output.isNull());
 
     QVERIFY(config->primary_output());
@@ -193,7 +193,7 @@ void testScreenConfig::configCanBeApplied()
     QVERIFY(!brokenConfig2.isNull());
 
     int enabledOutputsCount = 0;
-    Q_FOREACH (const OutputPtr& output, brokenConfig2->outputs()) {
+    for (auto const& [key, output] : brokenConfig2->outputs()) {
         if (output->enabled()) {
             ++enabledOutputsCount;
         }
@@ -252,8 +252,8 @@ void testScreenConfig::testOutputPositionNormalization()
 
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
-    auto left = config->outputs().first();
-    auto right = config->outputs().last();
+    auto left = config->outputs().begin()->second;
+    auto right = config->outputs().rbegin()->second;
     QVERIFY(!left.isNull());
     QVERIFY(!right.isNull());
     left->set_position(QPoint(-5000, 700));

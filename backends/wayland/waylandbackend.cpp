@@ -154,8 +154,7 @@ bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
 
     m_filer_controller->write(config);
 
-    auto outputs = config->outputs();
-    for (auto output : outputs) {
+    for (auto const& [key, output] : config->outputs()) {
         if (auto source_id = output->replication_source()) {
             auto source = config->output(source_id);
             output->set_position(source->position());

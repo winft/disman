@@ -50,10 +50,10 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
 
     OutputList outputList;
     OutputPtr primary;
-    Q_FOREACH (const QVariant& value, outputs) {
+    for (auto const& value : outputs) {
         bool is_primary = false;
         const OutputPtr output = Parser::outputFromJson(value.toMap(), is_primary);
-        outputList.insert(output->id(), output);
+        outputList.insert({output->id(), output});
         if (is_primary) {
             primary = output;
         }

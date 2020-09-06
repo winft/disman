@@ -81,7 +81,7 @@ private Q_SLOTS:
         Disman::ConfigPtr config = getConfig();
         monitor->add_config(config);
 
-        auto output = config->outputs().first();
+        auto output = config->outputs().begin()->second;
 
         output->set_enabled(false);
         auto setop = new Disman::SetConfigOperation(config);

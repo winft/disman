@@ -72,7 +72,7 @@ QJsonObject ConfigSerializer::serialize_config(const ConfigPtr& config)
     }
 
     QJsonArray outputs;
-    Q_FOREACH (const OutputPtr& output, config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         outputs.append(serialize_output(output));
     }
     obj[QLatin1String("outputs")] = outputs;
@@ -282,7 +282,7 @@ ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
             if (!output) {
                 return ConfigPtr();
             }
-            outputs.insert(output->id(), output);
+            outputs.insert({output->id(), output});
         }
         outputsArg.endArray();
         config->set_outputs(outputs);

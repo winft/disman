@@ -49,7 +49,7 @@ void Generator::set_derived()
 
     m_derived = true;
 
-    for (auto output : m_config->outputs()) {
+    for (auto const& [key, output] : m_config->outputs()) {
         if (auto predecessor_output = m_predecessor_config->output(output->id())) {
             output->apply(predecessor_output);
         }
@@ -58,9 +58,7 @@ void Generator::set_derived()
 
 void Generator::prepare_config()
 {
-    auto outputs = m_config->outputs();
-
-    for (auto& output : outputs) {
+    for (auto const& [key, output] : m_config->outputs()) {
         // The scale will generally be independent no matter where the output is
         // scale will affect geometry, so do this first.
         if (m_config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling)) {
@@ -143,9 +141,9 @@ bool Generator::replicate()
 
 ConfigPtr Generator::optimize_impl()
 {
-    qCDebug(DISMAN) << "Generates ideal config for" << m_config->outputs().count() << "displays.";
+    qCDebug(DISMAN) << "Generates ideal config for" << m_config->outputs().size() << "displays.";
 
-    if (m_config->outputs().isEmpty()) {
+    if (m_config->outputs().empty()) {
         qCDebug(DISMAN) << "No displays connected. Nothing to generate.";
         return m_config;
     }
@@ -153,7 +151,7 @@ ConfigPtr Generator::optimize_impl()
     auto config = m_config->clone();
     auto outputs = config->outputs();
 
-    if (outputs.count() == 1) {
+    if (outputs.size() == 1) {
         single_output(config);
         return config;
     }
@@ -198,11 +196,11 @@ void Generator::single_output(ConfigPtr const& config)
 {
     auto outputs = config->outputs();
 
-    if (outputs.isEmpty()) {
+    if (outputs.empty()) {
         return;
     }
 
-    auto output = outputs.value(outputs.keys().first());
+    auto output = outputs.begin()->second;
     if (output->modes().empty()) {
         return;
     }
@@ -221,7 +219,7 @@ void Generator::extend_impl(ConfigPtr const& config,
 
     qCDebug(DISMAN) << "Generate config by extending to the right.";
 
-    if (outputs.isEmpty()) {
+    if (outputs.empty()) {
         qCDebug(DISMAN) << "No displays found. Nothing to generate.";
         return;
     }
@@ -260,7 +258,7 @@ void Generator::get_outputs_division(OutputPtr const& first,
 {
     OutputPtr recent_output;
 
-    for (auto output : config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         if (output == first) {
             continue;
         }
@@ -278,7 +276,7 @@ void Generator::get_outputs_division(OutputPtr const& first,
         // If we have no new outputs we assume the last one added (not the one designated as being
         // first) should be extended in the given direction.
         new_outputs[recent_output->id()] = recent_output;
-        old_outputs.remove(recent_output->id());
+        old_outputs.erase(recent_output->id());
     }
 }
 
@@ -292,7 +290,7 @@ void Generator::line_up(OutputPtr const& first,
     double globalWidth
         = direction == Extend_direction::right ? first->geometry().width() : first->position().x();
 
-    for (auto& output : old_outputs) {
+    for (auto const& [key, output] : old_outputs) {
         if (direction == Extend_direction::left) {
             auto const left = output->position().x();
             if (left < globalWidth) {
@@ -309,7 +307,7 @@ void Generator::line_up(OutputPtr const& first,
         }
     }
 
-    for (auto& output : new_outputs) {
+    for (auto& [key, output] : new_outputs) {
         if (output->id() == first->id()) {
             continue;
         }
@@ -340,9 +338,9 @@ void Generator::replicate_impl(const ConfigPtr& config)
     }
 
     qCDebug(DISMAN) << "Generate multi-output config by replicating" << source << "on"
-                    << outputs.count() - 1 << "other outputs.";
+                    << outputs.size() - 1 << "other outputs.";
 
-    for (auto& output : outputs) {
+    for (auto& [key, output] : outputs) {
         if (output == source) {
             continue;
         }
@@ -357,7 +355,7 @@ void Generator::replicate_derived(ConfigPtr const& config, OutputPtr const& sour
 
     get_outputs_division(source, config, old_outputs, new_outputs);
 
-    for (auto output : new_outputs) {
+    for (auto& [key, output] : new_outputs) {
         output->set_replication_source(source->id());
     }
 }
@@ -377,7 +375,7 @@ ConfigPtr Generator::multi_output_fallback(ConfigPtr const& config)
 bool Generator::check_config(ConfigPtr const& config)
 {
     int enabled = 0;
-    for (auto output : config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         enabled += output->enabled();
     }
     if (m_validities & Config::ValidityFlag::RequireAtLeastOneEnabledScreen && enabled == 0) {
@@ -405,7 +403,7 @@ OutputPtr Generator::biggest(OutputList const& exclusions) const
 OutputPtr Generator::primary_impl(OutputList const& outputs, OutputList const& exclusions) const
 {
     if (auto output = m_config->primary_output()) {
-        if (m_derived && !exclusions.contains(output->id())) {
+        if (m_derived && exclusions.find(output->id()) != exclusions.end()) {
             return output;
         }
     }
@@ -420,11 +418,11 @@ OutputPtr Generator::primary_impl(OutputList const& outputs, OutputList const& e
 
 OutputPtr Generator::embedded_impl(OutputList const& outputs, OutputList const& exclusions) const
 {
-    auto it = std::find_if(
-        outputs.constBegin(), outputs.constEnd(), [&exclusions](OutputPtr const& output) {
-            return output->type() == Output::Panel && !exclusions.contains(output->id());
-        });
-    return it != outputs.constEnd() ? *it : OutputPtr();
+    auto it = std::find_if(outputs.cbegin(), outputs.cend(), [&exclusions](auto const& output) {
+        return output.second->type() == Output::Panel
+            && exclusions.find(output.second->id()) == exclusions.end();
+    });
+    return it != outputs.cend() ? it->second : OutputPtr();
 }
 
 OutputPtr Generator::biggest_impl(OutputList const& outputs,
@@ -434,8 +432,8 @@ OutputPtr Generator::biggest_impl(OutputList const& outputs,
     auto max_area = 0;
     OutputPtr biggest;
 
-    for (auto const& output : outputs) {
-        if (exclusions.contains(output->id())) {
+    for (auto const& [key, output] : outputs) {
+        if (exclusions.find(output->id()) != exclusions.end()) {
             continue;
         }
         auto const mode = output->best_mode();

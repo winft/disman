@@ -136,11 +136,11 @@ void testWaylandBackend::verifyScreen()
 void testWaylandBackend::verifyOutputs()
 {
     QVERIFY(!m_config->primary_output());
-    QVERIFY(m_config->outputs().count());
-    QCOMPARE(m_server->outputCount(), m_config->outputs().count());
+    QVERIFY(m_config->outputs().size());
+    QCOMPARE(m_server->outputCount(), m_config->outputs().size());
 
     QList<int> ids;
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& [key, output] : m_config->outputs()) {
         QVERIFY(output->name().size());
         QVERIFY(output->id() > -1);
         QVERIFY(output->geometry() != QRectF(1, 1, 1, 1));
@@ -155,7 +155,7 @@ void testWaylandBackend::verifyOutputs()
 
 void testWaylandBackend::verifyModes()
 {
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& [key, output] : m_config->outputs()) {
         for (auto const& [key, mode] : output->modes()) {
             QVERIFY(!mode->name().empty());
             QVERIFY(mode->refresh() > 0);
@@ -167,7 +167,7 @@ void testWaylandBackend::verifyModes()
 void testWaylandBackend::verifyIds()
 {
     QList<quint32> ids;
-    Q_FOREACH (const auto& output, m_config->outputs()) {
+    for (auto const& [key, output] : m_config->outputs()) {
         QVERIFY(ids.contains(output->id()) == false);
         QVERIFY(output->id() > 0);
         ids << output->id();
@@ -196,7 +196,7 @@ void testWaylandBackend::addAndRemoveOutput()
     GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
-    QCOMPARE(config->outputs().count(), 2);
+    QCOMPARE(config->outputs().size(), 2);
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->add_config(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
@@ -232,7 +232,7 @@ void testWaylandBackend::addAndRemoveOutput()
     GetConfigOperation* op2 = new GetConfigOperation();
     op2->exec();
     auto newconfig = op2->config();
-    QCOMPARE(newconfig->outputs().count(), 3);
+    QCOMPARE(newconfig->outputs().size(), 3);
 
     // Now remove the output again.
     delete m_serverOutputDevice;
@@ -240,7 +240,7 @@ void testWaylandBackend::addAndRemoveOutput()
     GetConfigOperation* op3 = new GetConfigOperation();
     op3->exec();
     newconfig = op3->config();
-    QCOMPARE(newconfig->outputs().count(), 2);
+    QCOMPARE(newconfig->outputs().size(), 2);
 }
 
 void testWaylandBackend::verifyFeatures()

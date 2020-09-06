@@ -125,7 +125,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
         }
 
         output->updateDismanOutput(dismanOutput);
-        dismanOutputs.insert(dismanOutput->id(), dismanOutput);
+        dismanOutputs.insert({dismanOutput->id(), dismanOutput});
     }
 
     config->set_outputs(dismanOutputs);
@@ -170,17 +170,17 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         primaryOutput = primary->id();
     }
 
-    for (const Disman::OutputPtr& dismanOutput : dismanOutputs) {
+    for (auto const& [key, dismanOutput] : dismanOutputs) {
         xcb_randr_output_t outputId = dismanOutput->id();
         XRandROutput* currentOutput = output(outputId);
 
         const bool currentEnabled = currentOutput->enabled();
 
         if (!dismanOutput->enabled() && currentEnabled) {
-            toDisable.insert(outputId, dismanOutput);
+            toDisable.insert({outputId, dismanOutput});
             continue;
         } else if (dismanOutput->enabled() && !currentEnabled) {
-            toEnable.insert(outputId, dismanOutput);
+            toEnable.insert({outputId, dismanOutput});
             ++neededCrtcs;
             continue;
         } else if (!dismanOutput->enabled() && !currentEnabled) {
@@ -190,26 +190,26 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         ++neededCrtcs;
 
         if (dismanOutput->auto_mode()->id() != currentOutput->currentModeId()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
         if (dismanOutput->position() != currentOutput->position()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
         if (dismanOutput->rotation() != currentOutput->rotation()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
         if (dismanOutput->geometry().size() != currentOutput->logicalSize()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
@@ -233,11 +233,11 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         // When the output would not fit into new screen size, we need to disable and reposition it.
         const QRectF geom = dismanOutput->geometry();
         if (geom.right() > newScreenSize.width() || geom.bottom() > newScreenSize.height()) {
-            if (!toDisable.contains(outputId)) {
+            if (toDisable.find(outputId) == toDisable.end()) {
                 qCDebug(DISMAN_XRANDR)
                     << "The new output would not fit into screen - new geometry: " << geom
                     << ", new screen size:" << newScreenSize;
-                toDisable.insert(outputId, dismanOutput);
+                toDisable.insert({outputId, dismanOutput});
             }
         }
     }
@@ -275,19 +275,27 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
                                << "\t\tNew:" << newScreenSize;
     }
 
-    qCDebug(DISMAN_XRANDR) << "\tDisable outputs:" << !toDisable.isEmpty();
-    if (!toDisable.isEmpty()) {
-        qCDebug(DISMAN_XRANDR) << "\t\t" << toDisable.keys();
+    auto print_keys = [](auto const& outputs) {
+        std::string line = "\t\t";
+        for (auto const& [key, output] : outputs) {
+            line = line + " " + std::to_string(key);
+        }
+        qCDebug(DISMAN_XRANDR) << line.c_str();
+    };
+
+    qCDebug(DISMAN_XRANDR) << "\tDisable outputs:" << !toDisable.empty();
+    if (!toDisable.empty()) {
+        print_keys(toDisable);
     }
 
-    qCDebug(DISMAN_XRANDR) << "\tChange outputs:" << !toChange.isEmpty();
-    if (!toChange.isEmpty()) {
-        qCDebug(DISMAN_XRANDR) << "\t\t" << toChange.keys();
+    qCDebug(DISMAN_XRANDR) << "\tChange outputs:" << !toChange.empty();
+    if (!toChange.empty()) {
+        print_keys(toChange);
     }
 
-    qCDebug(DISMAN_XRANDR) << "\tEnable outputs:" << !toEnable.isEmpty();
-    if (!toEnable.isEmpty()) {
-        qCDebug(DISMAN_XRANDR) << "\t\t" << toEnable.keys();
+    qCDebug(DISMAN_XRANDR) << "\tEnable outputs:" << !toEnable.empty();
+    if (!toEnable.empty()) {
+        print_keys(toEnable);
     }
 
     // Grab the server so that no-one else can do changes to XRandR and to block
@@ -295,15 +303,15 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     XCB::GrabServer grabber;
 
     // If there is nothing to do, not even bother
-    if (oldPrimaryOutput == primaryOutput && toDisable.isEmpty() && toEnable.isEmpty()
-        && toChange.isEmpty()) {
+    if (oldPrimaryOutput == primaryOutput && toDisable.empty() && toEnable.empty()
+        && toChange.empty()) {
         if (newScreenSize != currentScreenSize) {
             setScreenSize(newScreenSize);
         }
         return false;
     }
 
-    for (const Disman::OutputPtr& output : toDisable) {
+    for (auto const& [key, output] : toDisable) {
         disableOutput(output);
     }
 
@@ -313,11 +321,11 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
 
     bool forceScreenSizeUpdate = false;
 
-    for (const Disman::OutputPtr& output : toChange) {
+    for (auto const& [key, output] : toChange) {
         if (!changeOutput(output, output->id() == static_cast<int>(primaryOutput))) {
             /* If we disabled the output before changing it and XRandR failed
              * to re-enable it, then update screen size too */
-            if (toDisable.contains(output->id())) {
+            if (toDisable.find(output->id()) != toDisable.end()) {
                 output->set_enabled(false);
                 qCDebug(DISMAN_XRANDR) << "Output failed to change: " << output->name().c_str();
                 forceScreenSizeUpdate = true;
@@ -325,7 +333,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         }
     }
 
-    for (const Disman::OutputPtr& output : toEnable) {
+    for (auto const& [key, output] : toEnable) {
         if (!enableOutput(output, output->id() == static_cast<int>(primaryOutput))) {
             qCDebug(DISMAN_XRANDR) << "Output failed to be Enabled: " << output->name().c_str();
             forceScreenSizeUpdate = true;
@@ -373,7 +381,7 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                    : "none");
 
     const OutputList outputs = config->outputs();
-    for (const OutputPtr& output : outputs) {
+    for (auto const& [key, output] : outputs) {
         qCDebug(DISMAN_XRANDR) << "\n-----------------------------------------------------\n"
                                << "\n"
                                << "Id: " << output->id() << "\n"
@@ -431,7 +439,7 @@ void XRandRConfig::printInternalCond() const
 QSize XRandRConfig::screenSize(const Disman::ConfigPtr& config) const
 {
     QRect rect;
-    for (const Disman::OutputPtr& output : config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         if (!output->enabled()) {
             continue;
         }

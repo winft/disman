@@ -119,7 +119,7 @@ void TestModeListChange::modeListChange()
     const ConfigPtr config = getConfig();
     QVERIFY(!config.isNull());
 
-    auto output = config->outputs().first();
+    auto output = config->outputs().begin()->second;
     QVERIFY(!output.isNull());
     auto modelist = output->modes();
 
