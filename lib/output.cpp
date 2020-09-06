@@ -472,15 +472,6 @@ bool Output::isPositionable() const
 
 void Output::apply(const OutputPtr& other)
 {
-    typedef void (Disman::Output::*ChangeSignal)();
-    QList<ChangeSignal> changes;
-
-    // We block all signals, and emit them only after we have set up everything
-    // This is necessary in order to prevent clients from accessing inconsistent
-    // outputs from intermediate change signals
-    const bool keepBlocked = signalsBlocked();
-    blockSignals(true);
-
     set_name(other->d->name);
     set_description(other->d->description);
     d->hash = other->d->hash;
@@ -508,14 +499,6 @@ void Output::apply(const OutputPtr& other)
     set_auto_rotate(other->d->auto_rotate);
     set_auto_rotate_only_in_tablet_mode(other->d->auto_rotate_only_in_tablet_mode);
     set_retention(other->d->retention);
-
-    blockSignals(keepBlocked);
-
-    while (!changes.isEmpty()) {
-        const ChangeSignal& sig = changes.first();
-        Q_EMIT(this->*sig)();
-        changes.removeAll(sig);
-    }
 
     Q_EMIT updated();
 }
