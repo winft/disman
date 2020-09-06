@@ -17,7 +17,6 @@
  *************************************************************************************/
 #pragma once
 
-#include <QMap>
 #include <QObject>
 #include <QSize>
 #include <QVariant>
@@ -37,7 +36,7 @@ class XRandRMode : public QObject
     Q_OBJECT
 
 public:
-    typedef QMap<xcb_randr_mode_t, XRandRMode*> Map;
+    using Map = std::map<xcb_randr_mode_t, XRandRMode*>;
 
     explicit XRandRMode(const xcb_randr_mode_info_t& modeInfo, XRandROutput* output);
     ~XRandRMode() override;

@@ -58,7 +58,7 @@ public:
     void initConnection(QThread* thread) override;
     bool isInitialized() const override;
 
-    QMap<int, WaylandOutput*> outputMap() const override;
+    std::map<int, WaylandOutput*> outputMap() const override;
 
     bool applyConfig(const Disman::ConfigPtr& newConfig) override;
     void updateConfig(Disman::ConfigPtr& config) override;
@@ -80,7 +80,7 @@ private:
     Wrapland::Client::OutputManagementV1* m_outputManagement;
 
     // Wrapland names as keys
-    QMap<int, KwinftOutput*> m_outputMap;
+    std::map<int, KwinftOutput*> m_outputMap;
 
     // Wrapland names
     int m_lastOutputId = -1;

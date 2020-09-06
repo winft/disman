@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace Disman;
 namespace Wl = KWayland::Client;
 
-const QMap<Wl::OutputDevice::Transform, Output::Rotation> s_rotationMap
+const std::map<Wl::OutputDevice::Transform, Output::Rotation> s_rotationMap
     = {{Wl::OutputDevice::Transform::Normal, Output::None},
        {Wl::OutputDevice::Transform::Rotated90, Output::Right},
        {Wl::OutputDevice::Transform::Rotated180, Output::Inverted},
@@ -40,13 +40,19 @@ const QMap<Wl::OutputDevice::Transform, Output::Rotation> s_rotationMap
 
 Output::Rotation toDismanRotation(const Wl::OutputDevice::Transform transform)
 {
-    auto it = s_rotationMap.constFind(transform);
-    return it.value();
+    auto it = s_rotationMap.find(transform);
+    assert(it != s_rotationMap.end());
+    return it->second;
 }
 
 Wl::OutputDevice::Transform toKWaylandTransform(const Output::Rotation rotation)
 {
-    return s_rotationMap.key(rotation);
+    for (auto const& [key, val] : s_rotationMap) {
+        if (val == rotation) {
+            return key;
+        }
+    }
+    assert(false);
 }
 
 KWaylandOutput::KWaylandOutput(quint32 id, QObject* parent)
@@ -96,7 +102,7 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     output->set_hash(name().toStdString());
     output->set_physical_size(m_device->physicalSize());
     output->set_position(m_device->globalPosition());
-    output->set_rotation(s_rotationMap[m_device->transform()]);
+    output->set_rotation(s_rotationMap.at(m_device->transform()));
 
     ModeList modeList;
     std::vector<std::string> preferredModeIds;

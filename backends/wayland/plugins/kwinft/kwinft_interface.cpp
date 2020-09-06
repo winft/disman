@@ -79,7 +79,9 @@ bool KwinftInterface::isInitialized() const
 
 void KwinftInterface::handleDisconnect()
 {
-    qDeleteAll(m_outputMap);
+    for (auto& [key, out] : m_outputMap) {
+        delete out;
+    }
     m_outputMap.clear();
 
     // Clean up
@@ -136,13 +138,19 @@ void KwinftInterface::addOutputDevice(quint32 name, quint32 version)
 void KwinftInterface::insertOutput(WaylandOutput* output)
 {
     auto* out = static_cast<KwinftOutput*>(output);
-    m_outputMap.insert(out->id(), out);
+    m_outputMap.insert({out->id(), out});
 }
 
 WaylandOutput* KwinftInterface::takeOutput(WaylandOutput* output)
 {
-    auto* out = static_cast<KwinftOutput*>(output);
-    return m_outputMap.take(out->id());
+    auto out = static_cast<KwinftOutput*>(output);
+    auto it = m_outputMap.find(out->id());
+    if (it != m_outputMap.end()) {
+        auto output = it->second;
+        m_outputMap.erase(it);
+        return output;
+    }
+    return nullptr;
 }
 
 void KwinftInterface::updateConfig(Disman::ConfigPtr& config)
@@ -155,15 +163,15 @@ void KwinftInterface::updateConfig(Disman::ConfigPtr& config)
     // Removing removed outputs
     const Disman::OutputList outputs = config->outputs();
     for (auto const& [key, output] : outputs) {
-        if (!m_outputMap.contains(output->id())) {
+        if (m_outputMap.find(output->id()) == m_outputMap.end()) {
             config->remove_output(output->id());
         }
     }
 
     // Add Disman::Outputs that aren't in the list yet.
-    Disman::OutputList dismanOutputs = config->outputs();
+    auto dismanOutputs = config->outputs();
 
-    for (const auto& output : m_outputMap) {
+    for (auto& [key, output] : m_outputMap) {
         Disman::OutputPtr dismanOutput;
 
         auto it = dismanOutputs.find(output->id());
@@ -179,13 +187,13 @@ void KwinftInterface::updateConfig(Disman::ConfigPtr& config)
     config->set_outputs(dismanOutputs);
 }
 
-QMap<int, WaylandOutput*> KwinftInterface::outputMap() const
+std::map<int, WaylandOutput*> KwinftInterface::outputMap() const
 {
-    QMap<int, WaylandOutput*> ret;
+    std::map<int, WaylandOutput*> ret;
 
-    auto it = m_outputMap.constBegin();
-    while (it != m_outputMap.constEnd()) {
-        ret[it.key()] = it.value();
+    auto it = m_outputMap.cbegin();
+    while (it != m_outputMap.cend()) {
+        ret[it->first] = it->second;
         ++it;
     }
     return ret;

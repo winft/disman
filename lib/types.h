@@ -18,7 +18,6 @@
 #ifndef DISMAN_TYPES_H
 #define DISMAN_TYPES_H
 
-#include <QMap>
 #include <QSharedPointer>
 
 #include <map>

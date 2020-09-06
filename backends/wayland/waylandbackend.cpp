@@ -166,14 +166,14 @@ bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
 
 QByteArray WaylandBackend::edid(int outputId) const
 {
-    WaylandOutput* output = outputMap().value(outputId);
-    if (!output) {
-        return QByteArray();
+    auto map = outputMap();
+    if (auto output = map.find(outputId); output != map.end()) {
+        return output->second->edid();
     }
-    return output->edid();
+    return QByteArray();
 }
 
-QMap<int, WaylandOutput*> WaylandBackend::outputMap() const
+std::map<int, WaylandOutput*> WaylandBackend::outputMap() const
 {
     return m_interface->outputMap();
 }
@@ -185,7 +185,11 @@ bool WaylandBackend::valid() const
 
 void WaylandBackend::setScreenOutputs()
 {
-    m_screen->setOutputs(outputMap().values());
+    std::vector<WaylandOutput*> outputs;
+    for (auto const& [key, out] : outputMap()) {
+        outputs.push_back(out);
+    }
+    m_screen->setOutputs(outputs);
 }
 
 void WaylandBackend::queryInterfaces()

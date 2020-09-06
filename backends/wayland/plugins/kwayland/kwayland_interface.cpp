@@ -83,7 +83,9 @@ bool KWaylandInterface::isInitialized() const
 
 void KWaylandInterface::handleDisconnect()
 {
-    qDeleteAll(m_outputMap);
+    for (auto& [key, out] : m_outputMap) {
+        delete out;
+    }
     m_outputMap.clear();
 
     // Clean up
@@ -139,14 +141,20 @@ void KWaylandInterface::addOutputDevice(quint32 name, quint32 version)
 
 void KWaylandInterface::insertOutput(WaylandOutput* output)
 {
-    auto* out = static_cast<KWaylandOutput*>(output);
-    m_outputMap.insert(out->id(), out);
+    auto out = static_cast<KWaylandOutput*>(output);
+    m_outputMap.insert({out->id(), out});
 }
 
 WaylandOutput* KWaylandInterface::takeOutput(WaylandOutput* output)
 {
-    auto* out = static_cast<KWaylandOutput*>(output);
-    return m_outputMap.take(out->id());
+    auto out = static_cast<KWaylandOutput*>(output);
+    auto it = m_outputMap.find(out->id());
+    if (it != m_outputMap.end()) {
+        auto output = it->second;
+        m_outputMap.erase(it);
+        return output;
+    }
+    return nullptr;
 }
 
 void KWaylandInterface::updateConfig(Disman::ConfigPtr& config)
@@ -156,9 +164,8 @@ void KWaylandInterface::updateConfig(Disman::ConfigPtr& config)
     config->set_valid(m_connection->display());
 
     // Removing removed outputs
-    const Disman::OutputList outputs = config->outputs();
-    for (auto const& [key, output] : outputs) {
-        if (!m_outputMap.contains(output->id())) {
+    for (auto const& [key, output] : config->outputs()) {
+        if (m_outputMap.find(output->id()) == m_outputMap.end()) {
             config->remove_output(output->id());
         }
     }
@@ -166,7 +173,7 @@ void KWaylandInterface::updateConfig(Disman::ConfigPtr& config)
     // Add Disman::Outputs that aren't in the list yet.
     Disman::OutputList dismanOutputs = config->outputs();
 
-    for (const auto& output : m_outputMap) {
+    for (auto& [key, output] : m_outputMap) {
         Disman::OutputPtr dismanOutput;
 
         auto it = dismanOutputs.find(output->id());
@@ -182,13 +189,13 @@ void KWaylandInterface::updateConfig(Disman::ConfigPtr& config)
     config->set_outputs(dismanOutputs);
 }
 
-QMap<int, WaylandOutput*> KWaylandInterface::outputMap() const
+std::map<int, WaylandOutput*> KWaylandInterface::outputMap() const
 {
-    QMap<int, WaylandOutput*> ret;
+    std::map<int, WaylandOutput*> ret;
 
-    QMap<int, KWaylandOutput*>::const_iterator it = m_outputMap.constBegin();
-    while (it != m_outputMap.constEnd()) {
-        ret[it.key()] = it.value();
+    auto it = m_outputMap.cbegin();
+    while (it != m_outputMap.cend()) {
+        ret[it->first] = it->second;
         ++it;
     }
     return ret;

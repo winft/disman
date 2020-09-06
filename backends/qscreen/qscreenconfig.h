@@ -38,7 +38,7 @@ public:
 
     void update_config(ConfigPtr& config) const;
 
-    QMap<int, QScreenOutput*> outputMap() const;
+    std::map<int, QScreenOutput*> outputMap() const;
     int outputId(const QScreen* qscreen);
 
 private Q_SLOTS:
@@ -49,7 +49,7 @@ Q_SIGNALS:
     void config_changed();
 
 private:
-    QMap<int, QScreenOutput*> m_outputMap;
+    std::map<int, QScreenOutput*> m_outputMap;
     QScreenScreen* m_screen;
     int m_lastOutputId = -1;
     bool m_blockSignals;

@@ -54,7 +54,7 @@ public:
 
     QByteArray edid(int outputId) const override;
 
-    QMap<int, WaylandOutput*> outputMap() const;
+    std::map<int, WaylandOutput*> outputMap() const;
 
 private:
     struct PendingInterface {

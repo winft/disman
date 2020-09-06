@@ -38,7 +38,7 @@ public:
 
     Disman::ScreenPtr toDismanScreen(Disman::ConfigPtr& parent) const;
     void updateDismanScreen(Disman::ScreenPtr& screen) const;
-    void setOutputs(const QList<WaylandOutput*>& outputs);
+    void setOutputs(std::vector<WaylandOutput*> const& outputs);
 
     void setSize(const QSize& size);
     void setOutputCount(int count);

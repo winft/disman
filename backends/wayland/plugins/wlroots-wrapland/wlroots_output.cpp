@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace Disman;
 namespace Wl = Wrapland::Client;
 
-const QMap<Wl::WlrOutputHeadV1::Transform, Output::Rotation> s_rotationMap
+const std::map<Wl::WlrOutputHeadV1::Transform, Output::Rotation> s_rotationMap
     = {{Wl::WlrOutputHeadV1::Transform::Normal, Output::None},
        {Wl::WlrOutputHeadV1::Transform::Rotated90, Output::Right},
        {Wl::WlrOutputHeadV1::Transform::Rotated180, Output::Inverted},
@@ -39,13 +39,19 @@ const QMap<Wl::WlrOutputHeadV1::Transform, Output::Rotation> s_rotationMap
 
 Output::Rotation toDismanRotation(const Wl::WlrOutputHeadV1::Transform transform)
 {
-    auto it = s_rotationMap.constFind(transform);
-    return it.value();
+    auto it = s_rotationMap.find(transform);
+    assert(it != s_rotationMap.end());
+    return it->second;
 }
 
 Wl::WlrOutputHeadV1::Transform toWraplandTransform(const Output::Rotation rotation)
 {
-    return s_rotationMap.key(rotation);
+    for (auto const& [key, val] : s_rotationMap) {
+        if (val == rotation) {
+            return key;
+        }
+    }
+    assert(false);
 }
 
 WlrootsOutput::WlrootsOutput(quint32 id,
@@ -119,7 +125,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->set_hash(hash().toStdString());
     output->set_physical_size(m_head->physicalSize());
     output->set_position(m_head->position());
-    output->set_rotation(s_rotationMap[m_head->transform()]);
+    output->set_rotation(s_rotationMap.at(m_head->transform()));
 
     ModeList modeList;
     std::vector<std::string> preferredModeIds;

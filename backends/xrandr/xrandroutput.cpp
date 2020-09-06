@@ -145,11 +145,10 @@ XRandRMode* XRandROutput::currentMode() const
     }
 
     unsigned int modeId = m_crtc->mode();
-    if (!m_modes.contains(modeId)) {
-        return nullptr;
+    if (auto mode = m_modes.find(modeId); mode != m_modes.end()) {
+        return mode->second;
     }
-
-    return m_modes[modeId];
+    return nullptr;
 }
 
 Disman::Output::Rotation XRandROutput::rotation() const
@@ -207,8 +206,12 @@ void XRandROutput::update(xcb_randr_crtc_t crtc,
             m_heightMm = 0;
             m_widthMm = 0;
             m_type = Disman::Output::Unknown;
-            qDeleteAll(m_modes);
+
+            for (auto& [key, mode] : m_modes) {
+                delete mode;
+            }
             m_modes.clear();
+
             m_preferredModes.clear();
             m_edid.clear();
         }
@@ -290,8 +293,12 @@ void XRandROutput::updateModes(const XCB::OutputInfo& outputInfo)
     xcb_randr_mode_t* outputModes = xcb_randr_get_output_info_modes(outputInfo.data());
 
     m_preferredModes.clear();
-    qDeleteAll(m_modes);
+
+    for (auto& [key, mode] : m_modes) {
+        delete mode;
+    }
     m_modes.clear();
+
     for (int i = 0; i < outputInfo->num_modes; ++i) {
         /* Resources->modes contains all possible modes, we are only interested
          * in those listed in outputInfo->modes. */
@@ -301,7 +308,7 @@ void XRandROutput::updateModes(const XCB::OutputInfo& outputInfo)
             }
 
             XRandRMode* mode = new XRandRMode(modes[j], this);
-            m_modes.insert(mode->id(), mode);
+            m_modes.insert({mode->id(), mode});
 
             if (i < outputInfo->num_preferred) {
                 m_preferredModes.push_back(std::to_string(mode->id()));
@@ -482,9 +489,8 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 
     if (isConnected()) {
         Disman::ModeList dismanModes;
-        for (auto iter = m_modes.constBegin(), end = m_modes.constEnd(); iter != end; ++iter) {
-            XRandRMode* mode = iter.value();
-            dismanModes.insert({std::to_string(iter.key()), mode->toDismanMode()});
+        for (auto const& [key, mode] : m_modes) {
+            dismanModes.insert({std::to_string(key), mode->toDismanMode()});
         }
         dismanOutput->set_modes(dismanModes);
         dismanOutput->set_preferred_modes(m_preferredModes);

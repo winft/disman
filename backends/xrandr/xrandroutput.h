@@ -22,9 +22,7 @@
 #include "xcbwrapper.h"
 #include "xrandrmode.h"
 
-#include <QMap>
 #include <QObject>
-#include <QVariant>
 
 class XRandRConfig;
 class XRandRCrtc;
@@ -39,7 +37,7 @@ class XRandROutput : public QObject
     Q_OBJECT
 
 public:
-    typedef QMap<xcb_randr_output_t, XRandROutput*> Map;
+    using Map = std::map<xcb_randr_output_t, XRandROutput*>;
 
     explicit XRandROutput(xcb_randr_output_t id, XRandRConfig* config);
     ~XRandROutput() override;

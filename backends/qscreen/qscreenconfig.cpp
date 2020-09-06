@@ -46,13 +46,15 @@ QScreenConfig::QScreenConfig(QObject* parent)
 
 QScreenConfig::~QScreenConfig()
 {
-    qDeleteAll(m_outputMap);
+    for (auto& [key, out] : m_outputMap) {
+        delete out;
+    }
 }
 
 int QScreenConfig::outputId(const QScreen* qscreen)
 {
     QList<int> ids;
-    foreach (auto output, m_outputMap) {
+    for (auto& [key, output] : m_outputMap) {
         if (qscreen == output->qscreen()) {
             return output->id();
         }
@@ -66,7 +68,7 @@ void QScreenConfig::screenAdded(const QScreen* qscreen)
     qCDebug(DISMAN_QSCREEN) << "Screen added" << qscreen << qscreen->name();
     QScreenOutput* qscreenoutput = new QScreenOutput(qscreen, this);
     qscreenoutput->set_id(outputId(qscreen));
-    m_outputMap.insert(qscreenoutput->id(), qscreenoutput);
+    m_outputMap.insert({qscreenoutput->id(), qscreenoutput});
 
     if (!m_blockSignals) {
         Q_EMIT config_changed();
@@ -78,10 +80,10 @@ void QScreenConfig::screenRemoved(QScreen* qscreen)
     qCDebug(DISMAN_QSCREEN) << "Screen removed" << qscreen << QGuiApplication::screens().count();
     // Find output matching the QScreen object and remove it
     int removedOutputId = -1;
-    foreach (auto output, m_outputMap) {
+    for (auto& [key, output] : m_outputMap) {
         if (output->qscreen() == qscreen) {
             removedOutputId = output->id();
-            m_outputMap.remove(removedOutputId);
+            m_outputMap.erase(removedOutputId);
             delete output;
         }
     }
@@ -94,7 +96,7 @@ void QScreenConfig::update_config(ConfigPtr& config) const
 
     // Removing removed outputs.
     for (auto const& [key, output] : config->outputs()) {
-        if (!m_outputMap.contains(output->id())) {
+        if (m_outputMap.find(output->id()) == m_outputMap.end()) {
             config->remove_output(output->id());
         }
     }
@@ -102,7 +104,7 @@ void QScreenConfig::update_config(ConfigPtr& config) const
     // Add Disman::Outputs that aren't in the list yet.
     auto dismanOutputs = config->outputs();
 
-    for (QScreenOutput* output : m_outputMap) {
+    for (auto& [key, output] : m_outputMap) {
         Disman::OutputPtr dismanOutput;
 
         auto it = dismanOutputs.find(output->id());
@@ -122,7 +124,7 @@ void QScreenConfig::update_config(ConfigPtr& config) const
     config->set_outputs(dismanOutputs);
 }
 
-QMap<int, QScreenOutput*> QScreenConfig::outputMap() const
+std::map<int, QScreenOutput*> QScreenConfig::outputMap() const
 {
     return m_outputMap;
 }

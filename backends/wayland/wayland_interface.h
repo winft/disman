@@ -44,7 +44,7 @@ public:
     virtual bool isInitialized() const;
 
     // Compositor side names as keys
-    virtual QMap<int, WaylandOutput*> outputMap() const = 0;
+    virtual std::map<int, WaylandOutput*> outputMap() const = 0;
 
     virtual bool applyConfig(const Disman::ConfigPtr& newConfig) = 0;
     virtual void updateConfig(Disman::ConfigPtr& config) = 0;

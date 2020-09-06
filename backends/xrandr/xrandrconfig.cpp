@@ -56,8 +56,12 @@ XRandRConfig::XRandRConfig()
 
 XRandRConfig::~XRandRConfig()
 {
-    qDeleteAll(m_outputs);
-    qDeleteAll(m_crtcs);
+    for (auto& [key, output] : m_outputs) {
+        delete output;
+    }
+    for (auto& [key, crtc] : m_crtcs) {
+        delete crtc;
+    }
     delete m_screen;
 }
 
@@ -68,7 +72,10 @@ XRandROutput::Map XRandRConfig::outputs() const
 
 XRandROutput* XRandRConfig::output(xcb_randr_output_t output) const
 {
-    return m_outputs[output];
+    if (auto it = m_outputs.find(output); it != m_outputs.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
 XRandRCrtc::Map XRandRConfig::crtcs() const
@@ -78,7 +85,10 @@ XRandRCrtc::Map XRandRConfig::crtcs() const
 
 XRandRCrtc* XRandRConfig::crtc(xcb_randr_crtc_t crtc) const
 {
-    return m_crtcs[crtc];
+    if (auto it = m_crtcs.find(crtc); it != m_crtcs.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
 XRandRScreen* XRandRConfig::screen() const
@@ -89,17 +99,21 @@ XRandRScreen* XRandRConfig::screen() const
 void XRandRConfig::addNewOutput(xcb_randr_output_t id)
 {
     XRandROutput* xOutput = new XRandROutput(id, this);
-    m_outputs.insert(id, xOutput);
+    m_outputs.insert({id, xOutput});
 }
 
 void XRandRConfig::addNewCrtc(xcb_randr_crtc_t crtc)
 {
-    m_crtcs.insert(crtc, new XRandRCrtc(crtc, this));
+    m_crtcs.insert({crtc, new XRandRCrtc(crtc, this)});
 }
 
 void XRandRConfig::removeOutput(xcb_randr_output_t id)
 {
-    delete m_outputs.take(id);
+    auto it = m_outputs.find(id);
+    if (it != m_outputs.end()) {
+        delete it->second;
+        m_outputs.erase(it);
+    }
 }
 
 Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
@@ -110,9 +124,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
 
     Disman::OutputList dismanOutputs;
 
-    for (auto iter = m_outputs.constBegin(); iter != m_outputs.constEnd(); ++iter) {
-        auto output = *iter;
-
+    for (auto const& [key, output] : m_outputs) {
         if (!output->isConnected()) {
             continue;
         }
@@ -156,7 +168,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     xcb_randr_output_t primaryOutput = 0;
     xcb_randr_output_t oldPrimaryOutput = 0;
 
-    for (const XRandROutput* xrandrOutput : m_outputs) {
+    for (auto const& [key, xrandrOutput] : m_outputs) {
         if (xrandrOutput->isPrimary()) {
             oldPrimaryOutput = xrandrOutput->id();
             break;
@@ -213,8 +225,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
             }
         }
 
-        XRandRMode* currentMode
-            = currentOutput->modes().value(std::stoi(dismanOutput->auto_mode()->id()));
+        auto currentMode = currentOutput->modes().at(std::stoi(dismanOutput->auto_mode()->id()));
         // For some reason, in some environments currentMode is null
         // which doesn't make sense because it is the *current* mode...
         // Since we haven't been able to figure out the reason why
@@ -416,7 +427,7 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
 void XRandRConfig::printInternalCond() const
 {
     qCDebug(DISMAN_XRANDR) << "Internal config in xrandr";
-    for (const XRandROutput* output : m_outputs) {
+    for (auto const& [key, output] : m_outputs) {
         qCDebug(DISMAN_XRANDR) << "Id: " << output->id() << "\n"
                                << "Current Mode: " << output->currentMode() << "\n"
                                << "Current mode id: " << output->currentModeId().c_str() << "\n"
@@ -428,7 +439,7 @@ void XRandRConfig::printInternalCond() const
         }
 
         XRandRMode::Map modes = output->modes();
-        for (const XRandRMode* mode : modes) {
+        for (auto const& [mode_key, mode] : modes) {
             qCDebug(DISMAN_XRANDR) << "\t" << mode->id() << "\n"
                                    << "\t" << mode->name() << "\n"
                                    << "\t" << mode->size() << mode->refreshRate();
@@ -486,7 +497,7 @@ void XRandRConfig::setPrimaryOutput(xcb_randr_output_t outputId) const
                            << "\tNew primary:" << outputId;
     xcb_randr_set_output_primary(XCB::connection(), XRandR::rootWindow(), outputId);
 
-    for (XRandROutput* output : m_outputs) {
+    for (auto const& [key, output] : m_outputs) {
         output->setIsPrimary(output->id() == outputId);
     }
 }
@@ -545,7 +556,7 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput, bool primary) con
     XRandRCrtc* freeCrtc = nullptr;
     qCDebug(DISMAN_XRANDR) << m_crtcs;
 
-    for (XRandRCrtc* crtc : m_crtcs) {
+    for (auto const& [key, crtc] : m_crtcs) {
         crtc->update();
         qCDebug(DISMAN_XRANDR) << "Testing CRTC" << crtc->crtc() << "\n"
                                << "\tFree:" << crtc->isFree() << "\n"

@@ -40,12 +40,12 @@ ScreenPtr WaylandScreen::toDismanScreen(Disman::ConfigPtr& parent) const
     return dismanScreen;
 }
 
-void WaylandScreen::setOutputs(const QList<WaylandOutput*>& outputs)
+void WaylandScreen::setOutputs(std::vector<WaylandOutput*> const& outputs)
 {
-    m_outputCount = outputs.count();
+    m_outputCount = outputs.size();
 
     QRect r;
-    for (const auto* out : outputs) {
+    for (auto const out : outputs) {
         if (out->enabled()) {
             r |= out->geometry().toRect();
         }

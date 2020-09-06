@@ -20,7 +20,6 @@
  */
 #pragma once
 
-#include <QMap>
 #include <QObject>
 #include <QRect>
 #include <QVector>
@@ -34,7 +33,7 @@ class XRandRCrtc : public QObject
     Q_OBJECT
 
 public:
-    typedef QMap<xcb_randr_crtc_t, XRandRCrtc*> Map;
+    using Map = std::map<xcb_randr_crtc_t, XRandRCrtc*>;
 
     XRandRCrtc(xcb_randr_crtc_t crtc, XRandRConfig* config);
 

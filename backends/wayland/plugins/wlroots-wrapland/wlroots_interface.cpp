@@ -83,7 +83,9 @@ bool WlrootsInterface::isInitialized() const
 
 void WlrootsInterface::handleDisconnect()
 {
-    qDeleteAll(m_outputMap);
+    for (auto& [key, out] : m_outputMap) {
+        delete out;
+    }
     m_outputMap.clear();
 
     // Clean up
@@ -146,14 +148,20 @@ void WlrootsInterface::addHead(Wrapland::Client::WlrOutputHeadV1* head)
 
 void WlrootsInterface::insertOutput(WaylandOutput* output)
 {
-    auto* out = static_cast<WlrootsOutput*>(output);
-    m_outputMap.insert(out->id(), out);
+    auto out = static_cast<WlrootsOutput*>(output);
+    m_outputMap.insert({out->id(), out});
 }
 
 WaylandOutput* WlrootsInterface::takeOutput(WaylandOutput* output)
 {
-    auto* out = static_cast<WlrootsOutput*>(output);
-    return m_outputMap.take(out->id());
+    auto out = static_cast<WlrootsOutput*>(output);
+    auto it = m_outputMap.find(out->id());
+    if (it != m_outputMap.end()) {
+        auto output = it->second;
+        m_outputMap.erase(it);
+        return output;
+    }
+    return nullptr;
 }
 
 void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
@@ -162,17 +170,16 @@ void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
     config->set_valid(m_connection->display());
 
     // Removing removed outputs
-    const Disman::OutputList outputs = config->outputs();
-    for (auto const& [key, output] : outputs) {
-        if (!m_outputMap.contains(output->id())) {
+    for (auto const& [key, output] : config->outputs()) {
+        if (m_outputMap.find(output->id()) == m_outputMap.end()) {
             config->remove_output(output->id());
         }
     }
 
     // Add Disman::Outputs that aren't in the list yet.
-    Disman::OutputList dismanOutputs = config->outputs();
+    auto dismanOutputs = config->outputs();
 
-    for (const auto& output : m_outputMap) {
+    for (auto& [key, output] : m_outputMap) {
         Disman::OutputPtr dismanOutput;
 
         auto it = dismanOutputs.find(output->id());
@@ -188,13 +195,13 @@ void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
     config->set_outputs(dismanOutputs);
 }
 
-QMap<int, WaylandOutput*> WlrootsInterface::outputMap() const
+std::map<int, WaylandOutput*> WlrootsInterface::outputMap() const
 {
-    QMap<int, WaylandOutput*> ret;
+    std::map<int, WaylandOutput*> ret;
 
-    auto it = m_outputMap.constBegin();
-    while (it != m_outputMap.constEnd()) {
-        ret[it.key()] = it.value();
+    auto it = m_outputMap.cbegin();
+    while (it != m_outputMap.cend()) {
+        ret[it->first] = it->second;
         ++it;
     }
     return ret;
