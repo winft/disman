@@ -21,19 +21,19 @@
 #include "backendloader.h"
 #include "disman_backend_launcher_debug.h"
 
-#include "abstractbackend.h"
+#include "backend.h"
 #include "config.h"
 #include "configserializer_p.h"
 
 #include <QDBusConnection>
 #include <QDBusError>
 
-BackendDBusWrapper::BackendDBusWrapper(Disman::AbstractBackend* backend)
+BackendDBusWrapper::BackendDBusWrapper(Disman::Backend* backend)
     : QObject()
     , mBackend(backend)
 {
     connect(mBackend,
-            &Disman::AbstractBackend::config_changed,
+            &Disman::Backend::config_changed,
             this,
             &BackendDBusWrapper::backendConfigChanged);
 

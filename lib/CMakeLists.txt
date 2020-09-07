@@ -1,5 +1,5 @@
 set(disman_SRCS
-  abstractbackend.cpp
+  backend.cpp
   backendmanager.cpp
   config.cpp
   configoperation.cpp

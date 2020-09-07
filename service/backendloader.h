@@ -24,7 +24,7 @@
 
 namespace Disman
 {
-class AbstractBackend;
+class Backend;
 }
 
 class QPluginLoader;
@@ -46,7 +46,7 @@ public:
     Q_INVOKABLE void quit();
 
 private:
-    Disman::AbstractBackend* loadBackend(const QString& name, const QVariantMap& arguments);
+    Disman::Backend* loadBackend(const QString& name, const QVariantMap& arguments);
 
 private:
     QPluginLoader* mLoader = nullptr;

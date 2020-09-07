@@ -41,7 +41,7 @@
 using namespace Disman;
 
 Fake::Fake()
-    : Disman::AbstractBackend()
+    : Disman::Backend()
     , m_filer_controller{new Filer_controller}
 {
     QLoggingCategory::setFilterRules(QStringLiteral("disman.fake.debug = true"));

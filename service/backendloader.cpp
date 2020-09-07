@@ -17,7 +17,7 @@
  *
  */
 #include "backendloader.h"
-#include "abstractbackend.h"
+#include "backend.h"
 #include "backenddbuswrapper.h"
 #include "backendloaderadaptor.h"
 #include "backendmanager_p.h"
@@ -95,7 +95,7 @@ bool BackendLoader::requestBackend(const QString& backendName, const QVariantMap
         }
     }
 
-    Disman::AbstractBackend* backend = loadBackend(backendName, arguments);
+    auto backend = loadBackend(backendName, arguments);
     if (!backend) {
         return false;
     }
@@ -111,8 +111,7 @@ bool BackendLoader::requestBackend(const QString& backendName, const QVariantMap
     return true;
 }
 
-Disman::AbstractBackend* BackendLoader::loadBackend(const QString& name,
-                                                    const QVariantMap& arguments)
+Disman::Backend* BackendLoader::loadBackend(const QString& name, const QVariantMap& arguments)
 {
     if (mLoader == nullptr) {
         std::unique_ptr<QPluginLoader, void (*)(QPluginLoader*)> loader(new QPluginLoader(),

@@ -28,7 +28,7 @@ using namespace Disman;
 QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
 
 QScreenBackend::QScreenBackend()
-    : Disman::AbstractBackend()
+    : Disman::Backend()
     , m_valid(true)
     , m_filer_controller{new Filer_controller}
 {

@@ -27,7 +27,7 @@
 
 namespace Disman
 {
-class AbstractBackend;
+class Backend;
 }
 
 class BackendDBusWrapper : public QObject
@@ -36,7 +36,7 @@ class BackendDBusWrapper : public QObject
     Q_CLASSINFO("D-Bus Interface", "org.kwinft.disman.backend")
 
 public:
-    explicit BackendDBusWrapper(Disman::AbstractBackend* backend);
+    explicit BackendDBusWrapper(Disman::Backend* backend);
     ~BackendDBusWrapper() override;
 
     bool init();
@@ -44,7 +44,7 @@ public:
     QVariantMap getConfig() const;
     QVariantMap setConfig(const QVariantMap& config);
 
-    inline Disman::AbstractBackend* backend() const
+    inline Disman::Backend* backend() const
     {
         return mBackend;
     }
@@ -57,7 +57,7 @@ private Q_SLOTS:
     void doEmitConfigChanged();
 
 private:
-    Disman::AbstractBackend* mBackend = nullptr;
+    Disman::Backend* mBackend = nullptr;
     QTimer mChangeCollector;
     Disman::ConfigPtr mCurrentConfig;
 };

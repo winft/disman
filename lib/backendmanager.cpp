@@ -19,7 +19,7 @@
  */
 #include "backendmanager_p.h"
 
-#include "abstractbackend.h"
+#include "backend.h"
 #include "backendinterface.h"
 #include "config.h"
 #include "configmonitor.h"
@@ -189,9 +189,9 @@ QFileInfoList BackendManager::list_backends()
     return finfos;
 }
 
-Disman::AbstractBackend* BackendManager::load_backend_plugin(QPluginLoader* loader,
-                                                             const QString& name,
-                                                             const QVariantMap& arguments)
+Disman::Backend* BackendManager::load_backend_plugin(QPluginLoader* loader,
+                                                     const QString& name,
+                                                     const QVariantMap& arguments)
 {
     const auto finfo = preferred_backend(name.toStdString());
     loader->setFileName(finfo.filePath());
@@ -201,7 +201,7 @@ Disman::AbstractBackend* BackendManager::load_backend_plugin(QPluginLoader* load
         return nullptr;
     }
 
-    auto backend = qobject_cast<Disman::AbstractBackend*>(instance);
+    auto backend = qobject_cast<Disman::Backend*>(instance);
     if (backend) {
         backend->init(arguments);
         if (!backend->valid()) {
@@ -218,7 +218,7 @@ Disman::AbstractBackend* BackendManager::load_backend_plugin(QPluginLoader* load
     return nullptr;
 }
 
-Disman::AbstractBackend* BackendManager::load_backend_in_process(const QString& name)
+Disman::Backend* BackendManager::load_backend_in_process(const QString& name)
 {
     Q_ASSERT(mMethod == InProcess);
     if (mMethod == OutOfProcess) {
@@ -249,7 +249,7 @@ Disman::AbstractBackend* BackendManager::load_backend_in_process(const QString& 
     }
     // qCDebug(DISMAN) << "Connecting ConfigMonitor to backend.";
     ConfigMonitor::instance()->connect_in_process_backend(backend);
-    m_inProcessBackend = qMakePair<Disman::AbstractBackend*, QVariantMap>(backend, arguments);
+    m_inProcessBackend = qMakePair<Disman::Backend*, QVariantMap>(backend, arguments);
     set_config(backend->config());
     return backend;
 }

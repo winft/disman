@@ -18,7 +18,7 @@
 #ifndef FAKE_BACKEND_H
 #define FAKE_BACKEND_H
 
-#include "abstractbackend.h"
+#include "backend.h"
 
 #include <QLoggingCategory>
 #include <QObject>
@@ -29,7 +29,7 @@ namespace Disman
 class Filer_controller;
 }
 
-class Fake : public Disman::AbstractBackend
+class Fake : public Disman::Backend
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kf5.disman.backends.fake")

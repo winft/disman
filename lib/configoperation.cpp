@@ -132,7 +132,7 @@ bool ConfigOperation::exec()
     return !has_error();
 }
 
-Disman::AbstractBackend* ConfigOperationPrivate::loadBackend()
+Disman::Backend* ConfigOperationPrivate::loadBackend()
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
     Q_Q(ConfigOperation);

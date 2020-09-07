@@ -1,23 +1,12 @@
-/*************************************************************************************
- *  Copyright (C) 2012 by Alejandro Fiestas Olivares <afiestas@kde.org>              *
- *  Copyright (C) 2014 by Daniel Vrátil <dvratil@redhat.com>                         *
- *                                                                                   *
- *  This library is free software; you can redistribute it and/or                    *
- *  modify it under the terms of the GNU Lesser General Public                       *
- *  License as published by the Free Software Foundation; either                     *
- *  version 2.1 of the License, or (at your option) any later version.               *
- *                                                                                   *
- *  This library is distributed in the hope that it will be useful,                  *
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of                   *
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU                *
- *  Lesser General Public License for more details.                                  *
- *                                                                                   *
- *  You should have received a copy of the GNU Lesser General Public                 *
- *  License along with this library; if not, write to the Free Software              *
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
- *************************************************************************************/
-#ifndef ABSTRACT_BACKEND_H
-#define ABSTRACT_BACKEND_H
+/*
+    SPDX-FileCopyrightText: 2012 Alejandro Fiestas Olivares <afiestas@kde.org>
+    SPDX-FileCopyrightText: 2014 Daniel Vrátil <dvratil@redhat.com>
+    SPDX-FileCopyrightText: 2020 Roman Gilg <subdiff@gmail.com>
+
+    SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only
+*/
+#ifndef BACKEND_H
+#define BACKEND_H
 
 #include "disman_export.h"
 #include "types.h"
@@ -32,14 +21,12 @@ class Config;
 /**
  * Abstract class for backends.
  */
-class DISMAN_EXPORT AbstractBackend : public QObject
+class DISMAN_EXPORT Backend : public QObject
 {
     Q_OBJECT
 
 public:
-    ~AbstractBackend() override
-    {
-    }
+    explicit Backend(QObject* parent = nullptr);
 
     /**
      * This is where the backend should perform all initialization. This method

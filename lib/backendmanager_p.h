@@ -45,7 +45,7 @@ class OrgKwinftDismanBackendInterface;
 namespace Disman
 {
 
-class AbstractBackend;
+class Backend;
 
 class DISMAN_EXPORT BackendManager : public QObject
 {
@@ -92,10 +92,10 @@ public:
      * @return a pointer to the backend loaded from the plugin
      * @since 5.6
      */
-    static Disman::AbstractBackend*
+    static Disman::Backend*
     load_backend_plugin(QPluginLoader* loader, const QString& name, const QVariantMap& arguments);
 
-    Disman::AbstractBackend* load_backend_in_process(const QString& name);
+    Disman::Backend* load_backend_in_process(const QString& name);
 
     BackendManager::Method method() const;
     void set_method(BackendManager::Method m);
@@ -141,7 +141,7 @@ private:
 
     // For in-process operation
     QPluginLoader* mLoader;
-    QPair<Disman::AbstractBackend*, QVariantMap> m_inProcessBackend;
+    QPair<Disman::Backend*, QVariantMap> m_inProcessBackend;
 
     Method mMethod;
 };

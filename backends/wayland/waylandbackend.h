@@ -19,7 +19,7 @@
  *************************************************************************************/
 #pragma once
 
-#include "abstractbackend.h"
+#include "backend.h"
 
 #include <QEventLoop>
 #include <QPointer>
@@ -36,7 +36,7 @@ class WaylandInterface;
 class WaylandOutput;
 class WaylandScreen;
 
-class WaylandBackend : public Disman::AbstractBackend
+class WaylandBackend : public Disman::Backend
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.wayland")

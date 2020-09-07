@@ -18,7 +18,7 @@
  */
 #include "setconfigoperation.h"
 
-#include "abstractbackend.h"
+#include "backend.h"
 #include "backendmanager_p.h"
 #include "config.h"
 #include "configoperation_p.h"

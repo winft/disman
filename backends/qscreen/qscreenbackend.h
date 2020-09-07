@@ -20,7 +20,7 @@
 #ifndef QSCREEN_BACKEND_H
 #define QSCREEN_BACKEND_H
 
-#include "abstractbackend.h"
+#include "backend.h"
 
 #include <QLoggingCategory>
 #include <memory>
@@ -30,7 +30,7 @@ namespace Disman
 class Filer_controller;
 class QScreenConfig;
 
-class QScreenBackend : public Disman::AbstractBackend
+class QScreenBackend : public Disman::Backend
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.qscreen")

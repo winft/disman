@@ -18,7 +18,7 @@
  *************************************************************************************/
 #pragma once
 
-#include "abstractbackend.h"
+#include "backend.h"
 
 #include <QLoggingCategory>
 #include <QSize>
@@ -38,7 +38,7 @@ class Filer_controller;
 class XCBEventListener;
 class XRandRConfig;
 
-class XRandR : public Disman::AbstractBackend
+class XRandR : public Disman::Backend
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.randr")

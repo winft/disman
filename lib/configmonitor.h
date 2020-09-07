@@ -27,7 +27,7 @@
 namespace Disman
 {
 
-class AbstractBackend;
+class Backend;
 class BackendManager;
 
 class DISMAN_EXPORT ConfigMonitor : public QObject
@@ -50,7 +50,7 @@ private:
     Q_DISABLE_COPY(ConfigMonitor)
 
     friend BackendManager;
-    void connect_in_process_backend(Disman::AbstractBackend* backend);
+    void connect_in_process_backend(Disman::Backend* backend);
 
     class Private;
     Private* const d;

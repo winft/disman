@@ -16,7 +16,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 #include "configmonitor.h"
-#include "abstractbackend.h"
+#include "backend.h"
 #include "backendinterface.h"
 #include "backendmanager_p.h"
 #include "configserializer_p.h"
@@ -211,10 +211,10 @@ void ConfigMonitor::remove_config(const ConfigPtr& config)
         cfgs.end());
 }
 
-void ConfigMonitor::connect_in_process_backend(Disman::AbstractBackend* backend)
+void ConfigMonitor::connect_in_process_backend(Disman::Backend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
-    connect(backend, &AbstractBackend::config_changed, [=](Disman::ConfigPtr config) {
+    connect(backend, &Backend::config_changed, [=](Disman::ConfigPtr config) {
         if (!config) {
             return;
         }

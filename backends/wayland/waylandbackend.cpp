@@ -41,7 +41,7 @@
 using namespace Disman;
 
 WaylandBackend::WaylandBackend()
-    : Disman::AbstractBackend()
+    : Disman::Backend()
     , m_filer_controller{new Filer_controller}
     , m_screen{new WaylandScreen}
 {
