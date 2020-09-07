@@ -88,35 +88,6 @@ ScreenPtr Parser::screenFromJson(const QVariantMap& data)
     return screen;
 }
 
-void Parser::qvariant2qobject(const QVariantMap& variant, QObject* object)
-{
-    const QMetaObject* metaObject = object->metaObject();
-    for (QVariantMap::const_iterator iter = variant.begin(); iter != variant.end(); ++iter) {
-        const int propertyIndex = metaObject->indexOfProperty(qPrintable(iter.key()));
-        if (propertyIndex == -1) {
-            // qWarning() << "Skipping non-existent property" << iter.key();
-            continue;
-        }
-        const QMetaProperty metaProperty = metaObject->property(propertyIndex);
-        if (!metaProperty.isWritable()) {
-            // qWarning() << "Skipping read-only property" << iter.key();
-            continue;
-        }
-
-        const QVariant property = object->property(iter.key().toLatin1().constData());
-        Q_ASSERT(property.isValid());
-        if (property.isValid()) {
-            QVariant value = iter.value();
-            if (value.canConvert(property.type())) {
-                value.convert(property.type());
-                object->setProperty(iter.key().toLatin1().constData(), value);
-            } else if (QLatin1String("QVariant") == QLatin1String(property.typeName())) {
-                object->setProperty(iter.key().toLatin1().constData(), value);
-            }
-        }
-    }
-}
-
 OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
 {
     OutputPtr output(new Output);
@@ -130,20 +101,18 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
 
     std::vector<std::string> preferredModes;
     const QVariantList prefModes = map[QStringLiteral("preferredModes")].toList();
-    Q_FOREACH (const QVariant& mode, prefModes) {
+    for (auto const& mode : prefModes) {
         preferredModes.push_back(mode.toString().toStdString());
     }
     output->set_preferred_modes(preferredModes);
-    map.remove(QStringLiteral("preferredModes"));
 
     ModeMap modelist;
     const QVariantList modes = map[QStringLiteral("modes")].toList();
-    Q_FOREACH (const QVariant& modeValue, modes) {
+    for (auto const& modeValue : modes) {
         const ModePtr mode = Parser::modeFromJson(modeValue);
         modelist.insert({mode->id(), mode});
     }
     output->set_modes(modelist);
-    map.remove(QStringLiteral("modes"));
 
     if (!map[QStringLiteral("currentModeId")].toString().isEmpty()) {
         output->set_mode(
@@ -187,24 +156,17 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
     } else {
         qCWarning(DISMAN_FAKE) << "Output Type not translated:" << type;
     }
-    map.remove(QStringLiteral("type"));
 
     if (map.contains(QStringLiteral("pos"))) {
         output->set_position(Parser::pointFromJson(map[QStringLiteral("pos")].toMap()));
-        map.remove(QStringLiteral("pos"));
     }
 
     auto scale = QStringLiteral("scale");
     if (map.contains(scale)) {
         qDebug() << "Scale found:" << map[scale].toReal();
         output->set_scale(map[scale].toReal());
-        map.remove(scale);
     }
 
-    // Remove some extra properties that we do not want or need special treatment
-    map.remove(QStringLiteral("edid"));
-
-    Parser::qvariant2qobject(map, output.get());
     return output;
 }
 

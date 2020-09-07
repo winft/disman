@@ -36,7 +36,6 @@ public:
     static bool validate(const QString& data);
 
 private:
-    static void qvariant2qobject(const QVariantMap& variant, QObject* object);
     static Disman::ScreenPtr screenFromJson(const QMap<QString, QVariant>& data);
     static Disman::OutputPtr outputFromJson(QMap<QString, QVariant> data, bool& primary);
     static Disman::ModePtr modeFromJson(const QVariant& data);
