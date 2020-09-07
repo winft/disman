@@ -87,16 +87,6 @@ public:
      */
     virtual bool valid() const = 0;
 
-    /**
-     * Returns encoded EDID data for given output
-     *
-     * Default implementation does nothing and returns null QByteArray. Backends
-     * that don't support EDID don't have to reimplement this method.
-     *
-     * @param outputd ID of output to return EDID data for
-     */
-    virtual QByteArray edid(int outputId) const;
-
 Q_SIGNALS:
     /**
      * Emitted when backend detects a change in configuration

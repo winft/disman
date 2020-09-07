@@ -43,7 +43,6 @@ public:
 
     QVariantMap getConfig() const;
     QVariantMap setConfig(const QVariantMap& config);
-    QByteArray getEdid(int output) const;
 
     inline Disman::AbstractBackend* backend() const
     {

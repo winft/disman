@@ -164,15 +164,6 @@ bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
     return m_interface->applyConfig(config);
 }
 
-QByteArray WaylandBackend::edid(int outputId) const
-{
-    auto map = outputMap();
-    if (auto output = map.find(outputId); output != map.end()) {
-        return output->second->edid();
-    }
-    return QByteArray();
-}
-
 std::map<int, WaylandOutput*> WaylandBackend::outputMap() const
 {
     return m_interface->outputMap();

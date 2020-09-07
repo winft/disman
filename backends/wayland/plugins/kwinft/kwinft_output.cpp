@@ -67,11 +67,6 @@ bool KwinftOutput::enabled() const
     return m_device != nullptr;
 }
 
-QByteArray KwinftOutput::edid() const
-{
-    return QByteArray();
-}
-
 QRectF KwinftOutput::geometry() const
 {
     return m_device->geometry();

@@ -21,9 +21,3 @@ void Disman::AbstractBackend::init(const QVariantMap& arguments)
 {
     Q_UNUSED(arguments);
 }
-
-QByteArray Disman::AbstractBackend::edid(int outputId) const
-{
-    Q_UNUSED(outputId);
-    return QByteArray();
-}

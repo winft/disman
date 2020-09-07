@@ -52,8 +52,6 @@ public:
     Disman::ConfigPtr config() const override;
     void set_config(const Disman::ConfigPtr& config) override;
 
-    QByteArray edid(int outputId) const override;
-
     std::map<int, WaylandOutput*> outputMap() const;
 
 private:

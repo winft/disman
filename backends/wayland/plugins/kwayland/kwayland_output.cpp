@@ -66,11 +66,6 @@ bool KWaylandOutput::enabled() const
     return m_device != nullptr;
 }
 
-QByteArray KWaylandOutput::edid() const
-{
-    return m_device->edid();
-}
-
 QRectF KWaylandOutput::geometry() const
 {
     return m_device->geometry();

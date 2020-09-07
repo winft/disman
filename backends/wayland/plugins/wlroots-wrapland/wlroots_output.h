@@ -51,7 +51,6 @@ public:
 
     void updateDismanOutput(Disman::OutputPtr& output) override;
 
-    QByteArray edid() const override;
     bool enabled() const override;
     QRectF geometry() const override;
 

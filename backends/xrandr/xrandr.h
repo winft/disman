@@ -52,7 +52,6 @@ public:
     Disman::ConfigPtr config() const override;
     void set_config(const Disman::ConfigPtr& config) override;
     bool valid() const override;
-    QByteArray edid(int outputId) const override;
 
     static QByteArray outputEdid(xcb_randr_output_t outputId);
     static xcb_randr_get_screen_resources_reply_t* screenResources();

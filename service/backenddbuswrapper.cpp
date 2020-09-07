@@ -94,16 +94,6 @@ QVariantMap BackendDBusWrapper::setConfig(const QVariantMap& configMap)
     return obj.toVariantMap();
 }
 
-QByteArray BackendDBusWrapper::getEdid(int output) const
-{
-    const QByteArray edidData = mBackend->edid(output);
-    if (edidData.isEmpty()) {
-        return QByteArray();
-    }
-
-    return edidData;
-}
-
 void BackendDBusWrapper::backendConfigChanged(const Disman::ConfigPtr& config)
 {
     assert(config != nullptr);

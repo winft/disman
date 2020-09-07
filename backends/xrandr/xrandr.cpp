@@ -262,16 +262,6 @@ bool XRandR::set_config_impl(Disman::ConfigPtr const& config)
     return s_internalConfig->applyDismanConfig(config);
 }
 
-QByteArray XRandR::edid(int outputId) const
-{
-    const XRandROutput* output = s_internalConfig->output(outputId);
-    if (!output) {
-        return QByteArray();
-    }
-
-    return output->edid();
-}
-
 bool XRandR::valid() const
 {
     return m_valid;

@@ -44,7 +44,6 @@ public:
     QString service_name() const override;
     Disman::ConfigPtr config() const override;
     void set_config(const Disman::ConfigPtr& config) override;
-    QByteArray edid(int outputId) const override;
     bool valid() const override;
 
     void setEnabled(int outputId, bool enabled);
@@ -58,6 +57,8 @@ private Q_SLOTS:
     void delayedInit();
 
 private:
+    QByteArray edid(int outputId) const;
+
     QString mConfigFile;
     mutable Disman::ConfigPtr mConfig;
 

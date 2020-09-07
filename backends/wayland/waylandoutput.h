@@ -40,7 +40,6 @@ public:
     virtual void updateDismanOutput(Disman::OutputPtr& output) = 0;
 
     virtual quint32 id() const;
-    virtual QByteArray edid() const = 0;
     virtual bool enabled() const = 0;
     virtual QRectF geometry() const = 0;
 
