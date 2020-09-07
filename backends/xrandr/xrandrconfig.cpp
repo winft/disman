@@ -56,8 +56,12 @@ XRandRConfig::XRandRConfig()
 
 XRandRConfig::~XRandRConfig()
 {
-    qDeleteAll(m_outputs);
-    qDeleteAll(m_crtcs);
+    for (auto& [key, output] : m_outputs) {
+        delete output;
+    }
+    for (auto& [key, crtc] : m_crtcs) {
+        delete crtc;
+    }
     delete m_screen;
 }
 
@@ -68,7 +72,10 @@ XRandROutput::Map XRandRConfig::outputs() const
 
 XRandROutput* XRandRConfig::output(xcb_randr_output_t output) const
 {
-    return m_outputs[output];
+    if (auto it = m_outputs.find(output); it != m_outputs.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
 XRandRCrtc::Map XRandRConfig::crtcs() const
@@ -78,7 +85,10 @@ XRandRCrtc::Map XRandRConfig::crtcs() const
 
 XRandRCrtc* XRandRConfig::crtc(xcb_randr_crtc_t crtc) const
 {
-    return m_crtcs[crtc];
+    if (auto it = m_crtcs.find(crtc); it != m_crtcs.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
 XRandRScreen* XRandRConfig::screen() const
@@ -89,30 +99,32 @@ XRandRScreen* XRandRConfig::screen() const
 void XRandRConfig::addNewOutput(xcb_randr_output_t id)
 {
     XRandROutput* xOutput = new XRandROutput(id, this);
-    m_outputs.insert(id, xOutput);
+    m_outputs.insert({id, xOutput});
 }
 
 void XRandRConfig::addNewCrtc(xcb_randr_crtc_t crtc)
 {
-    m_crtcs.insert(crtc, new XRandRCrtc(crtc, this));
+    m_crtcs.insert({crtc, new XRandRCrtc(crtc, this)});
 }
 
 void XRandRConfig::removeOutput(xcb_randr_output_t id)
 {
-    delete m_outputs.take(id);
+    auto it = m_outputs.find(id);
+    if (it != m_outputs.end()) {
+        delete it->second;
+        m_outputs.erase(it);
+    }
 }
 
 Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
 {
     const Config::Features features = Config::Feature::Writable | Config::Feature::PrimaryDisplay
         | Config::Feature::OutputReplication;
-    config->setSupportedFeatures(features);
+    config->set_supported_features(features);
 
-    Disman::OutputList dismanOutputs;
+    Disman::OutputMap dismanOutputs;
 
-    for (auto iter = m_outputs.constBegin(); iter != m_outputs.constEnd(); ++iter) {
-        auto output = *iter;
-
+    for (auto const& [key, output] : m_outputs) {
         if (!output->isConnected()) {
             continue;
         }
@@ -125,10 +137,10 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
         }
 
         output->updateDismanOutput(dismanOutput);
-        dismanOutputs.insert(dismanOutput->id(), dismanOutput);
+        dismanOutputs.insert({dismanOutput->id(), dismanOutput});
     }
 
-    config->setOutputs(dismanOutputs);
+    config->set_outputs(dismanOutputs);
     config->setScreen(m_screen->toDismanScreen());
 
     return config;
@@ -136,7 +148,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
 
 bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
 {
-    const Disman::OutputList dismanOutputs = config->outputs();
+    auto const dismanOutputs = config->outputs();
 
     const QSize newScreenSize = screenSize(config);
     const QSize currentScreenSize = m_screen->currentSize();
@@ -156,64 +168,64 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     xcb_randr_output_t primaryOutput = 0;
     xcb_randr_output_t oldPrimaryOutput = 0;
 
-    for (const XRandROutput* xrandrOutput : m_outputs) {
+    for (auto const& [key, xrandrOutput] : m_outputs) {
         if (xrandrOutput->isPrimary()) {
             oldPrimaryOutput = xrandrOutput->id();
             break;
         }
     }
 
-    Disman::OutputList toDisable, toEnable, toChange;
+    Disman::OutputMap toDisable, toEnable, toChange;
 
-    for (const Disman::OutputPtr& dismanOutput : dismanOutputs) {
+    // Only set the output as primary if it is enabled.
+    if (auto primary = config->primary_output(); primary && primary->enabled()) {
+        primaryOutput = primary->id();
+    }
+
+    for (auto const& [key, dismanOutput] : dismanOutputs) {
         xcb_randr_output_t outputId = dismanOutput->id();
         XRandROutput* currentOutput = output(outputId);
-        // Only set the output as primary if it is enabled.
-        if (dismanOutput->isPrimary() && dismanOutput->isEnabled()) {
-            primaryOutput = outputId;
-        }
 
-        const bool currentEnabled = currentOutput->isEnabled();
+        const bool currentEnabled = currentOutput->enabled();
 
-        if (!dismanOutput->isEnabled() && currentEnabled) {
-            toDisable.insert(outputId, dismanOutput);
+        if (!dismanOutput->enabled() && currentEnabled) {
+            toDisable.insert({outputId, dismanOutput});
             continue;
-        } else if (dismanOutput->isEnabled() && !currentEnabled) {
-            toEnable.insert(outputId, dismanOutput);
+        } else if (dismanOutput->enabled() && !currentEnabled) {
+            toEnable.insert({outputId, dismanOutput});
             ++neededCrtcs;
             continue;
-        } else if (!dismanOutput->isEnabled() && !currentEnabled) {
+        } else if (!dismanOutput->enabled() && !currentEnabled) {
             continue;
         }
 
         ++neededCrtcs;
 
         if (dismanOutput->auto_mode()->id() != currentOutput->currentModeId()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
         if (dismanOutput->position() != currentOutput->position()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
         if (dismanOutput->rotation() != currentOutput->rotation()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
         if (dismanOutput->geometry().size() != currentOutput->logicalSize()) {
-            if (!toChange.contains(outputId)) {
-                toChange.insert(outputId, dismanOutput);
+            if (toChange.find(outputId) == toChange.end()) {
+                toChange.insert({outputId, dismanOutput});
             }
         }
 
-        XRandRMode* currentMode
-            = currentOutput->modes().value(dismanOutput->auto_mode()->id().toInt());
+        auto currentMode = currentOutput->modes().at(std::stoi(dismanOutput->auto_mode()->id()));
         // For some reason, in some environments currentMode is null
         // which doesn't make sense because it is the *current* mode...
         // Since we haven't been able to figure out the reason why
@@ -221,7 +233,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         // figure out how this happened.
         if (!currentMode) {
             qWarning() << "Current mode is null:"
-                       << "ModeId:" << currentOutput->currentModeId()
+                       << "ModeId:" << currentOutput->currentModeId().c_str()
                        << "Mode: " << currentOutput->currentMode()
                        << "Output: " << currentOutput->id();
             printConfig(config);
@@ -232,20 +244,20 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         // When the output would not fit into new screen size, we need to disable and reposition it.
         const QRectF geom = dismanOutput->geometry();
         if (geom.right() > newScreenSize.width() || geom.bottom() > newScreenSize.height()) {
-            if (!toDisable.contains(outputId)) {
+            if (toDisable.find(outputId) == toDisable.end()) {
                 qCDebug(DISMAN_XRANDR)
                     << "The new output would not fit into screen - new geometry: " << geom
                     << ", new screen size:" << newScreenSize;
-                toDisable.insert(outputId, dismanOutput);
+                toDisable.insert({outputId, dismanOutput});
             }
         }
     }
 
     const Disman::ScreenPtr dismanScreen = config->screen();
-    if (newScreenSize.width() > dismanScreen->maxSize().width()
-        || newScreenSize.height() > dismanScreen->maxSize().height()) {
+    if (newScreenSize.width() > dismanScreen->max_size().width()
+        || newScreenSize.height() > dismanScreen->max_size().height()) {
         qCDebug(DISMAN_XRANDR) << "The new screen size is too big - requested: " << newScreenSize
-                               << ", maximum: " << dismanScreen->maxSize();
+                               << ", maximum: " << dismanScreen->max_size();
         return false;
     }
 
@@ -274,19 +286,27 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
                                << "\t\tNew:" << newScreenSize;
     }
 
-    qCDebug(DISMAN_XRANDR) << "\tDisable outputs:" << !toDisable.isEmpty();
-    if (!toDisable.isEmpty()) {
-        qCDebug(DISMAN_XRANDR) << "\t\t" << toDisable.keys();
+    auto print_keys = [](auto const& outputs) {
+        std::string line = "\t\t";
+        for (auto const& [key, output] : outputs) {
+            line = line + " " + std::to_string(key);
+        }
+        qCDebug(DISMAN_XRANDR) << line.c_str();
+    };
+
+    qCDebug(DISMAN_XRANDR) << "\tDisable outputs:" << !toDisable.empty();
+    if (!toDisable.empty()) {
+        print_keys(toDisable);
     }
 
-    qCDebug(DISMAN_XRANDR) << "\tChange outputs:" << !toChange.isEmpty();
-    if (!toChange.isEmpty()) {
-        qCDebug(DISMAN_XRANDR) << "\t\t" << toChange.keys();
+    qCDebug(DISMAN_XRANDR) << "\tChange outputs:" << !toChange.empty();
+    if (!toChange.empty()) {
+        print_keys(toChange);
     }
 
-    qCDebug(DISMAN_XRANDR) << "\tEnable outputs:" << !toEnable.isEmpty();
-    if (!toEnable.isEmpty()) {
-        qCDebug(DISMAN_XRANDR) << "\t\t" << toEnable.keys();
+    qCDebug(DISMAN_XRANDR) << "\tEnable outputs:" << !toEnable.empty();
+    if (!toEnable.empty()) {
+        print_keys(toEnable);
     }
 
     // Grab the server so that no-one else can do changes to XRandR and to block
@@ -294,15 +314,15 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     XCB::GrabServer grabber;
 
     // If there is nothing to do, not even bother
-    if (oldPrimaryOutput == primaryOutput && toDisable.isEmpty() && toEnable.isEmpty()
-        && toChange.isEmpty()) {
+    if (oldPrimaryOutput == primaryOutput && toDisable.empty() && toEnable.empty()
+        && toChange.empty()) {
         if (newScreenSize != currentScreenSize) {
             setScreenSize(newScreenSize);
         }
         return false;
     }
 
-    for (const Disman::OutputPtr& output : toDisable) {
+    for (auto const& [key, output] : toDisable) {
         disableOutput(output);
     }
 
@@ -312,20 +332,20 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
 
     bool forceScreenSizeUpdate = false;
 
-    for (const Disman::OutputPtr& output : toChange) {
-        if (!changeOutput(output)) {
+    for (auto const& [key, output] : toChange) {
+        if (!changeOutput(output, output->id() == static_cast<int>(primaryOutput))) {
             /* If we disabled the output before changing it and XRandR failed
              * to re-enable it, then update screen size too */
-            if (toDisable.contains(output->id())) {
-                output->setEnabled(false);
+            if (toDisable.find(output->id()) != toDisable.end()) {
+                output->set_enabled(false);
                 qCDebug(DISMAN_XRANDR) << "Output failed to change: " << output->name().c_str();
                 forceScreenSizeUpdate = true;
             }
         }
     }
 
-    for (const Disman::OutputPtr& output : toEnable) {
-        if (!enableOutput(output)) {
+    for (auto const& [key, output] : toEnable) {
+        if (!enableOutput(output, output->id() == static_cast<int>(primaryOutput))) {
             qCDebug(DISMAN_XRANDR) << "Output failed to be Enabled: " << output->name().c_str();
             forceScreenSizeUpdate = true;
         }
@@ -362,12 +382,17 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
 
     qCDebug(DISMAN_XRANDR) << "Screen:"
                            << "\n"
-                           << "\tmaxSize:" << config->screen()->maxSize() << "\n"
-                           << "\tminSize:" << config->screen()->minSize() << "\n"
-                           << "\tcurrentSize:" << config->screen()->currentSize();
+                           << "\tmax_size:" << config->screen()->max_size() << "\n"
+                           << "\tmin_size:" << config->screen()->min_size() << "\n"
+                           << "\tcurrent_size:" << config->screen()->current_size();
 
-    const OutputList outputs = config->outputs();
-    for (const OutputPtr& output : outputs) {
+    qCDebug(DISMAN_XRANDR) << "Primary output:"
+                           << (config->primary_output()
+                                   ? std::to_string(config->primary_output()->id()).c_str()
+                                   : "none");
+
+    auto const outputs = config->outputs();
+    for (auto const& [key, output] : outputs) {
         qCDebug(DISMAN_XRANDR) << "\n-----------------------------------------------------\n"
                                << "\n"
                                << "Id: " << output->id() << "\n"
@@ -375,24 +400,26 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                << "Description: " << output->description().c_str() << "\n"
                                << "Type: " << output->type();
 
-        qCDebug(DISMAN_XRANDR) << "Enabled: " << output->isEnabled() << "\n"
-                               << "Primary: " << output->isPrimary() << "\n"
+        qCDebug(DISMAN_XRANDR) << "Enabled: " << output->enabled() << "\n"
                                << "Rotation: " << output->rotation() << "\n"
                                << "Pos: " << output->position() << "\n"
-                               << "MMSize: " << output->sizeMm();
+                               << "Phyiscal size: " << output->physical_size();
         if (output->auto_mode()) {
             qCDebug(DISMAN_XRANDR) << "Size: " << output->auto_mode()->size();
         }
 
-        qCDebug(DISMAN_XRANDR) << "Mode: " << output->auto_mode()->id() << "\n"
-                               << "Preferred Mode: " << output->preferred_mode()->id() << "\n"
-                               << "Preferred modes: " << output->preferredModes() << "\n"
-                               << "Modes: ";
+        qCDebug(DISMAN_XRANDR) << "Mode: " << output->auto_mode()->id().c_str() << "\n"
+                               << "Preferred Mode: " << output->preferred_mode()->id().c_str()
+                               << "\n"
+                               << "Preferred modes:";
+        for (auto const& mode_string : output->preferred_modes()) {
+            qCDebug(DISMAN_XRANDR) << "\t" << mode_string.c_str();
+        }
 
-        ModeList modes = output->modes();
-        for (const ModePtr& mode : modes) {
-            qCDebug(DISMAN_XRANDR) << "\t" << mode->id() << "  " << mode->name() << " "
-                                   << mode->size() << " " << mode->refreshRate();
+        qCDebug(DISMAN_XRANDR) << "Modes: ";
+        for (auto const& [key, mode] : output->modes()) {
+            qCDebug(DISMAN_XRANDR) << "\t" << mode->id().c_str() << "  " << mode->name().c_str()
+                                   << " " << mode->size() << " " << mode->refresh();
         }
     }
 }
@@ -400,19 +427,19 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
 void XRandRConfig::printInternalCond() const
 {
     qCDebug(DISMAN_XRANDR) << "Internal config in xrandr";
-    for (const XRandROutput* output : m_outputs) {
+    for (auto const& [key, output] : m_outputs) {
         qCDebug(DISMAN_XRANDR) << "Id: " << output->id() << "\n"
                                << "Current Mode: " << output->currentMode() << "\n"
-                               << "Current mode id: " << output->currentModeId() << "\n"
+                               << "Current mode id: " << output->currentModeId().c_str() << "\n"
                                << "Connected: " << output->isConnected() << "\n"
-                               << "Enabled: " << output->isEnabled() << "\n"
+                               << "Enabled: " << output->enabled() << "\n"
                                << "Primary: " << output->isPrimary();
-        if (!output->isEnabled()) {
+        if (!output->enabled()) {
             continue;
         }
 
         XRandRMode::Map modes = output->modes();
-        for (const XRandRMode* mode : modes) {
+        for (auto const& [mode_key, mode] : modes) {
             qCDebug(DISMAN_XRANDR) << "\t" << mode->id() << "\n"
                                    << "\t" << mode->name() << "\n"
                                    << "\t" << mode->size() << mode->refreshRate();
@@ -423,8 +450,8 @@ void XRandRConfig::printInternalCond() const
 QSize XRandRConfig::screenSize(const Disman::ConfigPtr& config) const
 {
     QRect rect;
-    for (const Disman::OutputPtr& output : config->outputs()) {
-        if (!output->isEnabled()) {
+    for (auto const& [key, output] : config->outputs()) {
+        if (!output->enabled()) {
             continue;
         }
 
@@ -455,7 +482,7 @@ bool XRandRConfig::setScreenSize(const QSize& size) const
                            << "\n"
                            << "\tDPI:" << dpi << "\n"
                            << "\tSize:" << size << "\n"
-                           << "\tSizeMM:" << QSize(widthMM, heightMM);
+                           << "\tPhysical size:" << QSize(widthMM, heightMM);
 
     xcb_randr_set_screen_size(
         XCB::connection(), XRandR::rootWindow(), size.width(), size.height(), widthMM, heightMM);
@@ -470,7 +497,7 @@ void XRandRConfig::setPrimaryOutput(xcb_randr_output_t outputId) const
                            << "\tNew primary:" << outputId;
     xcb_randr_set_output_primary(XCB::connection(), XRandR::rootWindow(), outputId);
 
-    for (XRandROutput* output : m_outputs) {
+    for (auto const& [key, output] : m_outputs) {
         output->setIsPrimary(output->id() == outputId);
     }
 }
@@ -519,17 +546,17 @@ bool XRandRConfig::disableOutput(const OutputPtr& dismanOutput) const
                         XCB_NONE,
                         xOutput->isConnected() ? XCB_RANDR_CONNECTION_CONNECTED
                                                : XCB_RANDR_CONNECTION_DISCONNECTED,
-                        dismanOutput->isPrimary());
+                        false);
     }
     return (reply->status == XCB_RANDR_SET_CONFIG_SUCCESS);
 }
 
-bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput) const
+bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput, bool primary) const
 {
     XRandRCrtc* freeCrtc = nullptr;
     qCDebug(DISMAN_XRANDR) << m_crtcs;
 
-    for (XRandRCrtc* crtc : m_crtcs) {
+    for (auto const& [key, crtc] : m_crtcs) {
         crtc->update();
         qCDebug(DISMAN_XRANDR) << "Testing CRTC" << crtc->crtc() << "\n"
                                << "\tFree:" << crtc->isFree() << "\n"
@@ -550,8 +577,8 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput) const
     }
 
     XRandROutput* xOutput = output(dismanOutput->id());
-    const int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
-                                                 : dismanOutput->preferred_mode()->id().toInt();
+    auto const modeId = std::stoi(dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id()
+                                                            : dismanOutput->preferred_mode()->id());
     xOutput->updateLogicalSize(dismanOutput, freeCrtc);
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (enable output)"
@@ -562,19 +589,18 @@ bool XRandRConfig::enableOutput(const OutputPtr& dismanOutput) const
                            << "\tNew CRTC:" << freeCrtc->crtc() << "\n"
                            << "\tPos:" << dismanOutput->position() << "\n"
                            << "\tMode:" << dismanOutput->auto_mode()
-                           << "Preferred:" << dismanOutput->preferred_mode()->id() << "\n"
+                           << "Preferred:" << dismanOutput->preferred_mode()->id().c_str() << "\n"
                            << "\tRotation:" << dismanOutput->rotation();
 
     if (!sendConfig(dismanOutput, freeCrtc)) {
         return false;
     }
 
-    xOutput->update(
-        freeCrtc->crtc(), modeId, XCB_RANDR_CONNECTION_CONNECTED, dismanOutput->isPrimary());
+    xOutput->update(freeCrtc->crtc(), modeId, XCB_RANDR_CONNECTION_CONNECTED, primary);
     return true;
 }
 
-bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput) const
+bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput, bool primary) const
 {
     XRandROutput* xOutput = output(dismanOutput->id());
     Q_ASSERT(xOutput);
@@ -582,11 +608,11 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput) const
     if (!xOutput->crtc()) {
         qCDebug(DISMAN_XRANDR) << "Output" << dismanOutput->id()
                                << "has no CRTC, falling back to enableOutput()";
-        return enableOutput(dismanOutput);
+        return enableOutput(dismanOutput, primary);
     }
 
-    int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
-                                           : dismanOutput->preferred_mode()->id().toInt();
+    auto const modeId = std::stoi(dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id()
+                                                            : dismanOutput->preferred_mode()->id());
     xOutput->updateLogicalSize(dismanOutput);
 
     qCDebug(DISMAN_XRANDR) << "RRSetCrtcConfig (change output)"
@@ -603,16 +629,15 @@ bool XRandRConfig::changeOutput(const Disman::OutputPtr& dismanOutput) const
         return false;
     }
 
-    xOutput->update(
-        xOutput->crtc()->crtc(), modeId, XCB_RANDR_CONNECTION_CONNECTED, dismanOutput->isPrimary());
+    xOutput->update(xOutput->crtc()->crtc(), modeId, XCB_RANDR_CONNECTION_CONNECTED, primary);
     return true;
 }
 
 bool XRandRConfig::sendConfig(const Disman::OutputPtr& dismanOutput, XRandRCrtc* crtc) const
 {
     xcb_randr_output_t outputs[1]{static_cast<xcb_randr_output_t>(dismanOutput->id())};
-    const int modeId = dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id().toInt()
-                                                 : dismanOutput->preferred_mode()->id().toInt();
+    auto const modeId = std::stoi(dismanOutput->auto_mode() ? dismanOutput->auto_mode()->id()
+                                                            : dismanOutput->preferred_mode()->id());
 
     auto cookie = xcb_randr_set_crtc_config(XCB::connection(),
                                             crtc->crtc(),

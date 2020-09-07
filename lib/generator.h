@@ -49,9 +49,9 @@ public:
     bool extend(OutputPtr const& first, Extend_direction direction);
     bool replicate();
 
-    OutputPtr primary(OutputList const& exclusions = OutputList()) const;
+    OutputPtr primary(OutputMap const& exclusions = OutputMap()) const;
     OutputPtr embedded() const;
-    OutputPtr biggest(OutputList const& exclusions = OutputList()) const;
+    OutputPtr biggest(OutputMap const& exclusions = OutputMap()) const;
 
     double best_scale(OutputPtr const& output);
 
@@ -67,8 +67,8 @@ private:
     void
     extend_derived(ConfigPtr const& config, OutputPtr const& first, Extend_direction direction);
     void line_up(OutputPtr const& first,
-                 OutputList const& old_outputs,
-                 OutputList const& new_outputs,
+                 OutputMap const& old_outputs,
+                 OutputMap const& new_outputs,
                  Extend_direction direction);
 
     void replicate_impl(ConfigPtr const& config);
@@ -76,15 +76,15 @@ private:
 
     ConfigPtr multi_output_fallback(ConfigPtr const& config);
 
-    OutputPtr primary_impl(OutputList const& outputs, OutputList const& exclusions) const;
-    OutputPtr embedded_impl(OutputList const& outputs, OutputList const& exclusions) const;
+    OutputPtr primary_impl(OutputMap const& outputs, OutputMap const& exclusions) const;
+    OutputPtr embedded_impl(OutputMap const& outputs, OutputMap const& exclusions) const;
     OutputPtr
-    biggest_impl(OutputList const& outputs, bool only_enabled, OutputList const& exclusions) const;
+    biggest_impl(OutputMap const& outputs, bool only_enabled, OutputMap const& exclusions) const;
 
     void get_outputs_division(OutputPtr const& first,
                               const ConfigPtr& config,
-                              OutputList& old_outputs,
-                              OutputList& new_outputs);
+                              OutputMap& old_outputs,
+                              OutputMap& new_outputs);
 
     ConfigPtr m_config;
     ConfigPtr m_predecessor_config;

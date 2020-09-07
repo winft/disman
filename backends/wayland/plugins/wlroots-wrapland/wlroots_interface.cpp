@@ -83,7 +83,9 @@ bool WlrootsInterface::isInitialized() const
 
 void WlrootsInterface::handleDisconnect()
 {
-    qDeleteAll(m_outputMap);
+    for (auto& [key, out] : m_outputMap) {
+        delete out;
+    }
     m_outputMap.clear();
 
     // Clean up
@@ -146,55 +148,60 @@ void WlrootsInterface::addHead(Wrapland::Client::WlrOutputHeadV1* head)
 
 void WlrootsInterface::insertOutput(WaylandOutput* output)
 {
-    auto* out = static_cast<WlrootsOutput*>(output);
-    m_outputMap.insert(out->id(), out);
+    auto out = static_cast<WlrootsOutput*>(output);
+    m_outputMap.insert({out->id(), out});
 }
 
 WaylandOutput* WlrootsInterface::takeOutput(WaylandOutput* output)
 {
-    auto* out = static_cast<WlrootsOutput*>(output);
-    return m_outputMap.take(out->id());
+    auto out = static_cast<WlrootsOutput*>(output);
+    auto it = m_outputMap.find(out->id());
+    if (it != m_outputMap.end()) {
+        auto output = it->second;
+        m_outputMap.erase(it);
+        return output;
+    }
+    return nullptr;
 }
 
 void WlrootsInterface::updateConfig(Disman::ConfigPtr& config)
 {
-    config->setSupportedFeatures(Config::Feature::Writable | Config::Feature::PerOutputScaling);
-    config->setValid(m_connection->display());
+    config->set_supported_features(Config::Feature::Writable | Config::Feature::PerOutputScaling);
+    config->set_valid(m_connection->display());
 
     // Removing removed outputs
-    const Disman::OutputList outputs = config->outputs();
-    for (const auto& output : outputs) {
-        if (!m_outputMap.contains(output->id())) {
-            config->removeOutput(output->id());
+    for (auto const& [key, output] : config->outputs()) {
+        if (m_outputMap.find(output->id()) == m_outputMap.end()) {
+            config->remove_output(output->id());
         }
     }
 
-    // Add Disman::Outputs that aren't in the list yet, handle primaryOutput
-    Disman::OutputList dismanOutputs = config->outputs();
-    for (const auto& output : m_outputMap) {
-        Disman::OutputPtr dismanOutput = dismanOutputs[output->id()];
-        if (!dismanOutput) {
+    // Add Disman::Outputs that aren't in the list yet.
+    auto dismanOutputs = config->outputs();
+
+    for (auto& [key, output] : m_outputMap) {
+        Disman::OutputPtr dismanOutput;
+
+        auto it = dismanOutputs.find(output->id());
+        if (it == dismanOutputs.end()) {
             dismanOutput = output->toDismanOutput();
-            dismanOutputs.insert(dismanOutput->id(), dismanOutput);
+            dismanOutputs.insert({dismanOutput->id(), dismanOutput});
         } else {
-            output->updateDismanOutput(dismanOutput);
+            dismanOutput = it->second;
         }
-        if (dismanOutput && m_outputMap.count() == 1) {
-            dismanOutput->setPrimary(true);
-        } else if (m_outputMap.count() > 1) {
-            // primaryScreen concept doesn't exist in Wayland, so we don't set one
-        }
+
+        output->updateDismanOutput(dismanOutput);
     }
-    config->setOutputs(dismanOutputs);
+    config->set_outputs(dismanOutputs);
 }
 
-QMap<int, WaylandOutput*> WlrootsInterface::outputMap() const
+std::map<int, WaylandOutput*> WlrootsInterface::outputMap() const
 {
-    QMap<int, WaylandOutput*> ret;
+    std::map<int, WaylandOutput*> ret;
 
-    auto it = m_outputMap.constBegin();
-    while (it != m_outputMap.constEnd()) {
-        ret[it.key()] = it.value();
+    auto it = m_outputMap.cbegin();
+    while (it != m_outputMap.cend()) {
+        ret[it->first] = it->second;
         ++it;
     }
     return ret;
@@ -228,7 +235,7 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
         return false;
     }
 
-    for (const auto& output : newConfig->outputs()) {
+    for (auto const& [key, output] : newConfig->outputs()) {
         changed |= m_outputMap[output->id()]->setWlConfig(wlConfig, output);
     }
 
@@ -239,20 +246,20 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     }
 
     // We now block changes in order to compress events while the compositor is doing its thing
-    // once it's done or failed, we'll trigger configChanged() only once, and not per individual
+    // once it's done or failed, we'll trigger config_changed() only once, and not per individual
     // property change.
     connect(wlConfig, &WlrOutputConfigurationV1::succeeded, this, [this, wlConfig] {
         qCDebug(DISMAN_WAYLAND) << "Config applied successfully.";
         wlConfig->deleteLater();
         unblockSignals();
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
         tryPendingConfig();
     });
     connect(wlConfig, &WlrOutputConfigurationV1::failed, this, [this, wlConfig] {
         qCWarning(DISMAN_WAYLAND) << "Applying config failed.";
         wlConfig->deleteLater();
         unblockSignals();
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
         tryPendingConfig();
     });
     connect(wlConfig, &WlrOutputConfigurationV1::cancelled, this, [this, wlConfig] {
@@ -261,7 +268,7 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
         qCWarning(DISMAN_WAYLAND) << "Applying config failed.";
         wlConfig->deleteLater();
         unblockSignals();
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
         tryPendingConfig();
     });
 

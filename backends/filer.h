@@ -54,8 +54,8 @@ public:
         // to be able to tell apart multiple identical outputs, these need special treatment
         QStringList allIds;
         const auto outputs = config->outputs();
-        allIds.reserve(outputs.count());
-        for (const Disman::OutputPtr& output : outputs) {
+        allIds.reserve(outputs.size());
+        for (auto const& [key, output] : outputs) {
             const auto outputId = QString::fromStdString(output->hash());
             if (allIds.contains(outputId) && !m_duplicateOutputIds.contains(outputId)) {
                 m_duplicateOutputIds << outputId;
@@ -63,7 +63,7 @@ public:
             allIds << outputId;
         }
 
-        for (auto output : outputs) {
+        for (auto const& [key, output] : outputs) {
             m_output_filers.push_back(
                 std::unique_ptr<Output_filer>(new Output_filer(output, m_controller, m_dir_path)));
         }
@@ -73,15 +73,15 @@ public:
     {
         auto outputs = config->outputs();
 
-        for (auto& output : outputs) {
+        for (auto& [key, output] : outputs) {
             //
             // First we must set the retention for all later calls to get_value().
             auto retention = get_value(
                 output, "retention", static_cast<int>(Output::Retention::Undefined), nullptr);
             output->set_retention(convert_int_to_retention(retention));
-            output->setEnabled(get_value(output, "enabled", true, nullptr));
+            output->set_enabled(get_value(output, "enabled", true, nullptr));
 
-            output->setPosition(
+            output->set_position(
                 get_value(output, "pos", QPointF(0, 0), nullptr, std::function{get_pos}));
             get_replication_source(output, outputs);
 
@@ -96,20 +96,20 @@ public:
                 output->set_refresh_rate(0);
             }
 
-            if (config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling)) {
-                output->setScale(get_value(output, "scale", 1., filer));
+            if (config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling)) {
+                output->set_scale(get_value(output, "scale", 1., filer));
             }
 
             auto const rotation
                 = get_value(output, "rotation", static_cast<int>(Output::Rotation::None), filer);
-            output->setRotation(convert_int_to_rotation(rotation));
+            output->set_rotation(convert_int_to_rotation(rotation));
 
             output->set_auto_resolution(get_value(output, "auto-resolution", true, filer));
             output->set_auto_refresh_rate(get_value(output, "auto-refresh-rate", true, filer));
 
-            if (config->supportedFeatures().testFlag(Disman::Config::Feature::AutoRotation)) {
+            if (config->supported_features().testFlag(Disman::Config::Feature::AutoRotation)) {
                 output->set_auto_rotate(get_value(output, "auto-rotate", false, filer));
-                if (config->supportedFeatures().testFlag(Disman::Config::Feature::TabletMode)) {
+                if (config->supported_features().testFlag(Disman::Config::Feature::TabletMode)) {
                     output->set_auto_rotate_only_in_tablet_mode(
                         get_value(output, "auto-rotate-tablet-only", false, filer));
                 }
@@ -122,7 +122,7 @@ public:
     void set_values(ConfigPtr const& config)
     {
         auto outputs = config->outputs();
-        for (auto output : outputs) {
+        for (auto const& [key, output] : outputs) {
             auto const retention = output->retention();
             Output_filer* filer = nullptr;
 
@@ -132,13 +132,13 @@ public:
             }
 
             set_value(output, "retention", static_cast<int>(output->retention()), nullptr);
-            set_value(output, "enabled", output->isEnabled(), nullptr);
+            set_value(output, "enabled", output->enabled(), nullptr);
             set_replication_source(output, config);
             set_value(output, "pos", output->position(), nullptr, std::function{set_pos});
 
             set_value(output, "mode", output->auto_mode(), filer, std::function{set_mode});
 
-            if (config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling)) {
+            if (config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling)) {
                 set_value(output, "scale", output->scale(), filer);
             }
             set_value(output, "rotation", static_cast<int>(output->rotation()), filer);
@@ -146,9 +146,9 @@ public:
             set_value(output, "auto-resolution", output->auto_resolution(), filer);
             set_value(output, "auto-refresh-rate", output->auto_refresh_rate(), filer);
 
-            if (config->supportedFeatures().testFlag(Disman::Config::Feature::AutoRotation)) {
+            if (config->supported_features().testFlag(Disman::Config::Feature::AutoRotation)) {
                 set_value(output, "auto-rotate", output->auto_rotate(), filer);
-                if (config->supportedFeatures().testFlag(Disman::Config::Feature::TabletMode)) {
+                if (config->supported_features().testFlag(Disman::Config::Feature::TabletMode)) {
                     set_value(output,
                               "auto-rotate-tablet-only",
                               output->auto_rotate_only_in_tablet_mode(),
@@ -325,8 +325,8 @@ public:
             return default_value;
         }
 
-        for (auto const& mode : output->modes()) {
-            if (mode->size() == resolution && mode->refreshRate() == refresh) {
+        for (auto const& [key, mode] : output->modes()) {
+            if (mode->size() == resolution && mode->refresh() == refresh) {
                 return mode;
             }
         }
@@ -347,7 +347,7 @@ public:
 
         auto mode_info = [&mode, size_info]() {
             QVariantMap info;
-            info[QStringLiteral("refresh")] = mode->refreshRate();
+            info[QStringLiteral("refresh")] = mode->refresh();
             info[QStringLiteral("resolution")] = size_info();
 
             return info;
@@ -356,30 +356,30 @@ public:
         info[QStringLiteral("mode")] = mode_info();
     }
 
-    void get_replication_source(OutputPtr& output, OutputList const& outputs) const
+    void get_replication_source(OutputPtr& output, OutputMap const& outputs) const
     {
         auto replicate_hash = get_value(output, "replicate", QString(), nullptr).toStdString();
 
-        auto replication_source_it = std::find_if(
-            outputs.constBegin(), outputs.constEnd(), [replicate_hash](OutputPtr const& out) {
-                return out->hash() == replicate_hash;
-            });
+        auto replication_source_it
+            = std::find_if(outputs.cbegin(), outputs.cend(), [replicate_hash](auto const& out) {
+                  return out.second->hash() == replicate_hash;
+              });
 
-        if (replication_source_it != outputs.constEnd()) {
+        if (replication_source_it != outputs.cend()) {
             if (replicate_hash == output->hash()) {
                 qCWarning(DISMAN_BACKEND) << "Control file has sets" << output
                                           << "as its own replica. This is not allowed.";
             } else {
-                output->setReplicationSource((*replication_source_it)->id());
+                output->set_replication_source(replication_source_it->first);
             }
         } else {
-            output->setReplicationSource(0);
+            output->set_replication_source(0);
         }
     }
 
     void set_replication_source(OutputPtr const& output, ConfigPtr const& config)
     {
-        auto const source = config->output(output->replicationSource());
+        auto const source = config->output(output->replication_source());
         set_value(output,
                   "replicate",
                   source ? QString::fromStdString(source->hash()) : QStringLiteral(""),
@@ -388,8 +388,7 @@ public:
 
     QFileInfo file_info() const
     {
-        return Filer_helpers::file_info(m_dir_path + "configs/",
-                                        m_config->connectedOutputsHash().toStdString());
+        return Filer_helpers::file_info(m_dir_path + "configs/", m_config->hash().toStdString());
     }
 
     bool read_file()

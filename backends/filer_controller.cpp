@@ -33,7 +33,7 @@ Filer_controller::~Filer_controller() = default;
 bool Filer_controller::read(ConfigPtr& config)
 {
     if (m_filer) {
-        if (m_filer->config()->connectedOutputsHash() != config->connectedOutputsHash()) {
+        if (m_filer->config()->hash() != config->hash()) {
             // Different output combination means different combination of filers.
             reset_filer(config);
         }
@@ -51,7 +51,7 @@ bool Filer_controller::read(ConfigPtr& config)
 bool Filer_controller::write(ConfigPtr const& config)
 {
     if (m_filer) {
-        if (m_filer->config()->connectedOutputsHash() != config->connectedOutputsHash()) {
+        if (m_filer->config()->hash() != config->hash()) {
             qCWarning(DISMAN_BACKEND)
                 << "Config control file not in sync. Was there a simultaneous hot-plug event?";
             return false;

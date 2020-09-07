@@ -28,9 +28,12 @@
 #include <QJsonDocument>
 #include <QRect>
 
+#include <string>
+#include <vector>
+
 using namespace Disman;
 
-QJsonObject ConfigSerializer::serializePoint(const QPointF& point)
+QJsonObject ConfigSerializer::serialize_point(const QPointF& point)
 {
     QJsonObject obj;
     obj[QLatin1String("x")] = point.x();
@@ -38,7 +41,7 @@ QJsonObject ConfigSerializer::serializePoint(const QPointF& point)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeSize(const QSize& size)
+QJsonObject ConfigSerializer::serialize_size(const QSize& size)
 {
     QJsonObject obj;
     obj[QLatin1String("width")] = size.width();
@@ -46,7 +49,7 @@ QJsonObject ConfigSerializer::serializeSize(const QSize& size)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeSizeF(const QSizeF& size)
+QJsonObject ConfigSerializer::serialize_sizef(const QSizeF& size)
 {
     QJsonObject obj;
     obj[QLatin1String("width")] = size.width();
@@ -54,7 +57,7 @@ QJsonObject ConfigSerializer::serializeSizeF(const QSizeF& size)
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr& config)
+QJsonObject ConfigSerializer::serialize_config(const ConfigPtr& config)
 {
     QJsonObject obj;
 
@@ -63,24 +66,27 @@ QJsonObject ConfigSerializer::serializeConfig(const ConfigPtr& config)
     }
 
     obj[QLatin1String("origin")] = static_cast<int>(config->origin());
-    obj[QLatin1String("features")] = static_cast<int>(config->supportedFeatures());
+    obj[QLatin1String("features")] = static_cast<int>(config->supported_features());
+    if (auto primary = config->primary_output()) {
+        obj[QLatin1String("primary-output")] = primary->id();
+    }
 
     QJsonArray outputs;
-    Q_FOREACH (const OutputPtr& output, config->outputs()) {
-        outputs.append(serializeOutput(output));
+    for (auto const& [key, output] : config->outputs()) {
+        outputs.append(serialize_output(output));
     }
     obj[QLatin1String("outputs")] = outputs;
     if (config->screen()) {
-        obj[QLatin1String("screen")] = serializeScreen(config->screen());
+        obj[QLatin1String("screen")] = serialize_screen(config->screen());
     }
 
-    obj[QLatin1String("tabletModeAvailable")] = config->tabletModeAvailable();
-    obj[QLatin1String("tabletModeEngaged")] = config->tabletModeEngaged();
+    obj[QLatin1String("tablet_mode_available")] = config->tablet_mode_available();
+    obj[QLatin1String("tablet_mode_engaged")] = config->tablet_mode_engaged();
 
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
+QJsonObject ConfigSerializer::serialize_output(const OutputPtr& output)
 {
     QJsonObject obj;
 
@@ -89,20 +95,24 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("description")] = QString::fromStdString(output->description());
     obj[QLatin1String("hash")] = QString::fromStdString(output->hash());
     obj[QLatin1String("type")] = static_cast<int>(output->type());
-    obj[QLatin1String("icon")] = output->icon();
-    obj[QLatin1String("position")] = serializePoint(output->position());
+    obj[QLatin1String("position")] = serialize_point(output->position());
     obj[QLatin1String("scale")] = output->scale();
     obj[QLatin1String("rotation")] = static_cast<int>(output->rotation());
     if (auto const mode = output->commanded_mode()) {
-        obj[QLatin1String("resolution")] = serializeSize(mode->size());
-        obj[QLatin1String("refresh_rate")] = mode->refreshRate();
+        obj[QLatin1String("resolution")] = serialize_size(mode->size());
+        obj[QLatin1String("refresh")] = mode->refresh();
     }
-    obj[QLatin1String("preferredModes")] = serializeList(output->preferredModes());
-    obj[QLatin1String("followPreferredMode")] = output->followPreferredMode();
-    obj[QLatin1String("enabled")] = output->isEnabled();
-    obj[QLatin1String("primary")] = output->isPrimary();
-    obj[QLatin1String("sizeMM")] = serializeSize(output->sizeMm());
-    obj[QLatin1String("replicationSource")] = output->replicationSource();
+
+    QStringList mode_q_strings;
+    for (auto mode_string : output->preferred_modes()) {
+        mode_q_strings.push_back(QString::fromStdString(mode_string));
+    }
+    obj[QLatin1String("preferred_modes")] = serialize_list(mode_q_strings);
+
+    obj[QLatin1String("follow_preferred_mode")] = output->follow_preferred_mode();
+    obj[QLatin1String("enabled")] = output->enabled();
+    obj[QLatin1String("physical_size")] = serialize_size(output->physical_size());
+    obj[QLatin1String("replication_source")] = output->replication_source();
     obj[QLatin1String("auto_rotate")] = output->auto_rotate();
     obj[QLatin1String("auto_rotate_only_in_tablet_mode")]
         = output->auto_rotate_only_in_tablet_mode();
@@ -111,40 +121,40 @@ QJsonObject ConfigSerializer::serializeOutput(const OutputPtr& output)
     obj[QLatin1String("retention")] = static_cast<int>(output->retention());
 
     QJsonArray modes;
-    Q_FOREACH (const ModePtr& mode, output->modes()) {
-        modes.append(serializeMode(mode));
+    for (auto const& [key, mode] : output->modes()) {
+        modes.append(serialize_mode(mode));
     }
     obj[QLatin1String("modes")] = modes;
 
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeMode(const ModePtr& mode)
+QJsonObject ConfigSerializer::serialize_mode(const ModePtr& mode)
 {
     QJsonObject obj;
 
-    obj[QLatin1String("id")] = mode->id();
-    obj[QLatin1String("name")] = mode->name();
-    obj[QLatin1String("size")] = serializeSize(mode->size());
-    obj[QLatin1String("refreshRate")] = mode->refreshRate();
+    obj[QLatin1String("id")] = QString::fromStdString(mode->id());
+    obj[QLatin1String("name")] = QString::fromStdString(mode->name());
+    obj[QLatin1String("size")] = serialize_size(mode->size());
+    obj[QLatin1String("refresh")] = mode->refresh();
 
     return obj;
 }
 
-QJsonObject ConfigSerializer::serializeScreen(const ScreenPtr& screen)
+QJsonObject ConfigSerializer::serialize_screen(const ScreenPtr& screen)
 {
     QJsonObject obj;
 
     obj[QLatin1String("id")] = screen->id();
-    obj[QLatin1String("currentSize")] = serializeSize(screen->currentSize());
-    obj[QLatin1String("maxSize")] = serializeSize(screen->maxSize());
-    obj[QLatin1String("minSize")] = serializeSize(screen->minSize());
-    obj[QLatin1String("maxActiveOutputsCount")] = screen->maxActiveOutputsCount();
+    obj[QLatin1String("current_size")] = serialize_size(screen->current_size());
+    obj[QLatin1String("max_size")] = serialize_size(screen->max_size());
+    obj[QLatin1String("min_size")] = serialize_size(screen->min_size());
+    obj[QLatin1String("max_outputs_count")] = screen->max_outputs_count();
 
     return obj;
 }
 
-QPointF ConfigSerializer::deserializePoint(const QDBusArgument& arg)
+QPointF ConfigSerializer::deserialize_point(const QDBusArgument& arg)
 {
     double x = 0;
     double y = 0;
@@ -184,7 +194,7 @@ Output::Retention ConfigSerializer::deserialize_retention(QVariant const& var)
     return Output::Retention::Undefined;
 }
 
-QSize ConfigSerializer::deserializeSize(const QDBusArgument& arg)
+QSize ConfigSerializer::deserialize_size(const QDBusArgument& arg)
 {
     int w = 0, h = 0;
     arg.beginMap();
@@ -208,7 +218,7 @@ QSize ConfigSerializer::deserializeSize(const QDBusArgument& arg)
     return QSize(w, h);
 }
 
-QSizeF ConfigSerializer::deserializeSizeF(const QDBusArgument& arg)
+QSizeF ConfigSerializer::deserialize_sizef(const QDBusArgument& arg)
 {
     double w = 0;
     double h = 0;
@@ -233,7 +243,7 @@ QSizeF ConfigSerializer::deserializeSizeF(const QDBusArgument& arg)
     return QSizeF(w, h);
 }
 
-ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap& map)
+ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
 {
     auto origin = static_cast<Config::Origin>(
         map.value(QStringLiteral("origin"), static_cast<int>(Config::Origin::unknown)).toInt());
@@ -250,37 +260,46 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap& map)
     ConfigPtr config(new Config(origin));
 
     if (map.contains(QLatin1String("features"))) {
-        config->setSupportedFeatures(
+        config->set_supported_features(
             static_cast<Config::Features>(map[QStringLiteral("features")].toInt()));
     }
 
-    if (map.contains(QLatin1String("tabletModeAvailable"))) {
-        config->setTabletModeAvailable(map[QStringLiteral("tabletModeAvailable")].toBool());
+    if (map.contains(QLatin1String("tablet_mode_available"))) {
+        config->set_tablet_mode_available(map[QStringLiteral("tablet_mode_available")].toBool());
     }
-    if (map.contains(QLatin1String("tabletModeEngaged"))) {
-        config->setTabletModeEngaged(map[QStringLiteral("tabletModeEngaged")].toBool());
+    if (map.contains(QLatin1String("tablet_mode_engaged"))) {
+        config->set_tablet_mode_engaged(map[QStringLiteral("tablet_mode_engaged")].toBool());
     }
 
     if (map.contains(QLatin1String("outputs"))) {
         const QDBusArgument& outputsArg = map[QStringLiteral("outputs")].value<QDBusArgument>();
         outputsArg.beginArray();
-        OutputList outputs;
+        OutputMap outputs;
         while (!outputsArg.atEnd()) {
             QVariant value;
             outputsArg >> value;
-            const Disman::OutputPtr output = deserializeOutput(value.value<QDBusArgument>());
+            const Disman::OutputPtr output = deserialize_output(value.value<QDBusArgument>());
             if (!output) {
                 return ConfigPtr();
             }
-            outputs.insert(output->id(), output);
+            outputs.insert({output->id(), output});
         }
         outputsArg.endArray();
-        config->setOutputs(outputs);
+        config->set_outputs(outputs);
+    }
+
+    if (map.contains(QLatin1String("primary-output"))) {
+        auto const id = map[QStringLiteral("primary-output")].toInt();
+        auto output = config->output(id);
+        if (!output) {
+            return ConfigPtr();
+        }
+        config->set_primary_output(output);
     }
 
     if (map.contains(QLatin1String("screen"))) {
         const QDBusArgument& screenArg = map[QStringLiteral("screen")].value<QDBusArgument>();
-        const Disman::ScreenPtr screen = deserializeScreen(screenArg);
+        const Disman::ScreenPtr screen = deserialize_screen(screenArg);
         if (!screen) {
             return ConfigPtr();
         }
@@ -290,7 +309,7 @@ ConfigPtr ConfigSerializer::deserializeConfig(const QVariantMap& map)
     return config;
 }
 
-OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
+OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
 {
     OutputPtr output(new Output);
 
@@ -301,7 +320,7 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
         arg.beginMapEntry();
         arg >> key >> value;
         if (key == QLatin1String("id")) {
-            output->setId(value.toInt());
+            output->set_id(value.toInt());
         } else if (key == QLatin1String("name")) {
             output->set_name(value.toString().toStdString());
         } else if (key == QLatin1String("description")) {
@@ -310,17 +329,15 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->set_hash_raw(value.toString().toStdString());
         } else if (key == QLatin1String("type")) {
             output->setType(static_cast<Output::Type>(value.toInt()));
-        } else if (key == QLatin1String("icon")) {
-            output->setIcon(value.toString());
         } else if (key == QLatin1String("position")) {
-            output->setPosition(deserializePoint(value.value<QDBusArgument>()));
+            output->set_position(deserialize_point(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("scale")) {
-            output->setScale(value.toDouble());
+            output->set_scale(value.toDouble());
         } else if (key == QLatin1String("rotation")) {
-            output->setRotation(static_cast<Output::Rotation>(value.toInt()));
+            output->set_rotation(static_cast<Output::Rotation>(value.toInt()));
         } else if (key == QLatin1String("resolution")) {
             output->set_resolution(value.toSize());
-        } else if (key == QLatin1String("refresh_rate")) {
+        } else if (key == QLatin1String("refresh")) {
             output->set_refresh_rate(value.toDouble());
         } else if (key == QLatin1String("auto_rotate")) {
             output->set_auto_rotate(value.toBool());
@@ -330,35 +347,40 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
             output->set_auto_resolution(value.toBool());
         } else if (key == QLatin1String("auto_refresh_rate")) {
             output->set_auto_refresh_rate(value.toBool());
-        } else if (key == QLatin1String("preferredModes")) {
-            output->setPreferredModes(deserializeList<QString>(value.value<QDBusArgument>()));
-        } else if (key == QLatin1String("followPreferredMode")) {
-            output->setFollowPreferredMode(value.toBool());
+
+        } else if (key == QLatin1String("preferred_modes")) {
+            auto q_strings = deserialize_list<QString>(value.value<QDBusArgument>());
+            std::vector<std::string> strings;
+            for (auto qs : q_strings) {
+                strings.push_back(qs.toStdString());
+            }
+            output->set_preferred_modes(strings);
+
+        } else if (key == QLatin1String("follow_preferred_mode")) {
+            output->set_follow_preferred_mode(value.toBool());
         } else if (key == QLatin1String("enabled")) {
-            output->setEnabled(value.toBool());
-        } else if (key == QLatin1String("primary")) {
-            output->setPrimary(value.toBool());
-        } else if (key == QLatin1String("replicationSource")) {
-            output->setReplicationSource(value.toInt());
-        } else if (key == QLatin1String("sizeMM")) {
-            output->setSizeMm(deserializeSize(value.value<QDBusArgument>()));
+            output->set_enabled(value.toBool());
+        } else if (key == QLatin1String("replication_source")) {
+            output->set_replication_source(value.toInt());
+        } else if (key == QLatin1String("physical_size")) {
+            output->set_physical_size(deserialize_size(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("retention")) {
             output->set_retention(deserialize_retention(value));
         } else if (key == QLatin1String("modes")) {
             const QDBusArgument arg = value.value<QDBusArgument>();
-            ModeList modes;
+            ModeMap modes;
             arg.beginArray();
             while (!arg.atEnd()) {
                 QVariant value;
                 arg >> value;
-                const Disman::ModePtr mode = deserializeMode(value.value<QDBusArgument>());
+                const Disman::ModePtr mode = deserialize_mode(value.value<QDBusArgument>());
                 if (!mode) {
                     return OutputPtr();
                 }
-                modes.insert(mode->id(), mode);
+                modes.insert({mode->id(), mode});
             }
             arg.endArray();
-            output->setModes(modes);
+            output->set_modes(modes);
         } else {
             qCWarning(DISMAN) << "Invalid key in Output map: " << key;
             return OutputPtr();
@@ -369,7 +391,7 @@ OutputPtr ConfigSerializer::deserializeOutput(const QDBusArgument& arg)
     return output;
 }
 
-ModePtr ConfigSerializer::deserializeMode(const QDBusArgument& arg)
+ModePtr ConfigSerializer::deserialize_mode(const QDBusArgument& arg)
 {
     ModePtr mode(new Mode);
 
@@ -381,13 +403,13 @@ ModePtr ConfigSerializer::deserializeMode(const QDBusArgument& arg)
         arg >> key >> value;
 
         if (key == QLatin1String("id")) {
-            mode->setId(value.toString());
+            mode->set_id(value.toString().toStdString());
         } else if (key == QLatin1String("name")) {
-            mode->setName(value.toString());
+            mode->set_name(value.toString().toStdString());
         } else if (key == QLatin1String("size")) {
-            mode->setSize(deserializeSize(value.value<QDBusArgument>()));
-        } else if (key == QLatin1String("refreshRate")) {
-            mode->setRefreshRate(value.toFloat());
+            mode->set_size(deserialize_size(value.value<QDBusArgument>()));
+        } else if (key == QLatin1String("refresh")) {
+            mode->set_refresh(value.toFloat());
         } else {
             qCWarning(DISMAN) << "Invalid key in Mode map: " << key;
             return ModePtr();
@@ -398,7 +420,7 @@ ModePtr ConfigSerializer::deserializeMode(const QDBusArgument& arg)
     return mode;
 }
 
-ScreenPtr ConfigSerializer::deserializeScreen(const QDBusArgument& arg)
+ScreenPtr ConfigSerializer::deserialize_screen(const QDBusArgument& arg)
 {
     ScreenPtr screen(new Screen);
 
@@ -409,15 +431,15 @@ ScreenPtr ConfigSerializer::deserializeScreen(const QDBusArgument& arg)
         arg.beginMapEntry();
         arg >> key >> value;
         if (key == QLatin1String("id")) {
-            screen->setId(value.toInt());
-        } else if (key == QLatin1String("maxActiveOutputsCount")) {
-            screen->setMaxActiveOutputsCount(value.toInt());
-        } else if (key == QLatin1String("currentSize")) {
-            screen->setCurrentSize(deserializeSize(value.value<QDBusArgument>()));
-        } else if (key == QLatin1String("maxSize")) {
-            screen->setMaxSize(deserializeSize(value.value<QDBusArgument>()));
-        } else if (key == QLatin1String("minSize")) {
-            screen->setMinSize(deserializeSize(value.value<QDBusArgument>()));
+            screen->set_id(value.toInt());
+        } else if (key == QLatin1String("max_outputs_count")) {
+            screen->set_max_outputs_count(value.toInt());
+        } else if (key == QLatin1String("current_size")) {
+            screen->set_current_size(deserialize_size(value.value<QDBusArgument>()));
+        } else if (key == QLatin1String("max_size")) {
+            screen->set_max_size(deserialize_size(value.value<QDBusArgument>()));
+        } else if (key == QLatin1String("min_size")) {
+            screen->set_min_size(deserialize_size(value.value<QDBusArgument>()));
         } else {
             qCWarning(DISMAN) << "Invalid key in Screen map:" << key;
             return ScreenPtr();

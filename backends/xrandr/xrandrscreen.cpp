@@ -57,19 +57,19 @@ QSize XRandRScreen::currentSize()
 Disman::ScreenPtr XRandRScreen::toDismanScreen() const
 {
     Disman::ScreenPtr dismanScreen(new Disman::Screen);
-    dismanScreen->setId(m_id);
-    dismanScreen->setMaxSize(m_maxSize);
-    dismanScreen->setMinSize(m_minSize);
-    dismanScreen->setCurrentSize(m_currentSize);
+    dismanScreen->set_id(m_id);
+    dismanScreen->set_max_size(m_maxSize);
+    dismanScreen->set_min_size(m_minSize);
+    dismanScreen->set_current_size(m_currentSize);
 
     XCB::ScopedPointer<xcb_randr_get_screen_resources_reply_t> screenResources(
         XRandR::screenResources());
-    dismanScreen->setMaxActiveOutputsCount(screenResources->num_crtcs);
+    dismanScreen->set_max_outputs_count(screenResources->num_crtcs);
 
     return dismanScreen;
 }
 
 void XRandRScreen::updateDismanScreen(Disman::ScreenPtr& screen) const
 {
-    screen->setCurrentSize(m_currentSize);
+    screen->set_current_size(m_currentSize);
 }

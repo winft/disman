@@ -63,7 +63,7 @@ void TestBackendLoader::cleanupTestCase()
 
 void TestBackendLoader::testPreferredBackend()
 {
-    auto backends = BackendManager::instance()->listBackends();
+    auto backends = BackendManager::instance()->list_backends();
     QVERIFY(!backends.isEmpty());
     auto preferred = BackendManager::instance()->preferred_backend();
     QVERIFY(preferred.exists());

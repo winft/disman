@@ -51,7 +51,7 @@ using namespace Disman;
 XRandR::XRandR()
     : Disman::AbstractBackend()
     , m_x11Helper(nullptr)
-    , m_isValid(false)
+    , m_valid(false)
     , m_configChangeCompressor(nullptr)
 {
     qRegisterMetaType<xcb_randr_output_t>("xcb_randr_output_t");
@@ -78,7 +78,7 @@ XRandR::XRandR()
 
     if ((version->major_version > 1)
         || ((version->major_version == 1) && (version->minor_version >= 2))) {
-        m_isValid = true;
+        m_valid = true;
     } else {
         XCB::closeConnection();
         qCWarning(DISMAN_XRANDR) << "XRandR extension not available or unsupported version";
@@ -142,7 +142,7 @@ QString XRandR::name() const
     return QStringLiteral("XRandR");
 }
 
-QString XRandR::serviceName() const
+QString XRandR::service_name() const
 {
     return QStringLiteral("org.kde.Disman.Backend.XRandR");
 }
@@ -173,7 +173,7 @@ void XRandR::outputChanged(xcb_randr_output_t output,
     XCB::PrimaryOutput primary(XRandR::rootWindow());
     xOutput->update(crtc, mode, connection, (primary->output == output));
     qCDebug(DISMAN_XRANDR) << "Output" << xOutput->id() << ": connected =" << xOutput->isConnected()
-                           << ", enabled =" << xOutput->isEnabled();
+                           << ", enabled =" << xOutput->enabled();
 }
 
 void XRandR::crtcChanged(xcb_randr_crtc_t crtc,
@@ -194,7 +194,7 @@ void XRandR::crtcChanged(xcb_randr_crtc_t crtc,
 void XRandR::handle_change()
 {
     auto cfg = config();
-    if (!m_config || m_config->connectedOutputsHash() != cfg->connectedOutputsHash()) {
+    if (!m_config || m_config->hash() != cfg->hash()) {
         qCDebug(DISMAN_XRANDR) << "Config with new output pattern received:" << cfg;
 
         if (cfg->origin() == Config::Origin::unknown) {
@@ -214,12 +214,14 @@ void XRandR::handle_change()
             return;
         }
     }
-    Q_EMIT configChanged(cfg);
+    Q_EMIT config_changed(cfg);
 }
 
-void XRandR::screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& sizeMm)
+void XRandR::screenChanged(xcb_randr_rotation_t rotation,
+                           const QSize& sizePx,
+                           const QSize& physical_size)
 {
-    Q_UNUSED(sizeMm);
+    Q_UNUSED(physical_size);
 
     QSize newSizePx = sizePx;
     if (rotation == XCB_RANDR_ROTATION_ROTATE_90 || rotation == XCB_RANDR_ROTATION_ROTATE_270) {
@@ -246,7 +248,7 @@ ConfigPtr XRandR::config() const
     return config;
 }
 
-void XRandR::setConfig(const ConfigPtr& config)
+void XRandR::set_config(const ConfigPtr& config)
 {
     if (!config) {
         return;
@@ -270,9 +272,9 @@ QByteArray XRandR::edid(int outputId) const
     return output->edid();
 }
 
-bool XRandR::isValid() const
+bool XRandR::valid() const
 {
-    return m_isValid;
+    return m_valid;
 }
 
 quint8* XRandR::getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len)

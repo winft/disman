@@ -37,11 +37,11 @@ class DISMAN_EXPORT ConfigMonitor : public QObject
 public:
     static ConfigMonitor* instance();
 
-    void addConfig(const Disman::ConfigPtr& config);
-    void removeConfig(const Disman::ConfigPtr& config);
+    void add_config(const Disman::ConfigPtr& config);
+    void remove_config(const Disman::ConfigPtr& config);
 
 Q_SIGNALS:
-    void configurationChanged();
+    void configuration_changed();
 
 private:
     explicit ConfigMonitor();
@@ -50,7 +50,7 @@ private:
     Q_DISABLE_COPY(ConfigMonitor)
 
     friend BackendManager;
-    void connectInProcessBackend(Disman::AbstractBackend* backend);
+    void connect_in_process_backend(Disman::AbstractBackend* backend);
 
     class Private;
     Private* const d;

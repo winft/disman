@@ -35,7 +35,8 @@ public:
     bool nativeEventFilter(const QByteArray& eventType, void* message, long int* result) override;
 
 Q_SIGNALS:
-    void screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& sizeMm);
+    void
+    screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& physical_size);
 
     void crtcChanged(xcb_randr_crtc_t crtc,
                      xcb_randr_mode_t mode,

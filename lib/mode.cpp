@@ -18,7 +18,9 @@
  *************************************************************************************/
 #include "mode.h"
 
-using namespace Disman;
+namespace Disman
+{
+
 class Q_DECL_HIDDEN Mode::Private
 {
 public:
@@ -35,21 +37,19 @@ public:
     {
     }
 
-    QString id;
-    QString name;
+    std::string id;
+    std::string name;
     QSize size;
-    float rate;
+    double rate;
 };
 
 Mode::Mode()
-    : QObject(nullptr)
-    , d(new Private())
+    : d(new Private())
 {
 }
 
 Mode::Mode(Mode::Private* dd)
-    : QObject()
-    , d(dd)
+    : d(dd)
 {
 }
 
@@ -63,36 +63,32 @@ ModePtr Mode::clone() const
     return ModePtr(new Mode(new Private(*d)));
 }
 
-const QString Mode::id() const
+std::string Mode::id() const
 {
     return d->id;
 }
 
-void Mode::setId(const QString& id)
+void Mode::set_id(std::string const& id)
 {
     if (d->id == id) {
         return;
     }
 
     d->id = id;
-
-    Q_EMIT modeChanged();
 }
 
-QString Mode::name() const
+std::string Mode::name() const
 {
     return d->name;
 }
 
-void Mode::setName(const QString& name)
+void Mode::set_name(std::string const& name)
 {
     if (d->name == name) {
         return;
     }
 
     d->name = name;
-
-    Q_EMIT modeChanged();
 }
 
 QSize Mode::size() const
@@ -100,38 +96,36 @@ QSize Mode::size() const
     return d->size;
 }
 
-void Mode::setSize(const QSize& size)
+void Mode::set_size(const QSize& size)
 {
     if (d->size == size) {
         return;
     }
 
     d->size = size;
-
-    Q_EMIT modeChanged();
 }
 
-float Mode::refreshRate() const
+double Mode::refresh() const
 {
     return d->rate;
 }
 
-void Mode::setRefreshRate(float refresh)
+void Mode::set_refresh(double refresh)
 {
     if (qFuzzyCompare(d->rate, refresh)) {
         return;
     }
 
     d->rate = refresh;
+}
 
-    Q_EMIT modeChanged();
 }
 
 QDebug operator<<(QDebug dbg, const Disman::ModePtr& mode)
 {
     if (mode) {
-        dbg << "Disman::Mode(Id:" << mode->id() << ", Size:" << mode->size() << "@"
-            << mode->refreshRate() << ")";
+        dbg << "Disman::Mode(Id:" << mode->id().c_str() << ", Size:" << mode->size() << "@"
+            << mode->refresh() << ")";
     } else {
         dbg << "Disman::Mode(NULL)";
     }

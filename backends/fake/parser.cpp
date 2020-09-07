@@ -48,13 +48,19 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
         return config;
     }
 
-    OutputList outputList;
-    Q_FOREACH (const QVariant& value, outputs) {
-        const OutputPtr output = Parser::outputFromJson(value.toMap());
-        outputList.insert(output->id(), output);
+    OutputMap outputList;
+    OutputPtr primary;
+    for (auto const& value : outputs) {
+        bool is_primary = false;
+        const OutputPtr output = Parser::outputFromJson(value.toMap(), is_primary);
+        outputList.insert({output->id(), output});
+        if (is_primary) {
+            primary = output;
+        }
     }
 
-    config->setOutputs(outputList);
+    config->set_outputs(outputList);
+    config->set_primary_output(primary);
     return config;
 }
 
@@ -73,74 +79,44 @@ ConfigPtr Parser::fromJson(const QString& path)
 ScreenPtr Parser::screenFromJson(const QVariantMap& data)
 {
     ScreenPtr screen(new Screen);
-    screen->setId(data[QStringLiteral("id")].toInt());
-    screen->setMinSize(Parser::sizeFromJson(data[QStringLiteral("minSize")].toMap()));
-    screen->setMaxSize(Parser::sizeFromJson(data[QStringLiteral("maxSize")].toMap()));
-    screen->setCurrentSize(Parser::sizeFromJson(data[QStringLiteral("currentSize")].toMap()));
-    screen->setMaxActiveOutputsCount(data[QStringLiteral("maxActiveOutputsCount")].toInt());
+    screen->set_id(data[QStringLiteral("id")].toInt());
+    screen->set_min_size(Parser::sizeFromJson(data[QStringLiteral("minSize")].toMap()));
+    screen->set_max_size(Parser::sizeFromJson(data[QStringLiteral("maxSize")].toMap()));
+    screen->set_current_size(Parser::sizeFromJson(data[QStringLiteral("currentSize")].toMap()));
+    screen->set_max_outputs_count(data[QStringLiteral("maxActiveOutputsCount")].toInt());
 
     return screen;
 }
 
-void Parser::qvariant2qobject(const QVariantMap& variant, QObject* object)
-{
-    const QMetaObject* metaObject = object->metaObject();
-    for (QVariantMap::const_iterator iter = variant.begin(); iter != variant.end(); ++iter) {
-        const int propertyIndex = metaObject->indexOfProperty(qPrintable(iter.key()));
-        if (propertyIndex == -1) {
-            // qWarning() << "Skipping non-existent property" << iter.key();
-            continue;
-        }
-        const QMetaProperty metaProperty = metaObject->property(propertyIndex);
-        if (!metaProperty.isWritable()) {
-            // qWarning() << "Skipping read-only property" << iter.key();
-            continue;
-        }
-
-        const QVariant property = object->property(iter.key().toLatin1().constData());
-        Q_ASSERT(property.isValid());
-        if (property.isValid()) {
-            QVariant value = iter.value();
-            if (value.canConvert(property.type())) {
-                value.convert(property.type());
-                object->setProperty(iter.key().toLatin1().constData(), value);
-            } else if (QLatin1String("QVariant") == QLatin1String(property.typeName())) {
-                object->setProperty(iter.key().toLatin1().constData(), value);
-            }
-        }
-    }
-}
-
-OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map)
+OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
 {
     OutputPtr output(new Output);
-    output->setId(map[QStringLiteral("id")].toInt());
+    output->set_id(map[QStringLiteral("id")].toInt());
     output->set_name(map[QStringLiteral("name")].toString().toStdString());
     output->set_description(map[QStringLiteral("description")].toString().toStdString());
-    output->setEnabled(map[QStringLiteral("enabled")].toBool());
-    output->setPrimary(map[QStringLiteral("primary")].toBool());
-    output->setIcon(map[QStringLiteral("icon")].toString());
-    output->setRotation((Output::Rotation)map[QStringLiteral("rotation")].toInt());
+    output->set_enabled(map[QStringLiteral("enabled")].toBool());
+    output->set_rotation((Output::Rotation)map[QStringLiteral("rotation")].toInt());
 
-    QStringList preferredModes;
+    primary = map[QStringLiteral("primary")].toBool();
+
+    std::vector<std::string> preferredModes;
     const QVariantList prefModes = map[QStringLiteral("preferredModes")].toList();
-    Q_FOREACH (const QVariant& mode, prefModes) {
-        preferredModes.append(mode.toString());
+    for (auto const& mode : prefModes) {
+        preferredModes.push_back(mode.toString().toStdString());
     }
-    output->setPreferredModes(preferredModes);
-    map.remove(QStringLiteral("preferredModes"));
+    output->set_preferred_modes(preferredModes);
 
-    ModeList modelist;
+    ModeMap modelist;
     const QVariantList modes = map[QStringLiteral("modes")].toList();
-    Q_FOREACH (const QVariant& modeValue, modes) {
+    for (auto const& modeValue : modes) {
         const ModePtr mode = Parser::modeFromJson(modeValue);
-        modelist.insert(mode->id(), mode);
+        modelist.insert({mode->id(), mode});
     }
-    output->setModes(modelist);
-    map.remove(QStringLiteral("modes"));
+    output->set_modes(modelist);
 
     if (!map[QStringLiteral("currentModeId")].toString().isEmpty()) {
-        output->set_mode(output->mode(map[QStringLiteral("currentModeId")].toString()));
+        output->set_mode(
+            output->mode(map[QStringLiteral("currentModeId")].toString().toStdString()));
     }
 
     const QByteArray type = map[QStringLiteral("type")].toByteArray().toUpper();
@@ -180,24 +156,17 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map)
     } else {
         qCWarning(DISMAN_FAKE) << "Output Type not translated:" << type;
     }
-    map.remove(QStringLiteral("type"));
 
     if (map.contains(QStringLiteral("pos"))) {
-        output->setPosition(Parser::pointFromJson(map[QStringLiteral("pos")].toMap()));
-        map.remove(QStringLiteral("pos"));
+        output->set_position(Parser::pointFromJson(map[QStringLiteral("pos")].toMap()));
     }
 
     auto scale = QStringLiteral("scale");
     if (map.contains(scale)) {
         qDebug() << "Scale found:" << map[scale].toReal();
-        output->setScale(map[scale].toReal());
-        map.remove(scale);
+        output->set_scale(map[scale].toReal());
     }
 
-    // Remove some extra properties that we do not want or need special treatment
-    map.remove(QStringLiteral("edid"));
-
-    Parser::qvariant2qobject(map, output.data());
     return output;
 }
 
@@ -205,9 +174,11 @@ ModePtr Parser::modeFromJson(const QVariant& data)
 {
     const QVariantMap map = data.toMap();
     ModePtr mode(new Mode);
-    Parser::qvariant2qobject(map, mode.data());
 
-    mode->setSize(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
+    mode->set_id(map[QStringLiteral("id")].toString().toStdString());
+    mode->set_name(map[QStringLiteral("name")].toString().toStdString());
+    mode->set_refresh(map[QStringLiteral("refresh")].toDouble());
+    mode->set_size(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
 
     return mode;
 }

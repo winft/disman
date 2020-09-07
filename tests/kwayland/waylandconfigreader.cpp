@@ -85,7 +85,7 @@ OutputDeviceInterface* WaylandConfigReader::createOutputDevice(const QVariantMap
         outputdevice->setManufacturer(QString::fromStdString(edid.vendor()));
         outputdevice->setModel(QString::fromStdString(edid.name()));
     } else {
-        outputdevice->setPhysicalSize(sizeFromJson(outputConfig[QStringLiteral("sizeMM")]));
+        outputdevice->setPhysicalSize(sizeFromJson(outputConfig[QStringLiteral("physical_size")]));
         outputdevice->setManufacturer(outputConfig[QStringLiteral("manufacturer")].toString());
         outputdevice->setModel(outputConfig[QStringLiteral("model")].toString());
     }

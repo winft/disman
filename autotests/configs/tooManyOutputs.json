@@ -27,7 +27,7 @@
                 {
                     "id" : 3,
                     "name" : "1280x800",
-                    "refreshRate" : 59.9,
+                    "refresh" : 59.9,
                     "size" : {
                         "width" : 1280,
                         "height" : 800
@@ -55,7 +55,7 @@
                 {
                     "id" : 4,
                     "name" : "1920x1080",
-                    "refreshRate" : 60,
+                    "refresh" : 60,
                     "size" : {
                         "width" : 1920,
                         "height" : 1080

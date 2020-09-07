@@ -18,9 +18,9 @@ Watcher::Watcher(Disman::ConfigPtr config, QObject* parent)
     : QObject(parent)
     , m_config{config}
 {
-    Disman::ConfigMonitor::instance()->addConfig(m_config);
+    Disman::ConfigMonitor::instance()->add_config(m_config);
     connect(Disman::ConfigMonitor::instance(),
-            &Disman::ConfigMonitor::configurationChanged,
+            &Disman::ConfigMonitor::configuration_changed,
             this,
             &Watcher::changed,
             Qt::UniqueConnection);

@@ -68,7 +68,7 @@ private:
     Wrapland::Client::Registry* m_registry;
 
     // left-hand-side: Disman::Mode, right-hand-side: Wrapland's WlrOutputModeV1
-    QMap<QString, Wrapland::Client::WlrOutputModeV1*> m_modeIdMap;
+    std::map<std::string, Wrapland::Client::WlrOutputModeV1*> m_modeIdMap;
 };
 
 }

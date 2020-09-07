@@ -40,12 +40,12 @@ ScreenPtr WaylandScreen::toDismanScreen(Disman::ConfigPtr& parent) const
     return dismanScreen;
 }
 
-void WaylandScreen::setOutputs(const QList<WaylandOutput*>& outputs)
+void WaylandScreen::setOutputs(std::vector<WaylandOutput*> const& outputs)
 {
-    m_outputCount = outputs.count();
+    m_outputCount = outputs.size();
 
     QRect r;
-    for (const auto* out : outputs) {
+    for (auto const out : outputs) {
         if (out->enabled()) {
             r |= out->geometry().toRect();
         }
@@ -55,11 +55,11 @@ void WaylandScreen::setOutputs(const QList<WaylandOutput*>& outputs)
 
 void WaylandScreen::updateDismanScreen(Disman::ScreenPtr& screen) const
 {
-    screen->setMinSize(QSize(0, 0));
+    screen->set_min_size(QSize(0, 0));
 
     // 64000^2 should be enough for everyone.
-    screen->setMaxSize(QSize(64000, 64000));
+    screen->set_max_size(QSize(64000, 64000));
 
-    screen->setCurrentSize(m_size);
-    screen->setMaxActiveOutputsCount(m_outputCount);
+    screen->set_current_size(m_size);
+    screen->set_max_outputs_count(m_outputCount);
 }

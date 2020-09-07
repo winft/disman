@@ -33,14 +33,14 @@ public:
     ~ConfigOperationPrivate() override;
 
     // For out-of-process
-    void requestBackend();
-    virtual void backendReady(org::kwinft::disman::backend* backend);
+    void request_backend();
+    virtual void backend_ready(org::kwinft::disman::backend* backend);
 
     // For in-process
     Disman::AbstractBackend* loadBackend();
 
 public Q_SLOTS:
-    void doEmitResult();
+    void do_emit_result();
 
 private:
     QString error;

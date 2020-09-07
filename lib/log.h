@@ -46,7 +46,7 @@ void log(const QString& msg);
  *
  * @code
  *
- * Log::instance()->setContext("resume");
+ * Log::instance()->set_context("resume");
  * Log::log("Applying detected output configuration.");
  *
  * @endcode
@@ -84,7 +84,7 @@ public:
      *
      * @see context()
      */
-    void setContext(const QString& context);
+    void set_context(const QString& context);
 
     /** Logging to file is enabled by environmental var, is it?
      *
@@ -100,7 +100,7 @@ public:
      *
      * @return The path to the log file.
      */
-    QString logFile() const;
+    QString file() const;
 
 private:
     explicit Log();

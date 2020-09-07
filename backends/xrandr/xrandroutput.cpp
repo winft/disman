@@ -108,7 +108,7 @@ bool XRandROutput::isConnected() const
     return m_connected == XCB_RANDR_CONNECTION_CONNECTED;
 }
 
-bool XRandROutput::isEnabled() const
+bool XRandROutput::enabled() const
 {
     return m_crtc != nullptr && m_crtc->mode() != XCB_NONE;
 }
@@ -133,9 +133,9 @@ XRandRMode::Map XRandROutput::modes() const
     return m_modes;
 }
 
-QString XRandROutput::currentModeId() const
+std::string XRandROutput::currentModeId() const
 {
-    return m_crtc ? QString::number(m_crtc->mode()) : QString();
+    return m_crtc ? std::to_string(m_crtc->mode()) : std::string();
 }
 
 XRandRMode* XRandROutput::currentMode() const
@@ -145,11 +145,10 @@ XRandRMode* XRandROutput::currentMode() const
     }
 
     unsigned int modeId = m_crtc->mode();
-    if (!m_modes.contains(modeId)) {
-        return nullptr;
+    if (auto mode = m_modes.find(modeId); mode != m_modes.end()) {
+        return mode->second;
     }
-
-    return m_modes[modeId];
+    return nullptr;
 }
 
 Disman::Output::Rotation XRandROutput::rotation() const
@@ -207,8 +206,12 @@ void XRandROutput::update(xcb_randr_crtc_t crtc,
             m_heightMm = 0;
             m_widthMm = 0;
             m_type = Disman::Output::Unknown;
-            qDeleteAll(m_modes);
+
+            for (auto& [key, mode] : m_modes) {
+                delete mode;
+            }
             m_modes.clear();
+
             m_preferredModes.clear();
             m_edid.clear();
         }
@@ -224,7 +227,7 @@ void XRandROutput::update(xcb_randr_crtc_t crtc,
     }
 
     // A monitor has been enabled or disabled
-    // We don't use isEnabled(), because it checks for crtc && crtc->mode(), however
+    // We don't use enabled(), because it checks for crtc && crtc->mode(), however
     // crtc->mode may already be unset due to xcb_randr_crtc_tChangeNotify coming before
     // xcb_randr_output_tChangeNotify and reseting the CRTC mode
 
@@ -261,7 +264,6 @@ void XRandROutput::init()
     m_name = QString::fromUtf8((const char*)xcb_randr_get_output_info_name(outputInfo.data()),
                                outputInfo->name_len);
     m_type = fetchOutputType(m_id, m_name);
-    m_icon = QString();
     m_connected = (xcb_randr_connection_t)outputInfo->connection;
     m_primary = (primary->output == m_id);
 
@@ -291,8 +293,12 @@ void XRandROutput::updateModes(const XCB::OutputInfo& outputInfo)
     xcb_randr_mode_t* outputModes = xcb_randr_get_output_info_modes(outputInfo.data());
 
     m_preferredModes.clear();
-    qDeleteAll(m_modes);
+
+    for (auto& [key, mode] : m_modes) {
+        delete mode;
+    }
     m_modes.clear();
+
     for (int i = 0; i < outputInfo->num_modes; ++i) {
         /* Resources->modes contains all possible modes, we are only interested
          * in those listed in outputInfo->modes. */
@@ -302,10 +308,10 @@ void XRandROutput::updateModes(const XCB::OutputInfo& outputInfo)
             }
 
             XRandRMode* mode = new XRandRMode(modes[j], this);
-            m_modes.insert(mode->id(), mode);
+            m_modes.insert({mode->id(), mode});
 
             if (i < outputInfo->num_preferred) {
-                m_preferredModes.append(QString::number(mode->id()));
+                m_preferredModes.push_back(std::to_string(mode->id()));
             }
             break;
         }
@@ -433,7 +439,7 @@ void XRandROutput::updateLogicalSize(const Disman::OutputPtr& output, XRandRCrtc
     auto mode = output->auto_mode() ? output->auto_mode() : output->preferred_mode();
     if (mode && logicalSize.isValid()) {
         QSize modeSize = mode->size();
-        if (!output->isHorizontal()) {
+        if (!output->horizontal()) {
             modeSize.transpose();
         }
 
@@ -463,13 +469,12 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 {
     const bool signalsBlocked = dismanOutput->signalsBlocked();
     dismanOutput->blockSignals(true);
-    dismanOutput->setId(m_id);
+    dismanOutput->set_id(m_id);
     dismanOutput->setType(m_type);
-    dismanOutput->setSizeMm(QSize(m_widthMm, m_heightMm));
+    dismanOutput->set_physical_size(QSize(m_widthMm, m_heightMm));
     dismanOutput->set_name(m_name.toStdString());
     dismanOutput->set_description(description());
     dismanOutput->set_hash(this->hash());
-    dismanOutput->setIcon(m_icon);
 
     // Currently we do not set the edid since it messes with our control files.
     // TODO: Decide on a common principle for identifying outputs in Wayland and X11. EDID, name,
@@ -480,25 +485,23 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
 
     // See https://bugzilla.redhat.com/show_bug.cgi?id=1290586
     // QXL will be creating a new mode we need to jump to every time the display is resized
-    dismanOutput->setFollowPreferredMode(m_hotplugModeUpdate);
+    dismanOutput->set_follow_preferred_mode(m_hotplugModeUpdate);
 
     if (isConnected()) {
-        Disman::ModeList dismanModes;
-        for (auto iter = m_modes.constBegin(), end = m_modes.constEnd(); iter != end; ++iter) {
-            XRandRMode* mode = iter.value();
-            dismanModes.insert(QString::number(iter.key()), mode->toDismanMode());
+        Disman::ModeMap dismanModes;
+        for (auto const& [key, mode] : m_modes) {
+            dismanModes.insert({std::to_string(key), mode->toDismanMode()});
         }
-        dismanOutput->setModes(dismanModes);
-        dismanOutput->setPreferredModes(m_preferredModes);
-        dismanOutput->setPrimary(m_primary);
-        dismanOutput->setEnabled(isEnabled());
-        if (isEnabled()) {
-            dismanOutput->setPosition(position());
-            dismanOutput->setRotation(rotation());
+        dismanOutput->set_modes(dismanModes);
+        dismanOutput->set_preferred_modes(m_preferredModes);
+        dismanOutput->set_enabled(enabled());
+        if (enabled()) {
+            dismanOutput->set_position(position());
+            dismanOutput->set_rotation(rotation());
 
             auto cur_mode = currentMode();
             if (cur_mode) {
-                dismanOutput->set_mode(dismanOutput->mode(QString::number(cur_mode->id())));
+                dismanOutput->set_mode(dismanOutput->mode(std::to_string(cur_mode->id())));
                 dismanOutput->set_resolution(cur_mode->size());
                 dismanOutput->set_refresh_rate(cur_mode->refreshRate());
             }

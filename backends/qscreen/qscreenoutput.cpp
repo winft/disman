@@ -42,7 +42,7 @@ int QScreenOutput::id() const
     return m_id;
 }
 
-void QScreenOutput::setId(const int newId)
+void QScreenOutput::set_id(const int newId)
 {
     m_id = newId;
 }
@@ -72,7 +72,7 @@ std::string QScreenOutput::description() const
 OutputPtr QScreenOutput::toDismanOutput() const
 {
     OutputPtr output(new Output);
-    output->setId(m_id);
+    output->set_id(m_id);
     output->set_name(m_qscreen->name().toStdString());
 
     auto const descr = description();
@@ -85,20 +85,18 @@ OutputPtr QScreenOutput::toDismanOutput() const
 
 void QScreenOutput::updateDismanOutput(OutputPtr& output) const
 {
-    // Initialize primary output
-    output->setEnabled(true);
-    output->setPrimary(QGuiApplication::primaryScreen() == m_qscreen);
+    output->set_enabled(true);
 
     // Rotation - translate QScreen::primaryOrientation() to Output::rotation()
     if (m_qscreen->primaryOrientation() == Qt::PortraitOrientation) {
         // 90 degrees
-        output->setRotation(Output::Right);
+        output->set_rotation(Output::Right);
     } else if (m_qscreen->primaryOrientation() == Qt::InvertedLandscapeOrientation) {
         // 180 degrees
-        output->setRotation(Output::Inverted);
+        output->set_rotation(Output::Inverted);
     } else if (m_qscreen->primaryOrientation() == Qt::InvertedPortraitOrientation) {
         // 270 degrees
-        output->setRotation(Output::Left);
+        output->set_rotation(Output::Left);
     }
 
     // Physical size, geometry, etc.
@@ -109,23 +107,23 @@ void QScreenOutput::updateDismanOutput(OutputPtr& output) const
     qreal physicalHeight;
     physicalHeight = m_qscreen->size().height() / (m_qscreen->physicalDotsPerInchY() / 25.4);
     mm.setHeight(qRound(physicalHeight));
-    output->setSizeMm(mm);
-    output->setPosition(m_qscreen->availableGeometry().topLeft());
+    output->set_physical_size(mm);
+    output->set_position(m_qscreen->availableGeometry().topLeft());
 
     // Modes: we create a single default mode and go with that
     ModePtr mode(new Mode);
-    const QString modeid = QStringLiteral("defaultmode");
-    mode->setId(modeid);
-    mode->setRefreshRate(m_qscreen->refreshRate());
-    mode->setSize(m_qscreen->size());
+    std::string const modeid = "defaultmode";
+    mode->set_id(modeid);
+    mode->set_refresh(m_qscreen->refreshRate());
+    mode->set_size(m_qscreen->size());
 
     const QString modename = QString::number(m_qscreen->size().width()) + QLatin1String("x")
         + QString::number(m_qscreen->size().height()) + QLatin1String("@")
         + QString::number(m_qscreen->refreshRate());
-    mode->setName(modename);
+    mode->set_name(modename.toStdString());
 
-    ModeList modes;
+    ModeMap modes;
     modes[modeid] = mode;
-    output->setModes(modes);
+    output->set_modes(modes);
     output->set_mode(mode);
 }

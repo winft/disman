@@ -41,7 +41,7 @@ private Q_SLOTS:
     void singleOutputWithoutPreferred();
     void multiOutput();
     void configCanBeApplied();
-    void supportedFeatures();
+    void supported_features();
     void testInvalidMode();
     void cleanupTestCase();
     void testOutputPositionNormalization();
@@ -52,12 +52,12 @@ ConfigPtr testScreenConfig::getConfig()
     qputenv("DISMAN_IN_PROCESS", "1");
     auto* op = new GetConfigOperation();
     if (!op->exec()) {
-        qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
-        BackendManager::instance()->shutdownBackend();
+        qWarning("ConfigOperation error: %s", qPrintable(op->error_string()));
+        BackendManager::instance()->shutdown_backend();
         return ConfigPtr();
     }
 
-    BackendManager::instance()->shutdownBackend();
+    BackendManager::instance()->shutdown_backend();
 
     return op->config();
 }
@@ -70,7 +70,7 @@ void testScreenConfig::initTestCase()
 
 void testScreenConfig::cleanupTestCase()
 {
-    BackendManager::instance()->shutdownBackend();
+    BackendManager::instance()->shutdown_backend();
 }
 
 void testScreenConfig::singleOutput()
@@ -79,35 +79,37 @@ void testScreenConfig::singleOutput()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
     const ScreenPtr screen = config->screen();
-    QVERIFY(!screen.isNull());
+    QVERIFY(screen);
 
-    QCOMPARE(screen->minSize(), QSize(320, 200));
-    QCOMPARE(screen->maxSize(), QSize(8192, 8192));
-    QCOMPARE(screen->currentSize(), QSize(1280, 800));
+    QCOMPARE(screen->min_size(), QSize(320, 200));
+    QCOMPARE(screen->max_size(), QSize(8192, 8192));
+    QCOMPARE(screen->current_size(), QSize(1280, 800));
 
-    QCOMPARE(config->outputs().count(), 1);
+    QCOMPARE(config->outputs().size(), 1);
 
-    const OutputPtr output = config->outputs().take(1);
-    QVERIFY(!output.isNull());
+    const OutputPtr output = config->outputs().at(1);
+    QVERIFY(output);
+
+    QVERIFY(config->primary_output());
+    QCOMPARE(config->primary_output()->id(), output->id());
 
     QCOMPARE(output->name(), "LVDS1");
     QCOMPARE(output->type(), Output::Panel);
-    QCOMPARE(output->modes().count(), 3);
+    QCOMPARE(output->modes().size(), 3);
     QCOMPARE(output->position(), QPoint(0, 0));
     QCOMPARE(output->geometry(), QRect(0, 0, 1280, 800));
-    QCOMPARE(output->auto_mode()->id(), QLatin1String("3"));
-    QCOMPARE(output->preferred_mode()->id(), QLatin1String("3"));
+    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->preferred_mode()->id(), "3");
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.0);
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), true);
+    QCOMPARE(output->enabled(), true);
     // QCOMPARE(output->isEmbedded(), true);
 
     const ModePtr mode = output->auto_mode();
     QCOMPARE(mode->size(), QSize(1280, 800));
-    QCOMPARE(mode->refreshRate(), (float)59.9);
+    QCOMPARE(mode->refresh(), 59.9);
 }
 
 void testScreenConfig::singleOutputWithoutPreferred()
@@ -115,12 +117,12 @@ void testScreenConfig::singleOutputWithoutPreferred()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleOutputWithoutPreferred.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
-    const OutputPtr output = config->outputs().take(1);
-    QVERIFY(!output.isNull());
+    QVERIFY(config);
+    const OutputPtr output = config->outputs().at(1);
+    QVERIFY(output);
 
-    QVERIFY(output->preferredModes().isEmpty());
-    QCOMPARE(output->preferred_mode()->id(), QLatin1String("3"));
+    QVERIFY(output->preferred_modes().empty());
+    QCOMPARE(output->preferred_mode()->id(), "3");
 }
 
 void testScreenConfig::multiOutput()
@@ -128,35 +130,37 @@ void testScreenConfig::multiOutput()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
     const ScreenPtr screen = config->screen();
-    QVERIFY(!screen.isNull());
+    QVERIFY(screen);
 
-    QCOMPARE(screen->minSize(), QSize(320, 200));
-    QCOMPARE(screen->maxSize(), QSize(8192, 8192));
-    QCOMPARE(screen->currentSize(), QSize(3200, 1880));
+    QCOMPARE(screen->min_size(), QSize(320, 200));
+    QCOMPARE(screen->max_size(), QSize(8192, 8192));
+    QCOMPARE(screen->current_size(), QSize(3200, 1880));
 
-    QCOMPARE(config->outputs().count(), 2);
+    QCOMPARE(config->outputs().size(), 2);
 
-    const OutputPtr output = config->outputs().take(2);
-    QVERIFY(!output.isNull());
+    const OutputPtr output = config->outputs().at(2);
+    QVERIFY(output);
+
+    QVERIFY(config->primary_output());
+    QVERIFY(config->primary_output()->id() != output->id());
 
     QCOMPARE(output->name(), "HDMI1");
     QCOMPARE(output->type(), Output::HDMI);
-    QCOMPARE(output->modes().count(), 4);
+    QCOMPARE(output->modes().size(), 4);
     QCOMPARE(output->position(), QPoint(1280, 0));
     QCOMPARE(output->geometry(), QRect(1280, 0, 1920 / 1.4, 1080 / 1.4));
-    QCOMPARE(output->auto_mode()->id(), QLatin1String("4"));
-    QCOMPARE(output->preferred_mode()->id(), QLatin1String("4"));
+    QCOMPARE(output->auto_mode()->id(), "4");
+    QCOMPARE(output->preferred_mode()->id(), "4");
     QCOMPARE(output->rotation(), Output::None);
     QCOMPARE(output->scale(), 1.4);
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), false);
+    QCOMPARE(output->enabled(), true);
 
     const ModePtr mode = output->auto_mode();
-    QVERIFY(!mode.isNull());
+    QVERIFY(mode);
     QCOMPARE(mode->size(), QSize(1920, 1080));
-    QCOMPARE(mode->refreshRate(), (float)60.0);
+    QCOMPARE(mode->refresh(), 60.0);
 }
 
 void testScreenConfig::configCanBeApplied()
@@ -166,83 +170,77 @@ void testScreenConfig::configCanBeApplied()
 
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
     const ConfigPtr currentConfig = getConfig();
-    QVERIFY(!currentConfig.isNull());
+    QVERIFY(currentConfig);
     const OutputPtr primaryBroken = brokenConfig->outputs()[2];
-    QVERIFY(!primaryBroken.isNull());
+    QVERIFY(primaryBroken);
     const OutputPtr currentPrimary = currentConfig->outputs()[1];
-    QVERIFY(!currentPrimary.isNull());
+    QVERIFY(currentPrimary);
 
-    QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->setId(currentPrimary->id());
-    QVERIFY(!Config::canBeApplied(brokenConfig));
-    QVERIFY(!Config::canBeApplied(brokenConfig));
-    primaryBroken->set_mode(primaryBroken->mode(QStringLiteral("42")));
-    QVERIFY(!Config::canBeApplied(brokenConfig));
+    QVERIFY(!Config::can_be_applied(brokenConfig));
+    primaryBroken->set_id(currentPrimary->id());
+    QVERIFY(!Config::can_be_applied(brokenConfig));
+    QVERIFY(!Config::can_be_applied(brokenConfig));
+    primaryBroken->set_mode(primaryBroken->mode("42"));
+    QVERIFY(!Config::can_be_applied(brokenConfig));
     primaryBroken->set_mode(currentPrimary->auto_mode());
-    QVERIFY(!Config::canBeApplied(brokenConfig));
-    qDebug() << "brokenConfig.modes" << primaryBroken->mode(QStringLiteral("3"));
-    primaryBroken->mode(QStringLiteral("3"))->setSize(QSize(1280, 800));
-    qDebug() << "brokenConfig.modes" << primaryBroken->mode(QStringLiteral("3"));
-    QVERIFY(Config::canBeApplied(brokenConfig));
+    QVERIFY(!Config::can_be_applied(brokenConfig));
+
+    primaryBroken->mode("3")->set_size(QSize(1280, 800));
+    QVERIFY(Config::can_be_applied(brokenConfig));
 
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "tooManyOutputs.json");
     const ConfigPtr brokenConfig2 = getConfig();
-    QVERIFY(!brokenConfig2.isNull());
+    QVERIFY(brokenConfig2);
 
     int enabledOutputsCount = 0;
-    Q_FOREACH (const OutputPtr& output, brokenConfig2->outputs()) {
-        if (output->isEnabled()) {
+    for (auto const& [key, output] : brokenConfig2->outputs()) {
+        if (output->enabled()) {
             ++enabledOutputsCount;
         }
     }
-    QVERIFY(brokenConfig2->screen()->maxActiveOutputsCount() < enabledOutputsCount);
-    QVERIFY(!Config::canBeApplied(brokenConfig2));
+    QVERIFY(brokenConfig2->screen()->max_outputs_count() < enabledOutputsCount);
+    QVERIFY(!Config::can_be_applied(brokenConfig2));
 
     const ConfigPtr nulllConfig;
-    QVERIFY(!Config::canBeApplied(nulllConfig));
+    QVERIFY(!Config::can_be_applied(nulllConfig));
 }
 
-void testScreenConfig::supportedFeatures()
+void testScreenConfig::supported_features()
 {
     ConfigPtr config = getConfig();
 
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::None));
-    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
-    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
-    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::None));
+    QVERIFY(!config->supported_features().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(!config->supported_features().testFlag(Disman::Config::Feature::PrimaryDisplay));
+    QVERIFY(!config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling));
 
-    config->setSupportedFeatures(Disman::Config::Feature::Writable
-                                 | Disman::Config::Feature::PrimaryDisplay);
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
+    config->set_supported_features(Disman::Config::Feature::Writable
+                                   | Disman::Config::Feature::PrimaryDisplay);
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::PrimaryDisplay));
 
-    config->setSupportedFeatures(Disman::Config::Feature::None);
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::None));
+    config->set_supported_features(Disman::Config::Feature::None);
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::None));
 
-    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling
-                                 | Disman::Config::Feature::Writable);
-    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::None));
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
+    config->set_supported_features(Disman::Config::Feature::PerOutputScaling
+                                   | Disman::Config::Feature::Writable);
+    QVERIFY(!config->supported_features().testFlag(Disman::Config::Feature::None));
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling));
 
-    config->setSupportedFeatures(Disman::Config::Feature::PerOutputScaling
-                                 | Disman::Config::Feature::Writable
-                                 | Disman::Config::Feature::PrimaryDisplay);
-    QVERIFY(!config->supportedFeatures().testFlag(Disman::Config::Feature::None));
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::Writable));
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PrimaryDisplay));
-    QVERIFY(config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling));
+    config->set_supported_features(Disman::Config::Feature::PerOutputScaling
+                                   | Disman::Config::Feature::Writable
+                                   | Disman::Config::Feature::PrimaryDisplay);
+    QVERIFY(!config->supported_features().testFlag(Disman::Config::Feature::None));
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::Writable));
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::PrimaryDisplay));
+    QVERIFY(config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling));
 }
 
 void testScreenConfig::testInvalidMode()
 {
-    ModeList modes;
-    ModePtr invalidMode = modes.value(QStringLiteral("99"));
-    QVERIFY(invalidMode.isNull());
-
     auto output = new Disman::Output();
     auto currentMode = output->auto_mode();
-    QVERIFY(currentMode.isNull());
     QVERIFY(!currentMode);
     delete output;
 }
@@ -252,13 +250,13 @@ void testScreenConfig::testOutputPositionNormalization()
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
-    auto left = config->outputs().first();
-    auto right = config->outputs().last();
-    QVERIFY(!left.isNull());
-    QVERIFY(!right.isNull());
-    left->setPosition(QPoint(-5000, 700));
-    right->setPosition(QPoint(-3720, 666));
+    QVERIFY(config);
+    auto left = config->outputs().begin()->second;
+    auto right = config->outputs().rbegin()->second;
+    QVERIFY(left);
+    QVERIFY(right);
+    left->set_position(QPoint(-5000, 700));
+    right->set_position(QPoint(-3720, 666));
     QCOMPARE(left->position(), QPoint(-5000, 700));
     QCOMPARE(right->position(), QPoint(-3720, 666));
 
@@ -279,7 +277,7 @@ void testScreenConfig::testOutputPositionNormalization()
     QCOMPARE(right->position(), QPoint(1280, 0));
 
     // positions of single outputs should be at 0, 0
-    left->setEnabled(false);
+    left->set_enabled(false);
     {
         auto setop = new SetConfigOperation(config);
         setop->exec();

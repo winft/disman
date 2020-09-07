@@ -53,9 +53,7 @@ Fake::Fake()
 
 void Fake::init(const QVariantMap& arguments)
 {
-    if (!mConfig.isNull()) {
-        mConfig.clear();
-    }
+    mConfig.reset();
 
     mConfigFile = arguments[QStringLiteral("TEST_DATA")].toString();
     qCDebug(DISMAN_FAKE) << "Fake profile file:" << mConfigFile;
@@ -76,14 +74,14 @@ QString Fake::name() const
     return QStringLiteral("Fake");
 }
 
-QString Fake::serviceName() const
+QString Fake::service_name() const
 {
     return QStringLiteral("org.kwinft.disman.fakebackend");
 }
 
 ConfigPtr Fake::config() const
 {
-    if (mConfig.isNull()) {
+    if (!mConfig) {
         mConfig = Parser::fromJson(mConfigFile);
         m_filer_controller->read(mConfig);
         mConfig = Parser::fromJson(mConfigFile);
@@ -92,15 +90,15 @@ ConfigPtr Fake::config() const
     return mConfig;
 }
 
-void Fake::setConfig(const ConfigPtr& config)
+void Fake::set_config(const ConfigPtr& config)
 {
     qCDebug(DISMAN_FAKE) << "set config" << config->outputs();
     m_filer_controller->write(config);
     mConfig = config->clone();
-    emit configChanged(mConfig);
+    emit config_changed(mConfig);
 }
 
-bool Fake::isValid() const
+bool Fake::valid() const
 {
     return true;
 }
@@ -129,40 +127,48 @@ QByteArray Fake::edid(int outputId) const
 void Fake::setEnabled(int outputId, bool enabled)
 {
     Disman::OutputPtr output = config()->output(outputId);
-    if (output->isEnabled() == enabled) {
+    if (output->enabled() == enabled) {
         return;
     }
 
-    output->setEnabled(enabled);
-    Q_EMIT configChanged(mConfig);
+    output->set_enabled(enabled);
+    Q_EMIT config_changed(mConfig);
 }
 
 void Fake::setPrimary(int outputId, bool primary)
 {
-    Disman::OutputPtr output = config()->output(outputId);
-    if (output->isPrimary() == primary) {
-        return;
-    }
+    auto output = config()->output(outputId);
 
-    Q_FOREACH (Disman::OutputPtr output, config()->outputs()) {
-        if (output->id() == outputId) {
-            output->setPrimary(primary);
-        } else {
-            output->setPrimary(false);
+    if (primary) {
+        if (auto cur_prim = mConfig->primary_output()) {
+            if (output == cur_prim) {
+                return;
+            }
+            mConfig->set_primary_output(output);
+        }
+    } else {
+        if (auto cur_prim = mConfig->primary_output()) {
+            if (output != cur_prim) {
+                return;
+            }
+            mConfig->set_primary_output(nullptr);
         }
     }
-    Q_EMIT configChanged(mConfig);
+
+    Q_EMIT config_changed(mConfig);
 }
 
-void Fake::setCurrentModeId(int outputId, const QString& modeId)
+void Fake::setCurrentModeId(int outputId, QString const& modeId)
 {
-    Disman::OutputPtr output = config()->output(outputId);
-    if (auto mode = output->commanded_mode(); mode && mode->id() == modeId) {
+    std::string const& string_mode_id = modeId.toStdString();
+    auto output = config()->output(outputId);
+
+    if (auto mode = output->commanded_mode(); mode && mode->id() == string_mode_id) {
         return;
     }
 
-    output->set_mode(output->mode(modeId));
-    Q_EMIT configChanged(mConfig);
+    output->set_mode(output->mode(string_mode_id));
+    Q_EMIT config_changed(mConfig);
 }
 
 void Fake::setRotation(int outputId, int rotation)
@@ -173,23 +179,23 @@ void Fake::setRotation(int outputId, int rotation)
         return;
     }
 
-    output->setRotation(rot);
-    Q_EMIT configChanged(mConfig);
+    output->set_rotation(rot);
+    Q_EMIT config_changed(mConfig);
 }
 
 void Fake::addOutput(int outputId, const QString& name)
 {
     Disman::OutputPtr output(new Disman::Output);
-    output->setId(outputId);
+    output->set_id(outputId);
     output->set_name(name.toStdString());
     output->set_description(name.toStdString());
     output->set_hash(name.toStdString());
-    mConfig->addOutput(output);
-    Q_EMIT configChanged(mConfig);
+    mConfig->add_output(output);
+    Q_EMIT config_changed(mConfig);
 }
 
 void Fake::removeOutput(int outputId)
 {
-    mConfig->removeOutput(outputId);
-    Q_EMIT configChanged(mConfig);
+    mConfig->remove_output(outputId);
+    Q_EMIT config_changed(mConfig);
 }

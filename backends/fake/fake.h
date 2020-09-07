@@ -41,15 +41,15 @@ public:
     void init(const QVariantMap& arguments) override;
 
     QString name() const override;
-    QString serviceName() const override;
+    QString service_name() const override;
     Disman::ConfigPtr config() const override;
-    void setConfig(const Disman::ConfigPtr& config) override;
+    void set_config(const Disman::ConfigPtr& config) override;
     QByteArray edid(int outputId) const override;
-    bool isValid() const override;
+    bool valid() const override;
 
     void setEnabled(int outputId, bool enabled);
     void setPrimary(int outputId, bool primary);
-    void setCurrentModeId(int outputId, const QString& modeId);
+    void setCurrentModeId(int outputId, QString const& modeId);
     void setRotation(int outputId, int rotation);
     void addOutput(int outputId, const QString& name);
     void removeOutput(int outputId);

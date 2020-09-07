@@ -49,7 +49,7 @@ void Generator::set_derived()
 
     m_derived = true;
 
-    for (auto output : m_config->outputs()) {
+    for (auto const& [key, output] : m_config->outputs()) {
         if (auto predecessor_output = m_predecessor_config->output(output->id())) {
             output->apply(predecessor_output);
         }
@@ -58,17 +58,15 @@ void Generator::set_derived()
 
 void Generator::prepare_config()
 {
-    auto outputs = m_config->outputs();
-
-    for (auto& output : outputs) {
+    for (auto const& [key, output] : m_config->outputs()) {
         // The scale will generally be independent no matter where the output is
         // scale will affect geometry, so do this first.
-        if (m_config->supportedFeatures().testFlag(Disman::Config::Feature::PerOutputScaling)) {
-            output->setScale(best_scale(output));
+        if (m_config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling)) {
+            output->set_scale(best_scale(output));
         }
         output->set_auto_resolution(true);
         output->set_auto_refresh_rate(true);
-        output->setEnabled(true);
+        output->set_enabled(true);
     }
 }
 
@@ -143,9 +141,9 @@ bool Generator::replicate()
 
 ConfigPtr Generator::optimize_impl()
 {
-    qCDebug(DISMAN) << "Generates ideal config for" << m_config->outputs().count() << "displays.";
+    qCDebug(DISMAN) << "Generates ideal config for" << m_config->outputs().size() << "displays.";
 
-    if (m_config->outputs().isEmpty()) {
+    if (m_config->outputs().empty()) {
         qCDebug(DISMAN) << "No displays connected. Nothing to generate.";
         return m_config;
     }
@@ -153,7 +151,7 @@ ConfigPtr Generator::optimize_impl()
     auto config = m_config->clone();
     auto outputs = config->outputs();
 
-    if (outputs.count() == 1) {
+    if (outputs.size() == 1) {
         single_output(config);
         return config;
     }
@@ -166,12 +164,12 @@ ConfigPtr Generator::optimize_impl()
 double Generator::best_scale(OutputPtr const& output)
 {
     // If we have no physical size, we can't determine the DPI properly. Fallback to scale 1.
-    if (output->sizeMm().height() <= 0) {
+    if (output->physical_size().height() <= 0) {
         return 1.0;
     }
 
     const auto mode = output->auto_mode();
-    const qreal dpi = mode->size().height() / (output->sizeMm().height() / 25.4);
+    const qreal dpi = mode->size().height() / (output->physical_size().height() / 25.4);
 
     // We see 110 DPI as a good standard. That corresponds to 1440p at 27" and 2160p/UHD at 40".
     // This is smaller than usual but with high dpi screens this is often easily possible and
@@ -198,35 +196,35 @@ void Generator::single_output(ConfigPtr const& config)
 {
     auto outputs = config->outputs();
 
-    if (outputs.isEmpty()) {
+    if (outputs.empty()) {
         return;
     }
 
-    auto output = outputs.value(outputs.keys().first());
-    if (output->modes().isEmpty()) {
+    auto output = outputs.begin()->second;
+    if (output->modes().empty()) {
         return;
     }
 
-    output->setPrimary(true);
-    output->setPosition(QPointF(0, 0));
+    config->set_primary_output(output);
+    output->set_position(QPointF(0, 0));
 }
 
 void Generator::extend_impl(ConfigPtr const& config,
                             OutputPtr const& first,
                             Extend_direction direction)
 {
-    assert(!first || first->isEnabled());
+    assert(!first || first->enabled());
 
     auto outputs = config->outputs();
 
     qCDebug(DISMAN) << "Generate config by extending to the right.";
 
-    if (outputs.isEmpty()) {
+    if (outputs.empty()) {
         qCDebug(DISMAN) << "No displays found. Nothing to generate.";
         return;
     }
 
-    auto start_output = first ? first : primary_impl(outputs, OutputList());
+    auto start_output = first ? first : primary_impl(outputs, OutputMap());
     if (!start_output) {
         qCDebug(DISMAN) << "No displays enabled. Nothing to generate.";
         return;
@@ -237,28 +235,30 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    line_up(start_output, OutputList(), outputs, direction);
+    config->set_primary_output(start_output);
+    line_up(start_output, OutputMap(), outputs, direction);
 }
 
 void Generator::extend_derived(ConfigPtr const& config,
                                OutputPtr const& first,
                                Extend_direction direction)
 {
-    OutputList old_outputs;
-    OutputList new_outputs;
+    OutputMap old_outputs;
+    OutputMap new_outputs;
 
+    config->set_primary_output(first);
     get_outputs_division(first, config, old_outputs, new_outputs);
     line_up(first, old_outputs, new_outputs, direction);
 }
 
 void Generator::get_outputs_division(OutputPtr const& first,
                                      ConfigPtr const& config,
-                                     OutputList& old_outputs,
-                                     OutputList& new_outputs)
+                                     OutputMap& old_outputs,
+                                     OutputMap& new_outputs)
 {
     OutputPtr recent_output;
 
-    for (auto output : config->outputs()) {
+    for (auto const& [key, output] : config->outputs()) {
         if (output == first) {
             continue;
         }
@@ -276,22 +276,21 @@ void Generator::get_outputs_division(OutputPtr const& first,
         // If we have no new outputs we assume the last one added (not the one designated as being
         // first) should be extended in the given direction.
         new_outputs[recent_output->id()] = recent_output;
-        old_outputs.remove(recent_output->id());
+        old_outputs.erase(recent_output->id());
     }
 }
 
 void Generator::line_up(OutputPtr const& first,
-                        OutputList const& old_outputs,
-                        OutputList const& new_outputs,
+                        OutputMap const& old_outputs,
+                        OutputMap const& new_outputs,
                         Extend_direction direction)
 {
-    first->setPrimary(true);
-    first->setPosition(QPointF(0, 0));
+    first->set_position(QPointF(0, 0));
 
     double globalWidth
         = direction == Extend_direction::right ? first->geometry().width() : first->position().x();
 
-    for (auto& output : old_outputs) {
+    for (auto const& [key, output] : old_outputs) {
         if (direction == Extend_direction::left) {
             auto const left = output->position().x();
             if (left < globalWidth) {
@@ -308,16 +307,16 @@ void Generator::line_up(OutputPtr const& first,
         }
     }
 
-    for (auto& output : new_outputs) {
+    for (auto& [key, output] : new_outputs) {
         if (output->id() == first->id()) {
             continue;
         }
 
         if (direction == Extend_direction::left) {
             globalWidth -= output->geometry().width();
-            output->setPosition(QPointF(globalWidth, 0));
+            output->set_position(QPointF(globalWidth, 0));
         } else if (direction == Extend_direction::right) {
-            output->setPosition(QPointF(globalWidth, 0));
+            output->set_position(QPointF(globalWidth, 0));
             globalWidth += output->geometry().width();
         } else {
             // We only have two directions at the moment.
@@ -330,8 +329,8 @@ void Generator::replicate_impl(const ConfigPtr& config)
 {
     auto outputs = config->outputs();
 
-    auto source = primary_impl(outputs, OutputList());
-    source->setPrimary(true);
+    auto source = primary_impl(outputs, OutputMap());
+    config->set_primary_output(source);
 
     if (m_derived) {
         replicate_derived(config, source);
@@ -339,25 +338,25 @@ void Generator::replicate_impl(const ConfigPtr& config)
     }
 
     qCDebug(DISMAN) << "Generate multi-output config by replicating" << source << "on"
-                    << outputs.count() - 1 << "other outputs.";
+                    << outputs.size() - 1 << "other outputs.";
 
-    for (auto& output : outputs) {
+    for (auto& [key, output] : outputs) {
         if (output == source) {
             continue;
         }
-        output->setReplicationSource(source->id());
+        output->set_replication_source(source->id());
     }
 }
 
 void Generator::replicate_derived(ConfigPtr const& config, OutputPtr const& source)
 {
-    OutputList old_outputs;
-    OutputList new_outputs;
+    OutputMap old_outputs;
+    OutputMap new_outputs;
 
     get_outputs_division(source, config, old_outputs, new_outputs);
 
-    for (auto output : new_outputs) {
-        output->setReplicationSource(source->id());
+    for (auto& [key, output] : new_outputs) {
+        output->set_replication_source(source->id());
     }
 }
 
@@ -376,8 +375,8 @@ ConfigPtr Generator::multi_output_fallback(ConfigPtr const& config)
 bool Generator::check_config(ConfigPtr const& config)
 {
     int enabled = 0;
-    for (auto output : config->outputs()) {
-        enabled += output->isEnabled();
+    for (auto const& [key, output] : config->outputs()) {
+        enabled += output->enabled();
     }
     if (m_validities & Config::ValidityFlag::RequireAtLeastOneEnabledScreen && enabled == 0) {
         qCDebug(DISMAN) << "Generator check failed: no enabled display, but required by flag.";
@@ -386,62 +385,62 @@ bool Generator::check_config(ConfigPtr const& config)
     return true;
 }
 
-OutputPtr Generator::primary(OutputList const& exclusions) const
+OutputPtr Generator::primary(OutputMap const& exclusions) const
 {
     return primary_impl(m_config->outputs(), exclusions);
 }
 
 OutputPtr Generator::embedded() const
 {
-    return embedded_impl(m_config->outputs(), OutputList());
+    return embedded_impl(m_config->outputs(), OutputMap());
 }
 
-OutputPtr Generator::biggest(OutputList const& exclusions) const
+OutputPtr Generator::biggest(OutputMap const& exclusions) const
 {
     return biggest_impl(m_config->outputs(), false, exclusions);
 }
 
-OutputPtr Generator::primary_impl(OutputList const& outputs, OutputList const& exclusions) const
+OutputPtr Generator::primary_impl(OutputMap const& outputs, OutputMap const& exclusions) const
 {
-    if (auto output = m_config->primaryOutput()) {
-        if (m_derived && !exclusions.contains(output->id())) {
+    if (auto output = m_config->primary_output()) {
+        if (m_derived && exclusions.find(output->id()) != exclusions.end()) {
             return output;
         }
     }
     // If one of the outputs is a embedded (panel) display, then we take this one as primary.
     if (auto output = embedded_impl(outputs, exclusions)) {
-        if (output->isEnabled()) {
+        if (output->enabled()) {
             return output;
         }
     }
     return biggest_impl(outputs, true, exclusions);
 }
 
-OutputPtr Generator::embedded_impl(OutputList const& outputs, OutputList const& exclusions) const
+OutputPtr Generator::embedded_impl(OutputMap const& outputs, OutputMap const& exclusions) const
 {
-    auto it = std::find_if(
-        outputs.constBegin(), outputs.constEnd(), [&exclusions](OutputPtr const& output) {
-            return output->type() == Output::Panel && !exclusions.contains(output->id());
-        });
-    return it != outputs.constEnd() ? *it : OutputPtr();
+    auto it = std::find_if(outputs.cbegin(), outputs.cend(), [&exclusions](auto const& output) {
+        return output.second->type() == Output::Panel
+            && exclusions.find(output.second->id()) == exclusions.end();
+    });
+    return it != outputs.cend() ? it->second : OutputPtr();
 }
 
-OutputPtr Generator::biggest_impl(OutputList const& outputs,
+OutputPtr Generator::biggest_impl(OutputMap const& outputs,
                                   bool only_enabled,
-                                  const OutputList& exclusions) const
+                                  const OutputMap& exclusions) const
 {
     auto max_area = 0;
     OutputPtr biggest;
 
-    for (auto const& output : outputs) {
-        if (exclusions.contains(output->id())) {
+    for (auto const& [key, output] : outputs) {
+        if (exclusions.find(output->id()) != exclusions.end()) {
             continue;
         }
         auto const mode = output->best_mode();
         if (!mode) {
             continue;
         }
-        if (only_enabled && !output->isEnabled()) {
+        if (only_enabled && !output->enabled()) {
             continue;
         }
         auto const area = mode->size().width() * mode->size().height();

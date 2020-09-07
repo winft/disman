@@ -83,10 +83,10 @@ BackendManager::BackendManager()
 
     // TODO(romangg): fallback to in-process when dbus not available?
 
-    initMethod();
+    init_method();
 }
 
-void BackendManager::initMethod()
+void BackendManager::init_method()
 {
     if (mMethod == OutOfProcess) {
         qRegisterMetaType<org::kwinft::disman::backend*>("OrgKwinftDismanBackendInterface");
@@ -95,7 +95,7 @@ void BackendManager::initMethod()
         connect(&mServiceWatcher,
                 &QDBusServiceWatcher::serviceUnregistered,
                 this,
-                &BackendManager::backendServiceUnregistered);
+                &BackendManager::backend_service_unregistered);
 
         mResetCrashCountTimer.setSingleShot(true);
         mResetCrashCountTimer.setInterval(60000);
@@ -103,14 +103,14 @@ void BackendManager::initMethod()
     }
 }
 
-void BackendManager::setMethod(BackendManager::Method m)
+void BackendManager::set_method(BackendManager::Method m)
 {
     if (mMethod == m) {
         return;
     }
-    shutdownBackend();
+    shutdown_backend();
     mMethod = m;
-    initMethod();
+    init_method();
 }
 
 BackendManager::Method BackendManager::method() const
@@ -121,7 +121,7 @@ BackendManager::Method BackendManager::method() const
 BackendManager::~BackendManager()
 {
     if (mMethod == InProcess) {
-        shutdownBackend();
+        shutdown_backend();
     }
 }
 
@@ -158,7 +158,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
     auto const select = get_selection();
 
     QFileInfo fallback;
-    for (auto const& file_info : listBackends()) {
+    for (auto const& file_info : list_backends()) {
         if (file_info.baseName().toStdString() == select) {
             return file_info;
         }
@@ -173,7 +173,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
     return fallback;
 }
 
-QFileInfoList BackendManager::listBackends()
+QFileInfoList BackendManager::list_backends()
 {
     // Compile a list of installed backends first
     const QStringList paths = QCoreApplication::libraryPaths();
@@ -189,9 +189,9 @@ QFileInfoList BackendManager::listBackends()
     return finfos;
 }
 
-Disman::AbstractBackend* BackendManager::loadBackendPlugin(QPluginLoader* loader,
-                                                           const QString& name,
-                                                           const QVariantMap& arguments)
+Disman::AbstractBackend* BackendManager::load_backend_plugin(QPluginLoader* loader,
+                                                             const QString& name,
+                                                             const QVariantMap& arguments)
 {
     const auto finfo = preferred_backend(name.toStdString());
     loader->setFileName(finfo.filePath());
@@ -204,7 +204,7 @@ Disman::AbstractBackend* BackendManager::loadBackendPlugin(QPluginLoader* loader
     auto backend = qobject_cast<Disman::AbstractBackend*>(instance);
     if (backend) {
         backend->init(arguments);
-        if (!backend->isValid()) {
+        if (!backend->valid()) {
             qCDebug(DISMAN) << "Skipping" << backend->name() << "backend";
             delete backend;
             return nullptr;
@@ -218,20 +218,20 @@ Disman::AbstractBackend* BackendManager::loadBackendPlugin(QPluginLoader* loader
     return nullptr;
 }
 
-Disman::AbstractBackend* BackendManager::loadBackendInProcess(const QString& name)
+Disman::AbstractBackend* BackendManager::load_backend_in_process(const QString& name)
 {
     Q_ASSERT(mMethod == InProcess);
     if (mMethod == OutOfProcess) {
         qCWarning(DISMAN)
             << "You are trying to load a backend in process, while the BackendManager is set to "
-               "use OutOfProcess communication. Use loadBackendPlugin() instead.";
+               "use OutOfProcess communication. Use load_backend_plugin() instead.";
         return nullptr;
     }
     if (m_inProcessBackend.first != nullptr
         && (name.isEmpty() || m_inProcessBackend.first->name() == name)) {
         return m_inProcessBackend.first;
     } else if (m_inProcessBackend.first != nullptr && m_inProcessBackend.first->name() != name) {
-        shutdownBackend();
+        shutdown_backend();
     }
 
     if (mLoader == nullptr) {
@@ -243,23 +243,23 @@ Disman::AbstractBackend* BackendManager::loadBackendInProcess(const QString& nam
     if (beargs.startsWith(test_data_equals)) {
         arguments[QStringLiteral("TEST_DATA")] = beargs.remove(test_data_equals);
     }
-    auto backend = BackendManager::loadBackendPlugin(mLoader, name, arguments);
+    auto backend = BackendManager::load_backend_plugin(mLoader, name, arguments);
     if (!backend) {
         return nullptr;
     }
     // qCDebug(DISMAN) << "Connecting ConfigMonitor to backend.";
-    ConfigMonitor::instance()->connectInProcessBackend(backend);
+    ConfigMonitor::instance()->connect_in_process_backend(backend);
     m_inProcessBackend = qMakePair<Disman::AbstractBackend*, QVariantMap>(backend, arguments);
-    setConfig(backend->config());
+    set_config(backend->config());
     return backend;
 }
 
-void BackendManager::requestBackend()
+void BackendManager::request_backend()
 {
     Q_ASSERT(mMethod == OutOfProcess);
     if (mInterface && mInterface->isValid()) {
         ++mRequestsCounter;
-        QMetaObject::invokeMethod(this, "emitBackendReady", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "emit_backend_ready", Qt::QueuedConnection);
         return;
     }
 
@@ -282,23 +282,23 @@ void BackendManager::requestBackend()
         }
     }
 
-    startBackend(QString::fromLatin1(qgetenv("DISMAN_BACKEND")), arguments);
+    start_backend(QString::fromLatin1(qgetenv("DISMAN_BACKEND")), arguments);
 }
 
-void BackendManager::emitBackendReady()
+void BackendManager::emit_backend_ready()
 {
     Q_ASSERT(mMethod == OutOfProcess);
-    Q_EMIT backendReady(mInterface);
+    Q_EMIT backend_ready(mInterface);
     --mRequestsCounter;
     if (mShutdownLoop.isRunning()) {
         mShutdownLoop.quit();
     }
 }
 
-void BackendManager::startBackend(const QString& backend, const QVariantMap& arguments)
+void BackendManager::start_backend(const QString& backend, const QVariantMap& arguments)
 {
     // This will autostart the launcher if it's not running already, calling
-    // requestBackend(backend) will:
+    // request_backend(backend) will:
     //   a) if the launcher is started it will force it to load the correct backend,
     //   b) if the launcher is already running it will make sure it's running with
     //      the same backend as the one we requested and send an error otherwise
@@ -310,11 +310,13 @@ void BackendManager::startBackend(const QString& backend, const QVariantMap& arg
     call.setArguments({backend, arguments});
     QDBusPendingCall pending = conn.asyncCall(call);
     QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(pending);
-    connect(
-        watcher, &QDBusPendingCallWatcher::finished, this, &BackendManager::onBackendRequestDone);
+    connect(watcher,
+            &QDBusPendingCallWatcher::finished,
+            this,
+            &BackendManager::on_backend_request_done);
 }
 
-void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher* watcher)
+void BackendManager::on_backend_request_done(QDBusPendingCallWatcher* watcher)
 {
     Q_ASSERT(mMethod == OutOfProcess);
     watcher->deleteLater();
@@ -324,8 +326,8 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher* watcher)
     if (reply.isError()) {
         qCWarning(DISMAN) << "Failed to request backend:" << reply.error().name() << ":"
                           << reply.error().message();
-        invalidateInterface();
-        emitBackendReady();
+        invalidate_interface();
+        emit_backend_ready();
         return;
     }
 
@@ -334,15 +336,15 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher* watcher)
     // current platform.
     if (!reply.value()) {
         qCWarning(DISMAN) << "Failed to request backend: unknown error";
-        invalidateInterface();
-        emitBackendReady();
+        invalidate_interface();
+        emit_backend_ready();
         return;
     }
 
     // The launcher has successfully loaded the backend we wanted and registered
     // it to DBus (hopefuly), let's try to get an interface for the backend.
     if (mInterface) {
-        invalidateInterface();
+        invalidate_interface();
     }
     mInterface = new org::kwinft::disman::backend(QStringLiteral("org.kwinft.disman"),
                                                   QStringLiteral("/backend"),
@@ -350,8 +352,8 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher* watcher)
     if (!mInterface->isValid()) {
         qCWarning(DISMAN) << "Backend successfully requested, but we failed to obtain a valid DBus "
                              "interface for it";
-        invalidateInterface();
-        emitBackendReady();
+        invalidate_interface();
+        emit_backend_ready();
         return;
     }
 
@@ -362,26 +364,26 @@ void BackendManager::onBackendRequestDone(QDBusPendingCallWatcher* watcher)
     // Immediatelly request config
     connect(new GetConfigOperation, &GetConfigOperation::finished, [&](ConfigOperation* op) {
         mConfig = qobject_cast<GetConfigOperation*>(op)->config();
-        emitBackendReady();
+        emit_backend_ready();
     });
     // And listen for its change.
     connect(mInterface,
             &org::kwinft::disman::backend::configChanged,
             [&](const QVariantMap& newConfig) {
-                mConfig = Disman::ConfigSerializer::deserializeConfig(newConfig);
+                mConfig = Disman::ConfigSerializer::deserialize_config(newConfig);
             });
 }
 
-void BackendManager::backendServiceUnregistered(const QString& serviceName)
+void BackendManager::backend_service_unregistered(const QString& service_name)
 {
     Q_ASSERT(mMethod == OutOfProcess);
-    mServiceWatcher.removeWatchedService(serviceName);
+    mServiceWatcher.removeWatchedService(service_name);
 
-    invalidateInterface();
-    requestBackend();
+    invalidate_interface();
+    request_backend();
 }
 
-void BackendManager::invalidateInterface()
+void BackendManager::invalidate_interface()
 {
     Q_ASSERT(mMethod == OutOfProcess);
     delete mInterface;
@@ -394,13 +396,12 @@ ConfigPtr BackendManager::config() const
     return mConfig;
 }
 
-void BackendManager::setConfig(ConfigPtr c)
+void BackendManager::set_config(ConfigPtr c)
 {
-    // qCDebug(DISMAN) << "BackendManager::setConfig, outputs:" << c->outputs().count();
     mConfig = c;
 }
 
-void BackendManager::shutdownBackend()
+void BackendManager::shutdown_backend()
 {
     if (mMethod == InProcess) {
         delete mLoader;
@@ -429,7 +430,7 @@ void BackendManager::shutdownBackend()
                                                            QStringLiteral("quit"));
         // Call synchronously
         QDBusConnection::sessionBus().call(call);
-        invalidateInterface();
+        invalidate_interface();
 
         while (QDBusConnection::sessionBus().interface()->isServiceRegistered(
             QStringLiteral("org.kwinft.disman"))) {

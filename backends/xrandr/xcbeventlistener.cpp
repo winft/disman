@@ -172,7 +172,7 @@ void XCBEventListener::handleScreenChange(xcb_generic_event_t* e)
                            << rotationToString((xcb_randr_rotation_t)e2->rotation);
     qCDebug(DISMAN_XRANDR) << "\tSize ID:" << e2->sizeID;
     qCDebug(DISMAN_XRANDR) << "\tSize: " << e2->width << e2->height;
-    qCDebug(DISMAN_XRANDR) << "\tSizeMM: " << e2->mwidth << e2->mheight;
+    qCDebug(DISMAN_XRANDR) << "\tPhysical size: " << e2->mwidth << e2->mheight;
 
     Q_EMIT screenChanged((xcb_randr_rotation_t)e2->rotation,
                          QSize(e2->width, e2->height),

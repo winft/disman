@@ -90,30 +90,30 @@ void TestInProcess::init()
     qputenv("DISMAN_BACKEND", "fake");
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "multipleoutput.json");
 
-    Disman::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdown_backend();
 }
 
 void TestInProcess::cleanup()
 {
-    Disman::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdown_backend();
 }
 
 void TestInProcess::loadConfig()
 {
     qputenv("DISMAN_IN_PROCESS", "1");
-    BackendManager::instance()->setMethod(BackendManager::InProcess);
+    BackendManager::instance()->set_method(BackendManager::InProcess);
 
     auto* op = new GetConfigOperation();
     QVERIFY(op->exec());
     m_config = op->config();
     QVERIFY(m_config);
-    QVERIFY(m_config->isValid());
+    QVERIFY(m_config->valid());
 }
 
 void TestInProcess::testModeSwitching()
 {
-    Disman::BackendManager::instance()->shutdownBackend();
-    BackendManager::instance()->setMethod(BackendManager::InProcess);
+    Disman::BackendManager::instance()->shutdown_backend();
+    BackendManager::instance()->set_method(BackendManager::InProcess);
     // Load QScreen backend in-process
     qDebug() << "TT qscreen in-process";
     qputenv("DISMAN_BACKEND", "qscreen");
@@ -121,7 +121,7 @@ void TestInProcess::testModeSwitching()
     QVERIFY(op->exec());
     auto oc = op->config();
     QVERIFY(oc != nullptr);
-    QVERIFY(oc->isValid());
+    QVERIFY(oc->valid());
 
     qDebug() << "TT fake in-process";
     // Load the Fake backend in-process
@@ -130,8 +130,8 @@ void TestInProcess::testModeSwitching()
     QVERIFY(ip->exec());
     auto ic = ip->config();
     QVERIFY(ic != nullptr);
-    QVERIFY(ic->isValid());
-    QVERIFY(ic->outputs().count());
+    QVERIFY(ic->valid());
+    QVERIFY(ic->outputs().size());
 
     Disman::ConfigPtr xc(nullptr);
     if (m_backendServiceInstalled) {
@@ -139,20 +139,20 @@ void TestInProcess::testModeSwitching()
         // Load the xrandr backend out-of-process
         qputenv("DISMAN_BACKEND", "qscreen");
         qputenv("DISMAN_IN_PROCESS", "0");
-        BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
+        BackendManager::instance()->set_method(BackendManager::OutOfProcess);
         auto xp = new GetConfigOperation();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
         QVERIFY(xp->exec());
         xc = xp->config();
         QVERIFY(xc != nullptr);
-        QVERIFY(xc->isValid());
-        QVERIFY(xc->outputs().count());
+        QVERIFY(xc->valid());
+        QVERIFY(xc->outputs().size());
     }
 
     qDebug() << "TT fake in-process";
 
     qputenv("DISMAN_IN_PROCESS", "1");
-    BackendManager::instance()->setMethod(BackendManager::InProcess);
+    BackendManager::instance()->set_method(BackendManager::InProcess);
     // Load the Fake backend in-process
     qputenv("DISMAN_BACKEND", "fake");
     auto fp = new GetConfigOperation();
@@ -160,23 +160,23 @@ void TestInProcess::testModeSwitching()
     QVERIFY(fp->exec());
     auto fc = fp->config();
     QVERIFY(fc != nullptr);
-    QVERIFY(fc->isValid());
-    QVERIFY(fc->outputs().count());
+    QVERIFY(fc->valid());
+    QVERIFY(fc->outputs().size());
 
-    QVERIFY(oc->isValid());
-    QVERIFY(ic->isValid());
+    QVERIFY(oc->valid());
+    QVERIFY(ic->valid());
     if (xc) {
-        QVERIFY(xc->isValid());
+        QVERIFY(xc->valid());
     }
-    QVERIFY(fc->isValid());
+    QVERIFY(fc->valid());
 }
 
 void TestInProcess::testBackendCaching()
 {
-    Disman::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdown_backend();
     qputenv("DISMAN_BACKEND", "fake");
     QElapsedTimer t;
-    BackendManager::instance()->setMethod(BackendManager::InProcess);
+    BackendManager::instance()->set_method(BackendManager::InProcess);
     QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
     int t_cold;
     int t_warm;
@@ -188,11 +188,11 @@ void TestInProcess::testBackendCaching()
         auto cc = cp->config();
         t_cold = t.nsecsElapsed();
         QVERIFY(cc != nullptr);
-        QVERIFY(cc->isValid());
-        QVERIFY(cc->outputs().count());
+        QVERIFY(cc->valid());
+        QVERIFY(cc->outputs().size());
     }
     {
-        // Disman::BackendManager::instance()->shutdownBackend();
+        // Disman::BackendManager::instance()->shutdown_backend();
         QCOMPARE(BackendManager::instance()->method(), BackendManager::InProcess);
         t.start();
         auto cp = new GetConfigOperation();
@@ -200,8 +200,8 @@ void TestInProcess::testBackendCaching()
         auto cc = cp->config();
         t_warm = t.nsecsElapsed();
         QVERIFY(cc != nullptr);
-        QVERIFY(cc->isValid());
-        QVERIFY(cc->outputs().count());
+        QVERIFY(cc->valid());
+        QVERIFY(cc->outputs().size());
     }
     {
         auto cp = new GetConfigOperation();
@@ -209,16 +209,16 @@ void TestInProcess::testBackendCaching()
         cp->exec();
         auto cc = cp->config();
         QVERIFY(cc != nullptr);
-        QVERIFY(cc->isValid());
-        QVERIFY(cc->outputs().count());
+        QVERIFY(cc->valid());
+        QVERIFY(cc->outputs().size());
     }
     // Check if all our configs are still valid after the backend is gone
-    Disman::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdown_backend();
 
     if (m_backendServiceInstalled) {
         // qputenv("DISMAN_BACKEND", "qscreen");
         qputenv("DISMAN_IN_PROCESS", "0");
-        BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
+        BackendManager::instance()->set_method(BackendManager::OutOfProcess);
         QCOMPARE(BackendManager::instance()->method(), BackendManager::OutOfProcess);
         int t_x_cold;
 
@@ -254,9 +254,9 @@ void TestInProcess::testBackendCaching()
 
 void TestInProcess::testCreateJob()
 {
-    Disman::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdown_backend();
     {
-        BackendManager::instance()->setMethod(BackendManager::InProcess);
+        BackendManager::instance()->set_method(BackendManager::InProcess);
         auto op = new GetConfigOperation();
         auto _op = qobject_cast<GetConfigOperation*>(op);
         QVERIFY(_op != nullptr);
@@ -264,10 +264,10 @@ void TestInProcess::testCreateJob()
         QVERIFY(op->exec());
         auto cc = op->config();
         QVERIFY(cc != nullptr);
-        QVERIFY(cc->isValid());
+        QVERIFY(cc->valid());
     }
     if (m_backendServiceInstalled) {
-        BackendManager::instance()->setMethod(BackendManager::OutOfProcess);
+        BackendManager::instance()->set_method(BackendManager::OutOfProcess);
         auto op = new GetConfigOperation();
         auto _op = qobject_cast<GetConfigOperation*>(op);
         QVERIFY(_op != nullptr);
@@ -275,61 +275,61 @@ void TestInProcess::testCreateJob()
         QVERIFY(op->exec());
         auto cc = op->config();
         QVERIFY(cc != nullptr);
-        QVERIFY(cc->isValid());
+        QVERIFY(cc->valid());
     }
-    Disman::BackendManager::instance()->shutdownBackend();
-    BackendManager::instance()->setMethod(BackendManager::InProcess);
+    Disman::BackendManager::instance()->shutdown_backend();
+    BackendManager::instance()->set_method(BackendManager::InProcess);
 }
 
 void TestInProcess::testConfigApply()
 {
     qputenv("DISMAN_BACKEND", "fake");
-    Disman::BackendManager::instance()->shutdownBackend();
-    BackendManager::instance()->setMethod(BackendManager::InProcess);
+    Disman::BackendManager::instance()->shutdown_backend();
+    BackendManager::instance()->set_method(BackendManager::InProcess);
     auto op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
-    //     qDebug() << "op:" << config->outputs().count();
-    auto output = config->outputs().first();
+    //     qDebug() << "op:" << config->outputs().size();
+    auto output = config->outputs().begin()->second;
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
-    auto m0 = output->modes().first();
+    auto m0 = output->modes().begin()->second;
     // qDebug() << "m0:" << m0->id() << m0;
     output->set_mode(m0);
-    QVERIFY(Config::canBeApplied(config));
+    QVERIFY(Config::can_be_applied(config));
 
     // expected to fail, SetConfigOperation is out-of-process only
     auto setop = new SetConfigOperation(config);
-    QVERIFY(!setop->hasError());
+    QVERIFY(!setop->has_error());
     QVERIFY(setop->exec());
 
-    QVERIFY(!setop->hasError());
+    QVERIFY(!setop->has_error());
 }
 
 void TestInProcess::testConfigMonitor()
 {
     qputenv("DISMAN_BACKEND", "fake");
 
-    Disman::BackendManager::instance()->shutdownBackend();
-    BackendManager::instance()->setMethod(BackendManager::InProcess);
+    Disman::BackendManager::instance()->shutdown_backend();
+    BackendManager::instance()->set_method(BackendManager::InProcess);
     auto op = new GetConfigOperation();
     op->exec();
     auto config = op->config();
-    //     qDebug() << "op:" << config->outputs().count();
-    auto output = config->outputs().first();
+    //     qDebug() << "op:" << config->outputs().size();
+    auto output = config->outputs().begin()->second;
     //     qDebug() << "res:" << output->geometry();
     //     qDebug() << "modes:" << output->modes();
-    auto m0 = output->modes().first();
+    auto m0 = output->modes().begin()->second;
     // qDebug() << "m0:" << m0->id() << m0;
     output->set_mode(m0);
-    QVERIFY(Config::canBeApplied(config));
+    QVERIFY(Config::can_be_applied(config));
 
-    QSignalSpy monitorSpy(ConfigMonitor::instance(), &ConfigMonitor::configurationChanged);
+    QSignalSpy monitorSpy(ConfigMonitor::instance(), &ConfigMonitor::configuration_changed);
     qDebug() << "MOnitorspy connencted.";
-    ConfigMonitor::instance()->addConfig(config);
+    ConfigMonitor::instance()->add_config(config);
 
     auto setop = new SetConfigOperation(config);
-    QVERIFY(!setop->hasError());
+    QVERIFY(!setop->has_error());
     // do not cal setop->exec(), this must not block as the signalspy already blocks
     QVERIFY(monitorSpy.wait(500));
 }

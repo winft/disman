@@ -38,7 +38,7 @@ public:
 
     bool setEnabled(int id, bool enabled);
     bool setPosition(int id, const QPoint& pos);
-    bool setMode(int id, const QString& mode_id);
+    bool setMode(int id, const std::string& mode_id);
     bool setScale(int id, qreal scale);
     bool setRotation(int id, Disman::Output::Rotation rot);
 

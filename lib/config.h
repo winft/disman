@@ -45,8 +45,6 @@ namespace Disman
 class DISMAN_EXPORT Config : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(ScreenPtr screen READ screen)
-    Q_PROPERTY(OutputList outputs READ outputs)
 
 public:
     enum class Origin {
@@ -64,7 +62,7 @@ public:
 
     /** This indicates which features the used backend supports.
      *
-     * @see supportedFeatures
+     * @see supported_features
      * @since 5.7
      */
     enum class Feature {
@@ -91,7 +89,7 @@ public:
      * @return true if the configuration can be applied, false if not.
      * @since 5.3.0
      */
-    static bool canBeApplied(const ConfigPtr& config, ValidityFlags flags);
+    static bool can_be_applied(const ConfigPtr& config, ValidityFlags flags);
 
     /**
      * Validates that a config can be applied in the current system
@@ -103,7 +101,7 @@ public:
      * @arg config to be checked
      * @return true if the configuration can be applied, false if not.
      */
-    static bool canBeApplied(const ConfigPtr& config);
+    static bool can_be_applied(const ConfigPtr& config);
 
     /**
      * Instantiate an empty config
@@ -115,7 +113,7 @@ public:
      * So usually what you do is call current() and then modify
      * whatever you need.
      */
-    explicit Config();
+    Config();
     explicit Config(Origin origin);
     ~Config() override;
 
@@ -136,7 +134,7 @@ public:
      * @return sorted hash combination of all connected outputs
      * @since 5.15
      */
-    QString connectedOutputsHash() const;
+    QString hash() const;
 
     Origin origin() const;
     void set_origin(Origin origin);
@@ -145,17 +143,17 @@ public:
     void setScreen(const ScreenPtr& screen);
 
     OutputPtr output(int outputId) const;
-    OutputList outputs() const;
+    OutputMap outputs() const;
 
-    OutputPtr primaryOutput() const;
-    void setPrimaryOutput(const OutputPtr& output);
+    OutputPtr primary_output() const;
+    void set_primary_output(const OutputPtr& output);
 
-    void addOutput(const OutputPtr& output);
-    void removeOutput(int outputId);
-    void setOutputs(const OutputList& outputs);
+    void add_output(const OutputPtr& output);
+    void remove_output(int outputId);
+    void set_outputs(OutputMap const& outputs);
 
-    bool isValid() const;
-    void setValid(bool valid);
+    bool valid() const;
+    void set_valid(bool valid);
 
     void apply(const ConfigPtr& other);
 
@@ -166,45 +164,45 @@ public:
      *
      * @return Flags for features that are supported for this config, determined by
      * the backend.
-     * @see setSupportedFeatures
+     * @see set_supported_features
      * @since 5.7
      */
-    Features supportedFeatures() const;
+    Features supported_features() const;
 
     /** Sets the features supported by this backend. This should not be called by the
      * user, but by the backend.
      *
-     * @see supportedFeatures
+     * @see supported_features
      * @since 5.7
      */
-    void setSupportedFeatures(const Features& features);
+    void set_supported_features(const Features& features);
 
     /**
      * Indicates that the device supports switching between a default and a tablet mode. This is
      * common for convertibles.
      *
      * @return true when tablet mode is available, otherwise false
-     * @see setTabletModeAvailable
+     * @see set_tablet_mode_available
      * @since 5.18
      */
-    bool tabletModeAvailable() const;
+    bool tablet_mode_available() const;
 
     /** Sets if the device supports a tablet mode. This should not be called by the
      * user, but by the backend.
      *
-     * @see tabletModeAvailable
+     * @see tablet_mode_available
      * @since 5.18
      */
-    void setTabletModeAvailable(bool available);
+    void set_tablet_mode_available(bool available);
 
     /**
      * Indicates that the device is currently in tablet mode.
      *
      * @return true when in tablet mode, otherwise false
-     * @see setTabletModeEngaged
+     * @see set_tablet_mode_engaged
      * @since 5.18
      */
-    bool tabletModeEngaged() const;
+    bool tablet_mode_engaged() const;
 
     /**
      * Sets if the device is currently in tablet mode. This should not be called by the
@@ -213,7 +211,7 @@ public:
      * @see tabletModeEngaged
      * @since 5.18
      */
-    void setTabletModeEngaged(bool engaged);
+    void set_tablet_mode_engaged(bool engaged);
 
     /**
      * Returns the Output @param output replicates if @param output is a replica, otherwise null.
@@ -224,9 +222,9 @@ public:
     OutputPtr replication_source(OutputPtr const& output);
 
 Q_SIGNALS:
-    void outputAdded(const Disman::OutputPtr& output);
-    void outputRemoved(int outputId);
-    void primaryOutputChanged(const Disman::OutputPtr& output);
+    void output_added(const Disman::OutputPtr& output);
+    void output_removed(int outputId);
+    void primary_output_changed(const Disman::OutputPtr& output);
 
 private:
     Q_DISABLE_COPY(Config)

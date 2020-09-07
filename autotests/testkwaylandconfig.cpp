@@ -69,7 +69,7 @@ TestKWaylandConfig::TestKWaylandConfig(QObject* parent)
 void TestKWaylandConfig::initTestCase()
 {
     setenv("DISMAN_BACKEND", "wayland", 1);
-    Disman::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdown_backend();
 
     // This is how KWayland will pick up the right socket,
     // and thus connect to our internal test server.
@@ -81,7 +81,7 @@ void TestKWaylandConfig::initTestCase()
 
 void TestKWaylandConfig::cleanupTestCase()
 {
-    Disman::BackendManager::instance()->shutdownBackend();
+    Disman::BackendManager::instance()->shutdown_backend();
     delete m_server;
 
     // Make sure we did not accidentally unset test mode prior and delete our user configuration.
@@ -100,17 +100,17 @@ void TestKWaylandConfig::changeConfig()
 
     // Prepare monitor & spy
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
-    monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
+    monitor->add_config(config);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     // The first output is currently disabled, let's try to enable it
-    auto output = config->outputs().first();
-    QVERIFY(output->isEnabled());
-    output->set_mode(output->mode(QStringLiteral("76")));
+    auto output = config->outputs().begin()->second;
+    QVERIFY(output->enabled());
+    output->set_mode(output->mode("76"));
 
     auto output2 = config->outputs()[2]; // is this id stable enough?
-    output2->setPosition(QPoint(4000, 1080));
-    output2->setRotation(Disman::Output::Left);
+    output2->set_position(QPoint(4000, 1080));
+    output2->set_rotation(Disman::Output::Left);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     auto sop = new SetConfigOperation(config, this);
@@ -122,7 +122,7 @@ void TestKWaylandConfig::changeConfig()
 
     QCOMPARE(configSpy.count(), 1);
 
-    monitor->removeConfig(config);
+    monitor->remove_config(config);
     m_server->showOutputs();
 }
 
@@ -135,12 +135,12 @@ void TestKWaylandConfig::testPositionChange()
 
     // Prepare monitor & spy
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
-    monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
+    monitor->add_config(config);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     auto output = config->outputs()[2]; // is this id stable enough?
     auto new_pos = QPoint(3840, 1080);
-    output->setPosition(new_pos);
+    output->set_position(new_pos);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     auto sop = new SetConfigOperation(config, this);
@@ -173,11 +173,11 @@ void TestKWaylandConfig::testRotationChange()
 
     // Prepare monitor & spy
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
-    monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
+    monitor->add_config(config);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
-    auto output = config->outputs().first(); // is this id stable enough?
-    output->setRotation(rotation);
+    auto output = config->outputs().begin()->second; // is this id stable enough?
+    output->set_rotation(rotation);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     auto sop = new SetConfigOperation(config, this);
@@ -195,7 +195,7 @@ void TestKWaylandConfig::testRotationChange()
     auto newconfig = newop->config();
     QVERIFY(newconfig);
 
-    auto newoutput = newconfig->outputs().first();
+    auto newoutput = newconfig->outputs().begin()->second;
     QCOMPARE(newoutput->rotation(), rotation);
 }
 
@@ -213,16 +213,16 @@ void TestKWaylandConfig::testScaleChange()
 
     // Prepare monitor & spy
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
-    monitor->addConfig(config);
-    monitor->addConfig(config2);
-    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
-    QSignalSpy configSpy2(monitor, &Disman::ConfigMonitor::configurationChanged);
+    monitor->add_config(config);
+    monitor->add_config(config2);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
+    QSignalSpy configSpy2(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     auto output2 = config2->outputs()[2]; // is this id stable enough?
     QCOMPARE(output2->scale(), 1.0);
 
     auto output = config->outputs()[2]; // is this id stable enough?
-    output->setScale(2);
+    output->set_scale(2);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     auto sop = new SetConfigOperation(config, this);
@@ -245,13 +245,12 @@ void TestKWaylandConfig::testModeChange()
     QVERIFY(config);
 
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
-    monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
+    monitor->add_config(config);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     auto output = config->outputs()[1]; // is this id stable enough?
 
-    QString new_mode = QStringLiteral("74");
-    output->set_mode(output->mode(new_mode));
+    output->set_mode(output->mode("74"));
     output->set_auto_resolution(false);
     output->set_auto_refresh_rate(false);
 
@@ -279,13 +278,13 @@ void TestKWaylandConfig::testApplyOnPending()
     QVERIFY(config2);
 
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
-    monitor->addConfig(config);
-    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configurationChanged);
+    monitor->add_config(config);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     auto output = config->outputs()[1]; // is this id stable enough?
 
     QCOMPARE(output->scale(), 1.0);
-    output->setScale(2);
+    output->set_scale(2);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     QSignalSpy serverReceivedSpy(m_server, &WaylandTestServer::configReceived);
@@ -299,7 +298,7 @@ void TestKWaylandConfig::testApplyOnPending()
     auto output2 = config2->outputs()[2]; // is this id stable enough?
 
     QCOMPARE(output2->scale(), 2.0);
-    output2->setScale(3);
+    output2->set_scale(3);
 
     new SetConfigOperation(config2, this);
 

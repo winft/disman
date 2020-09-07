@@ -19,15 +19,11 @@
  *************************************************************************************/
 #include "output_p.h"
 
-#include "abstractbackend.h"
-#include "backendmanager_p.h"
 #include "disman_debug.h"
 #include "mode.h"
 
 #include <QCryptographicHash>
 #include <QRect>
-#include <QScopedPointer>
-#include <QStringList>
 
 #include <sstream>
 
@@ -37,11 +33,10 @@ namespace Disman
 Output::Private::Private()
     : id(0)
     , type(Unknown)
-    , replicationSource(0)
+    , replication_source(0)
     , rotation(None)
     , scale(1.0)
     , enabled(false)
-    , primary(false)
 {
 }
 
@@ -51,60 +46,60 @@ Output::Private::Private(const Private& other)
     , description(other.description)
     , hash(other.hash)
     , type(other.type)
-    , icon(other.icon)
-    , replicationSource(other.replicationSource)
+    , replication_source(other.replication_source)
     , resolution(other.resolution)
     , refresh_rate(other.refresh_rate)
     , preferredMode(other.preferredMode)
-    , preferredModes(other.preferredModes)
-    , sizeMm(other.sizeMm)
+    , preferred_modes(other.preferred_modes)
+    , physical_size(other.physical_size)
     , position(other.position)
     , rotation(other.rotation)
     , scale(other.scale)
     , enabled(other.enabled)
-    , primary(other.primary)
-    , followPreferredMode(other.followPreferredMode)
+    , follow_preferred_mode(other.follow_preferred_mode)
     , auto_resolution{other.auto_resolution}
     , auto_refresh_rate{other.auto_refresh_rate}
     , auto_rotate{other.auto_rotate}
     , auto_rotate_only_in_tablet_mode{other.auto_rotate_only_in_tablet_mode}
     , retention{other.retention}
 {
-    Q_FOREACH (const ModePtr& otherMode, other.modeList) {
-        modeList.insert(otherMode->id(), otherMode->clone());
+    for (auto const& [key, otherMode] : other.modeList) {
+        modeList.insert({key, otherMode->clone()});
     }
 }
 
 ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) const
 {
-    for (auto mode : modeList) {
-        if (resolution == mode->size() && refresh_rate == mode->refreshRate()) {
+    for (auto const& [key, mode] : modeList) {
+        if (resolution == mode->size() && qFuzzyCompare(refresh_rate, mode->refresh())) {
             return mode;
         }
     }
     return ModePtr();
 }
 
-bool Output::Private::compareModeList(const ModeList& before, const ModeList& after)
+bool Output::Private::compareModeMap(const ModeMap& before, const ModeMap& after)
 {
-    if (before.count() != after.count()) {
+    if (before.size() != after.size()) {
         return false;
     }
 
-    for (auto itb = before.constBegin(); itb != before.constEnd(); ++itb) {
-        auto ita = after.constFind(itb.key());
-        if (ita == after.constEnd()) {
+    for (auto const& [before_key, before_val] : before) {
+        auto ita = after.find(before_key);
+        if (ita == after.end()) {
             return false;
         }
-        const auto& mb = itb.value();
-        const auto& ma = ita.value();
+
+        const auto& mb = before_val;
+        const auto& ma = ita->second;
+
         if (mb->id() != ma->id()) {
             return false;
         }
         if (mb->size() != ma->size()) {
             return false;
         }
-        if (!qFuzzyCompare(mb->refreshRate(), ma->refreshRate())) {
+        if (!qFuzzyCompare(mb->refresh(), ma->refresh())) {
             return false;
         }
         if (mb->name() != ma->name()) {
@@ -142,7 +137,7 @@ int Output::id() const
     return d->id;
 }
 
-void Output::setId(int id)
+void Output::set_id(int id)
 {
     d->id = id;
 }
@@ -193,31 +188,21 @@ void Output::setType(Type type)
     d->type = type;
 }
 
-QString Output::icon() const
+ModePtr Output::mode(std::string const& id) const
 {
-    return d->icon;
-}
-
-void Output::setIcon(const QString& icon)
-{
-    d->icon = icon;
-}
-
-ModePtr Output::mode(const QString& id) const
-{
-    if (!d->modeList.contains(id)) {
+    if (d->modeList.find(id) == d->modeList.end()) {
         return ModePtr();
     }
 
     return d->modeList[id];
 }
 
-ModeList Output::modes() const
+ModeMap Output::modes() const
 {
     return d->modeList;
 }
 
-void Output::setModes(const ModeList& modes)
+void Output::set_modes(const ModeMap& modes)
 {
     d->modeList = modes;
 }
@@ -225,7 +210,7 @@ void Output::setModes(const ModeList& modes)
 void Output::set_mode(ModePtr const& mode)
 {
     set_resolution(mode->size());
-    set_refresh_rate(mode->refreshRate());
+    set_refresh_rate(mode->refresh());
 }
 
 void Output::set_to_preferred_mode()
@@ -235,8 +220,8 @@ void Output::set_to_preferred_mode()
 
 ModePtr Output::commanded_mode() const
 {
-    for (auto mode : d->modeList) {
-        if (mode->size() == d->resolution && mode->refreshRate() == d->refresh_rate) {
+    for (auto [key, mode] : d->modeList) {
+        if (mode->size() == d->resolution && qFuzzyCompare(mode->refresh(), d->refresh_rate)) {
             return mode;
         }
     }
@@ -246,13 +231,13 @@ ModePtr Output::commanded_mode() const
 bool Output::set_resolution(QSize const& size)
 {
     d->resolution = size;
-    return !commanded_mode().isNull();
+    return commanded_mode() != nullptr;
 }
 
 bool Output::set_refresh_rate(double rate)
 {
     d->refresh_rate = rate;
-    return !commanded_mode().isNull();
+    return commanded_mode() != nullptr;
 }
 
 QSize Output::best_resolution() const
@@ -281,34 +266,34 @@ ModePtr Output::auto_mode() const
     return preferred_mode();
 }
 
-void Output::setPreferredModes(const QStringList& modes)
+void Output::set_preferred_modes(std::vector<std::string> const& modes)
 {
-    d->preferredMode = QString();
-    d->preferredModes = modes;
+    d->preferredMode = std::string();
+    d->preferred_modes = modes;
 }
 
-QStringList Output::preferredModes() const
+std::vector<std::string> const& Output::preferred_modes() const
 {
-    return d->preferredModes;
+    return d->preferred_modes;
 }
 
 ModePtr Output::preferred_mode() const
 {
-    if (!d->preferredMode.isEmpty()) {
-        return d->modeList.value(d->preferredMode);
+    if (!d->preferredMode.empty()) {
+        return d->modeList.at(d->preferredMode);
     }
-    if (d->preferredModes.isEmpty()) {
+    if (d->preferred_modes.empty()) {
         return d->best_mode(modes());
     }
 
-    auto best = d->best_mode(d->preferredModes);
+    auto best = d->best_mode(d->preferred_modes);
     Q_ASSERT_X(best, "preferred_mode", "biggest mode must exist");
 
     d->preferredMode = best->id();
     return best;
 }
 
-void Output::setPosition(const QPointF& position)
+void Output::set_position(const QPointF& position)
 {
     d->position = position;
 }
@@ -320,7 +305,7 @@ Output::Rotation Output::rotation() const
     return d->rotation;
 }
 
-void Output::setRotation(Output::Rotation rotation)
+void Output::set_rotation(Output::Rotation rotation)
 {
     d->rotation = rotation;
 }
@@ -330,7 +315,7 @@ double Output::scale() const
     return d->scale;
 }
 
-void Output::setScale(double scale)
+void Output::set_scale(double scale)
 {
     d->scale = scale;
 }
@@ -353,7 +338,7 @@ QRectF Output::geometry() const
         return geo;
     }
 
-    if (!isHorizontal()) {
+    if (!horizontal()) {
         size = size.transposed();
     }
 
@@ -371,64 +356,53 @@ QPointF Output::position() const
     return d->position;
 }
 
-bool Output::isEnabled() const
+bool Output::horizontal() const
+{
+    return ((rotation() == Output::None) || (rotation() == Output::Inverted));
+}
+
+bool Output::enabled() const
 {
     return d->enabled;
 }
 
-void Output::setEnabled(bool enabled)
+void Output::set_enabled(bool enabled)
 {
     d->enabled = enabled;
 }
 
-bool Output::isPrimary() const
+int Output::replication_source() const
 {
-    return d->primary;
+    return d->replication_source;
 }
 
-void Output::setPrimary(bool primary)
+void Output::set_replication_source(int source)
 {
-    if (d->primary == primary) {
-        return;
-    }
-
-    d->primary = primary;
-
-    Q_EMIT isPrimaryChanged();
-}
-
-int Output::replicationSource() const
-{
-    return d->replicationSource;
-}
-
-void Output::setReplicationSource(int source)
-{
-    d->replicationSource = source;
+    d->replication_source = source;
 
     // Needs to be unset in case we run in-process. That value is not meant for consumption by
     // the frontend anyway.
     d->enforced_geometry = QRectF();
 }
 
-QSize Output::sizeMm() const
+QSize Output::physical_size() const
 {
-    return d->sizeMm;
+    return d->physical_size;
 }
 
-void Output::setSizeMm(const QSize& size)
+void Output::set_physical_size(const QSize& size)
 {
-    d->sizeMm = size;
+    d->physical_size = size;
 }
 
-bool Disman::Output::followPreferredMode() const
+bool Disman::Output::follow_preferred_mode() const
 {
-    return d->followPreferredMode;
+    return d->follow_preferred_mode;
 }
 
-void Disman::Output::setFollowPreferredMode(bool follow)
+void Disman::Output::set_follow_preferred_mode(bool follow)
 {
-    d->followPreferredMode = follow;
+    d->follow_preferred_mode = follow;
 }
 
 bool Output::auto_resolution() const
@@ -481,45 +455,30 @@ void Output::set_retention(Retention retention)
     d->retention = retention;
 }
 
-bool Output::isPositionable() const
+bool Output::positionable() const
 {
-    return isEnabled() && !replicationSource();
+    return enabled() && !replication_source();
 }
 
 void Output::apply(const OutputPtr& other)
 {
-    typedef void (Disman::Output::*ChangeSignal)();
-    QList<ChangeSignal> changes;
-
-    // We block all signals, and emit them only after we have set up everything
-    // This is necessary in order to prevent clients from accessing inconsistent
-    // outputs from intermediate change signals
-    const bool keepBlocked = signalsBlocked();
-    blockSignals(true);
-
     set_name(other->d->name);
     set_description(other->d->description);
     d->hash = other->d->hash;
     setType(other->d->type);
-    setIcon(other->d->icon);
-    setPosition(other->geometry().topLeft());
-    setRotation(other->d->rotation);
-    setScale(other->d->scale);
-    setEnabled(other->d->enabled);
+    set_position(other->geometry().topLeft());
+    set_rotation(other->d->rotation);
+    set_scale(other->d->scale);
+    set_enabled(other->d->enabled);
 
-    if (d->primary != other->d->primary) {
-        changes << &Output::isPrimaryChanged;
-        setPrimary(other->d->primary);
+    set_replication_source(other->d->replication_source);
+
+    set_preferred_modes(other->d->preferred_modes);
+    ModeMap modes;
+    for (auto const& [key, mode] : other->modes()) {
+        modes.insert({key, mode->clone()});
     }
-
-    setReplicationSource(other->d->replicationSource);
-
-    setPreferredModes(other->d->preferredModes);
-    ModeList modes;
-    Q_FOREACH (const ModePtr& otherMode, other->modes()) {
-        modes.insert(otherMode->id(), otherMode->clone());
-    }
-    setModes(modes);
+    set_modes(modes);
 
     set_resolution(other->d->resolution);
     set_refresh_rate(other->d->refresh_rate);
@@ -529,14 +488,6 @@ void Output::apply(const OutputPtr& other)
     set_auto_rotate(other->d->auto_rotate);
     set_auto_rotate_only_in_tablet_mode(other->d->auto_rotate_only_in_tablet_mode);
     set_retention(other->d->retention);
-
-    blockSignals(keepBlocked);
-
-    while (!changes.isEmpty()) {
-        const ChangeSignal& sig = changes.first();
-        Q_EMIT(this->*sig)();
-        changes.removeAll(sig);
-    }
 
     Q_EMIT updated();
 }
@@ -549,8 +500,8 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
         auto stream_mode = [](Disman::ModePtr const& mode) {
             std::stringstream ss;
             if (mode) {
-                ss << "id " << mode->id().toStdString() << ", size " << mode->size().width() << "x"
-                   << mode->size().height() << "@" << mode->refreshRate();
+                ss << "id " << mode->id() << ", size " << mode->size().width() << "x"
+                   << mode->size().height() << "@" << mode->refresh();
             } else {
                 ss << "null";
             }
@@ -569,14 +520,13 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
            << ") "
 
            // basic properties
-           << (output->isEnabled() ? " [enabled]" : "[disabled]")
-           << (output->isPrimary() ? " [primary]" : "")
+           << (output->enabled() ? " [enabled]" : "[disabled]")
            << (output->retention() == Disman::Output::Retention::Global
                    ? "[global retention]"
                    : output->retention() == Disman::Output::Retention::Individual
                        ? "[individual retention]"
                        : "")
-           << (output->followPreferredMode() ? " [hotplug-mode-update (QXL/SPICE)]" : "")
+           << (output->follow_preferred_mode() ? " [hotplug-mode-update (QXL/SPICE)]" : "")
            << (output->auto_resolution() ? " [auto resolution]" : "")
            << (output->auto_refresh_rate() ? " [auto refresh rate]" : "")
            << (output->auto_rotate() ? " [auto rotate]" : "")
@@ -584,8 +534,8 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
                                                          : "")
 
            // geometry
-           << " | physical size[mm]: " << output->sizeMm().width() << "x"
-           << output->sizeMm().height() << " | mode: " << stream_mode(output->auto_mode())
+           << " | physical size[mm]: " << output->physical_size().width() << "x"
+           << output->physical_size().height() << " | mode: " << stream_mode(output->auto_mode())
            << " | geometry: " << stream_rect(output->geometry()) << " | scale: " << output->scale()
            << " | hash: " << output->hash() << "}";
 

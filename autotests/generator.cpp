@@ -37,11 +37,6 @@ private Q_SLOTS:
     void replicate_embedded();
     void multi_output_pc();
     void replicate_pc();
-    //    void workstationWithoutScreens();
-    //    void workstationWithNoConnectedScreens();
-    //    void workstationTwoExternalSameSize();
-    //    void workstationFallbackMode();
-    //    void workstationTwoExternalDiferentSize();
 
 private:
     Disman::ConfigPtr load_config(QByteArray const& file_name);
@@ -55,7 +50,7 @@ void TestGenerator::initTestCase()
 
 void TestGenerator::cleanupTestCase()
 {
-    BackendManager::instance()->shutdownBackend();
+    BackendManager::instance()->shutdown_backend();
 }
 
 Disman::ConfigPtr TestGenerator::load_config(const QByteArray& file_name)
@@ -66,12 +61,12 @@ Disman::ConfigPtr TestGenerator::load_config(const QByteArray& file_name)
 
     auto op = new GetConfigOperation();
     if (!op->exec()) {
-        qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
-        BackendManager::instance()->shutdownBackend();
+        qWarning("ConfigOperation error: %s", qPrintable(op->error_string()));
+        BackendManager::instance()->shutdown_backend();
         return ConfigPtr();
     }
 
-    BackendManager::instance()->shutdownBackend();
+    BackendManager::instance()->shutdown_backend();
     return op->config();
 }
 
@@ -79,25 +74,31 @@ void TestGenerator::single_output()
 {
     auto config = load_config("singleoutput.json");
     QVERIFY(config);
+    config->set_supported_features(Config::Feature::PrimaryDisplay);
 
     // First make the received config worse.
-    auto output = config->outputs().value(1);
-    output->setEnabled(false);
-    output->setPrimary(false);
-    output->set_mode(output->modes().value(QStringLiteral("2")));
+    config->set_primary_output(nullptr);
 
-    QCOMPARE(output->isEnabled(), false);
-    QCOMPARE(output->isPrimary(), false);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("2"));
+    auto output = config->outputs().at(1);
+    output->set_enabled(false);
+    output->set_mode(output->modes().at("2"));
+
+    QVERIFY(!config->primary_output());
+    QCOMPARE(output->enabled(), false);
+    QCOMPARE(output->auto_mode()->id(), "2");
 
     // Now optimize the config.
     Generator generator(config);
     QVERIFY(generator.optimize());
-    output = generator.config()->outputs().value(1);
 
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), true);
+    auto generated_config = generator.config();
+    output = generated_config->outputs().at(1);
+
+    QVERIFY(generated_config->primary_output());
+    QCOMPARE(generated_config->primary_output()->id(), output->id());
+
+    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
 }
 
@@ -106,34 +107,40 @@ void TestGenerator::multi_output_embedded()
     auto config = load_config("multipleoutput.json");
     QVERIFY(config);
     QCOMPARE(config->outputs().size(), 2);
-    config->setSupportedFeatures(Config::Feature::PerOutputScaling);
+    config->set_supported_features(Config::Feature::PerOutputScaling
+                                   | Config::Feature::PrimaryDisplay);
 
     // First make the received config worse.
-    for (auto output : config->outputs()) {
-        output->setEnabled(false);
-        output->setPrimary(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+    config->set_primary_output(nullptr);
+    QVERIFY(!config->primary_output());
 
-        QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->isPrimary(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+    for (auto const& [key, output] : config->outputs()) {
+        output->set_enabled(false);
+        output->set_mode(output->modes().at("3"));
+
+        QCOMPARE(output->enabled(), false);
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
     QVERIFY(generator.optimize());
 
-    auto output = generator.config()->outputs().value(1);
+    auto generated_config = generator.config();
+    auto output = generated_config->outputs().at(1);
+
+    QVERIFY(generated_config->primary_output());
+    QCOMPARE(generated_config->primary_output()->id(), output->id());
+
     QCOMPARE(generator.embedded(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), true);
+    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
 
-    output = generator.config()->outputs().value(2);
+    output = generated_config->outputs().at(2);
+
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), false);
+    QCOMPARE(output->auto_mode()->id(), "4");
+    QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPointF(1280, 0));
 }
 
@@ -142,37 +149,42 @@ void TestGenerator::replicate_embedded()
     auto config = load_config("multipleoutput.json");
     QVERIFY(config);
     QCOMPARE(config->outputs().size(), 2);
-    config->setSupportedFeatures(Config::Feature::PerOutputScaling
-                                 | Config::Feature::OutputReplication);
+    config->set_supported_features(Config::Feature::PerOutputScaling
+                                   | Config::Feature::OutputReplication
+                                   | Config::Feature::PrimaryDisplay);
 
     // First make the received config worse.
-    for (auto output : config->outputs()) {
-        output->setEnabled(false);
-        output->setPrimary(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+    config->set_primary_output(nullptr);
+    QVERIFY(!config->primary_output());
 
-        QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->isPrimary(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+    for (auto const& [key, output] : config->outputs()) {
+        output->set_enabled(false);
+        output->set_mode(output->modes().at("3"));
+
+        QCOMPARE(output->enabled(), false);
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
     QVERIFY(generator.replicate());
 
-    auto output = generator.config()->outputs().value(1);
-    QCOMPARE(generator.embedded(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), true);
-    QCOMPARE(output->position(), QPoint(0, 0));
-    QCOMPARE(output->replicationSource(), 0);
+    auto generated_config = generator.config();
+    auto output = generated_config->outputs().at(1);
 
-    output = generator.config()->outputs().value(2);
+    QVERIFY(generated_config->primary_output());
+    QCOMPARE(generated_config->primary_output()->id(), output->id());
+
+    QCOMPARE(generator.embedded(), output);
+    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->enabled(), true);
+    QCOMPARE(output->position(), QPoint(0, 0));
+    QCOMPARE(output->replication_source(), 0);
+
+    output = generated_config->outputs().at(2);
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), false);
-    QCOMPARE(output->replicationSource(), 1);
+    QCOMPARE(output->auto_mode()->id(), "4");
+    QCOMPARE(output->enabled(), true);
+    QCOMPARE(output->replication_source(), 1);
 }
 
 void TestGenerator::multi_output_pc()
@@ -180,34 +192,39 @@ void TestGenerator::multi_output_pc()
     auto config = load_config("multipleoutput.json");
     QVERIFY(config);
     QCOMPARE(config->outputs().size(), 2);
-    config->setSupportedFeatures(Config::Feature::PerOutputScaling);
+    config->set_supported_features(Config::Feature::PerOutputScaling
+                                   | Config::Feature::PrimaryDisplay);
 
     // First make the received config worse.
-    for (auto output : config->outputs()) {
-        output->setEnabled(false);
-        output->setPrimary(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+    config->set_primary_output(nullptr);
+    QVERIFY(!config->primary_output());
+
+    for (auto const& [key, output] : config->outputs()) {
+        output->set_enabled(false);
+        output->set_mode(output->modes().at("3"));
         output->setType(Output::Type::HDMI);
 
-        QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->isPrimary(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+        QCOMPARE(output->enabled(), false);
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
     QVERIFY(generator.optimize());
 
-    auto output = generator.config()->outputs().value(1);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), false);
+    auto generated_config = generator.config();
+    auto output = generated_config->outputs().at(1);
+
+    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPoint(1920, 0));
 
-    output = generator.config()->outputs().value(2);
+    output = generated_config->outputs().at(2);
+    QVERIFY(generated_config->primary_output());
+    QCOMPARE(generated_config->primary_output()->id(), output->id());
+
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), true);
+    QCOMPARE(output->auto_mode()->id(), "4");
+    QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPointF(0, 0));
 }
 
@@ -216,40 +233,45 @@ void TestGenerator::replicate_pc()
     auto config = load_config("multipleoutput.json");
     QVERIFY(config);
     QCOMPARE(config->outputs().size(), 2);
-    config->setSupportedFeatures(Config::Feature::PerOutputScaling
-                                 | Config::Feature::OutputReplication);
+    config->set_supported_features(Config::Feature::PerOutputScaling
+                                   | Config::Feature::OutputReplication
+                                   | Config::Feature::PrimaryDisplay);
 
     // First make the received config worse.
-    for (auto output : config->outputs()) {
-        output->setEnabled(false);
-        output->setPrimary(false);
-        output->set_mode(output->modes().value(QStringLiteral("3")));
+    config->set_primary_output(nullptr);
+    QVERIFY(!config->primary_output());
+
+    for (auto const& [key, output] : config->outputs()) {
+        output->set_enabled(false);
+        output->set_mode(output->modes().at("3"));
         output->setType(Output::Type::HDMI);
 
-        QCOMPARE(output->isEnabled(), false);
-        QCOMPARE(output->isPrimary(), false);
-        QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
+        QCOMPARE(output->enabled(), false);
+        QCOMPARE(output->auto_mode()->id(), "3");
     }
 
     Generator generator(config);
     QVERIFY(generator.replicate());
 
-    auto output = generator.config()->outputs().value(1);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("3"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), false);
-    QCOMPARE(output->position(), QPoint(0, 0));
-    QCOMPARE(output->replicationSource(), 2);
+    auto generated_config = generator.config();
+    auto output = generated_config->outputs().at(1);
 
-    output = generator.config()->outputs().value(2);
+    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->enabled(), true);
+    QCOMPARE(output->position(), QPoint(0, 0));
+    QCOMPARE(output->replication_source(), 2);
+
+    output = generated_config->outputs().at(2);
+    QVERIFY(generated_config->primary_output());
+    QCOMPARE(generated_config->primary_output()->id(), output->id());
+
     QCOMPARE(generator.biggest(), output);
-    QCOMPARE(output->auto_mode()->id(), QStringLiteral("4"));
-    QCOMPARE(output->isEnabled(), true);
-    QCOMPARE(output->isPrimary(), true);
+    QCOMPARE(output->auto_mode()->id(), "4");
+    QCOMPARE(output->enabled(), true);
 
     // Position is unchanged from initial config.
     QCOMPARE(output->position(), QPoint(1280, 0));
-    QCOMPARE(output->replicationSource(), 0);
+    QCOMPARE(output->replication_source(), 0);
 }
 
 QTEST_GUILESS_MAIN(TestGenerator)

@@ -57,7 +57,7 @@ public:
     ~KWaylandInterface() override = default;
     bool isInitialized() const override;
 
-    QMap<int, WaylandOutput*> outputMap() const override;
+    std::map<int, WaylandOutput*> outputMap() const override;
 
     bool applyConfig(const Disman::ConfigPtr& newConfig) override;
     void updateConfig(Disman::ConfigPtr& config) override;
@@ -80,7 +80,7 @@ private:
     KWayland::Client::OutputManagement* m_outputManagement;
 
     // KWayland names as keys
-    QMap<int, KWaylandOutput*> m_outputMap;
+    std::map<int, KWaylandOutput*> m_outputMap;
 
     // KWayland names
     int m_lastOutputId = -1;

@@ -119,7 +119,7 @@ Disman::AbstractBackend* BackendLoader::loadBackend(const QString& name,
                                                                         pluginDeleter);
         mLoader = loader.release();
     }
-    return Disman::BackendManager::loadBackendPlugin(mLoader, name, arguments);
+    return Disman::BackendManager::load_backend_plugin(mLoader, name, arguments);
 }
 
 void BackendLoader::quit()

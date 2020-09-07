@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace Disman;
 namespace Wl = Wrapland::Client;
 
-const QMap<Wl::WlrOutputHeadV1::Transform, Output::Rotation> s_rotationMap
+const std::map<Wl::WlrOutputHeadV1::Transform, Output::Rotation> s_rotationMap
     = {{Wl::WlrOutputHeadV1::Transform::Normal, Output::None},
        {Wl::WlrOutputHeadV1::Transform::Rotated90, Output::Right},
        {Wl::WlrOutputHeadV1::Transform::Rotated180, Output::Inverted},
@@ -39,13 +39,19 @@ const QMap<Wl::WlrOutputHeadV1::Transform, Output::Rotation> s_rotationMap
 
 Output::Rotation toDismanRotation(const Wl::WlrOutputHeadV1::Transform transform)
 {
-    auto it = s_rotationMap.constFind(transform);
-    return it.value();
+    auto it = s_rotationMap.find(transform);
+    assert(it != s_rotationMap.end());
+    return it->second;
 }
 
 Wl::WlrOutputHeadV1::Transform toWraplandTransform(const Output::Rotation rotation)
 {
-    return s_rotationMap.key(rotation);
+    for (auto const& [key, val] : s_rotationMap) {
+        if (val == rotation) {
+            return key;
+        }
+    }
+    assert(false);
 }
 
 WlrootsOutput::WlrootsOutput(quint32 id,
@@ -113,17 +119,16 @@ QString modeName(const Wl::WlrOutputModeV1* mode)
 void WlrootsOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
-    output->setEnabled(m_head->enabled());
-    output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
+    output->set_enabled(m_head->enabled());
     output->set_name(m_head->name().toStdString());
     output->set_description(m_head->description().toStdString());
     output->set_hash(hash().toStdString());
-    output->setSizeMm(m_head->physicalSize());
-    output->setPosition(m_head->position());
-    output->setRotation(s_rotationMap[m_head->transform()]);
+    output->set_physical_size(m_head->physicalSize());
+    output->set_position(m_head->position());
+    output->set_rotation(s_rotationMap.at(m_head->transform()));
 
-    ModeList modeList;
-    QStringList preferredModeIds;
+    ModeMap modeList;
+    std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
     QString currentModeId = QStringLiteral("-1");
 
@@ -132,44 +137,47 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
 
     int modeCounter = 0;
     for (auto wlMode : m_head->modes()) {
-        const auto modeId = QString::number(++modeCounter);
+        auto const modeId = std::to_string(++modeCounter);
 
         ModePtr mode(new Mode());
 
-        mode->setId(modeId);
+        mode->set_id(modeId);
 
         // Wrapland gives the refresh rate as int in mHz.
-        mode->setRefreshRate(wlMode->refresh() / 1000.0);
-        mode->setSize(wlMode->size());
-        mode->setName(modeName(wlMode));
+        mode->set_refresh(wlMode->refresh() / 1000.0);
+        mode->set_size(wlMode->size());
+        mode->set_name(modeName(wlMode).toStdString());
 
         if (wlMode->preferred()) {
-            preferredModeIds << modeId;
+            preferredModeIds.push_back(modeId);
         }
         if (current_head_mode == wlMode) {
             current_mode = mode;
         }
 
         // Update the Disman => Wrapland mode id translation map.
-        m_modeIdMap.insert(modeId, wlMode);
+        m_modeIdMap.insert({modeId, wlMode});
 
         // Add to the modelist which gets set on the output.
         modeList[modeId] = mode;
     }
 
-    output->setPreferredModes(preferredModeIds);
-    output->setModes(modeList);
+    output->set_preferred_modes(preferredModeIds);
+    output->set_modes(modeList);
 
-    if (current_mode.isNull()) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
+    if (!current_mode) {
+        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
+        for (auto const& [key, mode] : modeList) {
+            qCWarning(DISMAN_WAYLAND) << "  " << mode;
+        }
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
-        auto success = output->set_refresh_rate(current_mode->refreshRate());
+        auto success = output->set_refresh_rate(current_mode->refresh());
         assert(success);
     }
 
-    output->setScale(m_head->scale());
+    output->set_scale(m_head->scale());
     output->setType(guessType(m_head->name(), m_head->name()));
 }
 
@@ -179,12 +187,12 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     bool changed = false;
 
     // enabled?
-    if (m_head->enabled() != output->isEnabled()) {
+    if (m_head->enabled() != output->enabled()) {
         changed = true;
     }
 
     // In any case set the enabled state to initialize the output's native handle.
-    wlConfig->setEnabled(m_head, output->isEnabled());
+    wlConfig->setEnabled(m_head, output->enabled());
 
     // position
     if (m_head->position() != output->position()) {
@@ -205,14 +213,18 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     }
 
     // mode
-    if (auto mode_id = output->auto_mode()->id(); m_modeIdMap.contains(mode_id)) {
-        auto newMode = m_modeIdMap.value(mode_id, nullptr);
+    if (auto mode_id = output->auto_mode()->id(); m_modeIdMap.find(mode_id) != m_modeIdMap.end()) {
+        auto newMode = m_modeIdMap.at(mode_id);
         if (newMode != m_head->currentMode()) {
             changed = true;
             wlConfig->setMode(m_head, newMode);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode id:" << mode_id << "\n\n" << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:" << mode_id.c_str()
+                                  << "\n  -> available were:";
+        for (auto const& [key, value] : m_modeIdMap) {
+            qCWarning(DISMAN_WAYLAND).nospace() << value << ": " << key.c_str();
+        }
     }
 
     return changed;

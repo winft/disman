@@ -53,9 +53,6 @@ Q_SIGNALS:
 
 private:
     quint32 m_id;
-
-    // left-hand-side: Disman::Mode, right-hand-side: Compositor's mode id
-    QMap<QString, int> m_modeIdMap;
 };
 
 }

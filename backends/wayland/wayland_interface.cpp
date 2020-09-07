@@ -60,7 +60,7 @@ void WaylandInterface::unblockSignals()
 void WaylandInterface::handleDisconnect()
 {
     qCWarning(DISMAN_WAYLAND) << "Wayland disconnected, cleaning up.";
-    Q_EMIT configChanged();
+    Q_EMIT config_changed();
 }
 
 void WaylandInterface::addOutput(WaylandOutput* output)
@@ -79,12 +79,12 @@ void WaylandInterface::initOutput(WaylandOutput* output)
 
     if (!signalsBlocked() && m_initializingOutputs.empty()) {
         Q_EMIT outputsChanged();
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
     }
 
     connect(output, &WaylandOutput::changed, this, [this]() {
         if (!signalsBlocked()) {
-            Q_EMIT configChanged();
+            Q_EMIT config_changed();
         }
     });
 }
@@ -105,7 +105,7 @@ void WaylandInterface::removeOutput(WaylandOutput* output)
     delete output;
 
     if (!m_blockSignals) {
-        Q_EMIT configChanged();
+        Q_EMIT config_changed();
     }
 }
 

@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using namespace Disman;
 namespace Wl = KWayland::Client;
 
-const QMap<Wl::OutputDevice::Transform, Output::Rotation> s_rotationMap
+const std::map<Wl::OutputDevice::Transform, Output::Rotation> s_rotationMap
     = {{Wl::OutputDevice::Transform::Normal, Output::None},
        {Wl::OutputDevice::Transform::Rotated90, Output::Right},
        {Wl::OutputDevice::Transform::Rotated180, Output::Inverted},
@@ -40,13 +40,19 @@ const QMap<Wl::OutputDevice::Transform, Output::Rotation> s_rotationMap
 
 Output::Rotation toDismanRotation(const Wl::OutputDevice::Transform transform)
 {
-    auto it = s_rotationMap.constFind(transform);
-    return it.value();
+    auto it = s_rotationMap.find(transform);
+    assert(it != s_rotationMap.end());
+    return it->second;
 }
 
 Wl::OutputDevice::Transform toKWaylandTransform(const Output::Rotation rotation)
 {
-    return s_rotationMap.key(rotation);
+    for (auto const& [key, val] : s_rotationMap) {
+        if (val == rotation) {
+            return key;
+        }
+    }
+    assert(false);
 }
 
 KWaylandOutput::KWaylandOutput(quint32 id, QObject* parent)
@@ -90,68 +96,70 @@ void KWaylandOutput::createOutputDevice(Wl::Registry* registry, quint32 name, qu
 void KWaylandOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
-    output->setEnabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
-    output->setPrimary(true); // FIXME: wayland doesn't have the concept of a primary display
+    output->set_enabled(m_device->enabled() == Wl::OutputDevice::Enablement::Enabled);
     output->set_name(name().toStdString());
     output->set_description(name().toStdString());
     output->set_hash(name().toStdString());
-    output->setSizeMm(m_device->physicalSize());
-    output->setPosition(m_device->globalPosition());
-    output->setRotation(s_rotationMap[m_device->transform()]);
+    output->set_physical_size(m_device->physicalSize());
+    output->set_position(m_device->globalPosition());
+    output->set_rotation(s_rotationMap.at(m_device->transform()));
 
-    ModeList modeList;
-    QStringList preferredModeIds;
+    ModeMap modeList;
+    std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
     ModePtr current_mode;
 
     for (const Wl::OutputDevice::Mode& wlMode : m_device->modes()) {
         ModePtr mode(new Mode());
-        const QString name = modeName(wlMode);
+        auto const name = modeName(wlMode).toStdString();
 
-        QString modeId = QString::number(wlMode.id);
-        if (modeId.isEmpty()) {
-            qCWarning(DISMAN_WAYLAND)
-                << "Could not create mode id from" << wlMode.id << ", using" << name << "instead.";
+        auto modeId = std::to_string(wlMode.id);
+        if (modeId.empty()) {
+            qCWarning(DISMAN_WAYLAND) << "Could not create mode id from" << wlMode.id << ", using"
+                                      << name.c_str() << "instead.";
             modeId = name;
         }
 
-        if (m_modeIdMap.contains(modeId)) {
-            qCWarning(DISMAN_WAYLAND) << "Mode id already in use:" << modeId;
+        if (m_modeIdMap.find(modeId) != m_modeIdMap.end()) {
+            qCWarning(DISMAN_WAYLAND) << "Mode id already in use:" << modeId.c_str();
         }
-        mode->setId(modeId);
+        mode->set_id(modeId);
 
         // KWayland gives the refresh rate as int in mHz
-        mode->setRefreshRate(wlMode.refreshRate / 1000.0);
-        mode->setSize(wlMode.size);
-        mode->setName(name);
+        mode->set_refresh(wlMode.refreshRate / 1000.0);
+        mode->set_size(wlMode.size);
+        mode->set_name(name);
 
         if (wlMode.flags.testFlag(Wl::OutputDevice::Mode::Flag::Current)) {
             current_mode = mode;
         }
         if (wlMode.flags.testFlag(Wl::OutputDevice::Mode::Flag::Preferred)) {
-            preferredModeIds << modeId;
+            preferredModeIds.push_back(modeId);
         }
 
         // Update the disman => kwayland mode id translation map
-        m_modeIdMap.insert(modeId, wlMode.id);
+        m_modeIdMap.insert({modeId, wlMode.id});
         // Add to the modelist which gets set on the output
         modeList[modeId] = mode;
     }
 
-    output->setPreferredModes(preferredModeIds);
-    output->setModes(modeList);
+    output->set_preferred_modes(preferredModeIds);
+    output->set_modes(modeList);
 
-    if (current_mode.isNull()) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode id" << modeList;
+    if (!current_mode) {
+        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode. Available modes:";
+        for (auto const& [key, mode] : modeList) {
+            qCWarning(DISMAN_WAYLAND) << "  " << mode;
+        }
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
-        auto success = output->set_refresh_rate(current_mode->refreshRate());
+        auto success = output->set_refresh_rate(current_mode->refresh());
         if (!success) {
             qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
         }
     }
-    output->setScale(m_device->scaleF());
+    output->set_scale(m_device->scaleF());
     output->setType(guessType(m_device->model(), m_device->model()));
 }
 
@@ -160,10 +168,10 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration* wlConfig, const Disman
     bool changed = false;
 
     // enabled?
-    if ((m_device->enabled() == Wl::OutputDevice::Enablement::Enabled) != output->isEnabled()) {
+    if ((m_device->enabled() == Wl::OutputDevice::Enablement::Enabled) != output->enabled()) {
         changed = true;
-        const auto enablement = output->isEnabled() ? Wl::OutputDevice::Enablement::Enabled
-                                                    : Wl::OutputDevice::Enablement::Disabled;
+        const auto enablement = output->enabled() ? Wl::OutputDevice::Enablement::Enabled
+                                                  : Wl::OutputDevice::Enablement::Disabled;
         wlConfig->setEnabled(m_device, enablement);
     }
 
@@ -186,16 +194,19 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration* wlConfig, const Disman
     }
 
     // mode
-    if (auto mode = output->auto_mode(); mode && m_modeIdMap.contains(mode->id())) {
-        const int newModeId = m_modeIdMap.value(mode->id(), -1);
+    if (auto mode = output->auto_mode();
+        mode && m_modeIdMap.find(mode->id()) != m_modeIdMap.end()) {
+        auto const newModeId = m_modeIdMap.at(mode->id());
         if (newModeId != m_device->currentMode().id) {
             changed = true;
             wlConfig->setMode(m_device, newModeId);
         }
     } else {
-        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:"
-                                  << (mode ? mode->id() : QStringLiteral("null"))
-                                  << "\n  -> available were:" << m_modeIdMap;
+        qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:" << (mode ? mode->id() : "null").c_str()
+                                  << "\n  -> available were:";
+        for (auto const& [key, value] : m_modeIdMap) {
+            qCWarning(DISMAN_WAYLAND).nospace() << value << ": " << key.c_str();
+        }
     }
     return changed;
 }

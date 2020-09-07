@@ -18,23 +18,26 @@
 #ifndef DISMAN_TYPES_H
 #define DISMAN_TYPES_H
 
-#include <QMap>
-#include <QSharedPointer>
+#include <map>
+#include <memory>
+#include <string>
 
 namespace Disman
 {
 
 class Config;
-typedef QSharedPointer<Disman::Config> ConfigPtr;
+using ConfigPtr = std::shared_ptr<Config>;
+
 class Screen;
-typedef QSharedPointer<Disman::Screen> ScreenPtr;
+using ScreenPtr = std::shared_ptr<Screen>;
+
 class Output;
-typedef QSharedPointer<Disman::Output> OutputPtr;
-typedef QMap<int, Disman::OutputPtr> OutputList;
+using OutputPtr = std::shared_ptr<Output>;
+using OutputMap = std::map<int, OutputPtr>;
 
 class Mode;
-typedef QSharedPointer<Disman::Mode> ModePtr;
-typedef QMap<QString, Disman::ModePtr> ModeList;
+using ModePtr = std::shared_ptr<Mode>;
+using ModeMap = std::map<std::string, ModePtr>;
 
 }
 

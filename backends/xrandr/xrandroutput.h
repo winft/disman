@@ -22,9 +22,7 @@
 #include "xcbwrapper.h"
 #include "xrandrmode.h"
 
-#include <QMap>
 #include <QObject>
-#include <QVariant>
 
 class XRandRConfig;
 class XRandRCrtc;
@@ -39,7 +37,7 @@ class XRandROutput : public QObject
     Q_OBJECT
 
 public:
-    typedef QMap<xcb_randr_output_t, XRandROutput*> Map;
+    using Map = std::map<xcb_randr_output_t, XRandROutput*>;
 
     explicit XRandROutput(xcb_randr_output_t id, XRandRConfig* config);
     ~XRandROutput() override;
@@ -54,7 +52,7 @@ public:
 
     xcb_randr_output_t id() const;
 
-    bool isEnabled() const;
+    bool enabled() const;
     bool isConnected() const;
     bool isPrimary() const;
 
@@ -62,7 +60,7 @@ public:
     QSize size() const;
     QSizeF logicalSize() const;
 
-    QString currentModeId() const;
+    std::string currentModeId() const;
     XRandRMode::Map modes() const;
     XRandRMode* currentMode() const;
 
@@ -90,7 +88,6 @@ private:
     XRandRConfig* m_config;
     xcb_randr_output_t m_id;
     QString m_name;
-    QString m_icon;
     mutable QByteArray m_edid;
 
     xcb_randr_connection_t m_connected;
@@ -98,7 +95,7 @@ private:
     Disman::Output::Type m_type;
 
     XRandRMode::Map m_modes;
-    QStringList m_preferredModes;
+    std::vector<std::string> m_preferredModes;
 
     unsigned int m_widthMm;
     unsigned int m_heightMm;

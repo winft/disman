@@ -63,7 +63,7 @@ public:
      * org.kde.Disman.Backend.%backendName%) to allow multiple different backends
      * running concurrently.
      */
-    virtual QString serviceName() const = 0;
+    virtual QString service_name() const = 0;
 
     /**
      * Returns a new Config object, holding Screen, Output objects, etc.
@@ -77,7 +77,7 @@ public:
      *
      * @param config Configuration to apply
      */
-    virtual void setConfig(const Disman::ConfigPtr& config) = 0;
+    virtual void set_config(const Disman::ConfigPtr& config) = 0;
 
     /**
      * Returns whether the backend is in valid state.
@@ -85,7 +85,7 @@ public:
      * Backends should use this to tell BackendLauncher whether they are capable
      * of operating on the current platform.
      */
-    virtual bool isValid() const = 0;
+    virtual bool valid() const = 0;
 
     /**
      * Returns encoded EDID data for given output
@@ -107,7 +107,7 @@ Q_SIGNALS:
      *
      * @param config New configuration
      */
-    void configChanged(const Disman::ConfigPtr& config);
+    void config_changed(const Disman::ConfigPtr& config);
 };
 
 }

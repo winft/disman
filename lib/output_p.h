@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <QRectF>
 #include <QScopedPointer>
-#include <QStringList>
 
 namespace Disman
 {
@@ -64,9 +63,9 @@ public:
             if (resolution != mode->size()) {
                 continue;
             }
-            if (best_refresh < mode->refreshRate()) {
+            if (best_refresh < mode->refresh()) {
                 best_mode = mode;
-                best_refresh = mode->refreshRate();
+                best_refresh = mode->refresh();
             }
         }
 
@@ -82,30 +81,29 @@ public:
         return mode(resolution, refresh_rate);
     }
 
-    bool compareModeList(const ModeList& before, const ModeList& after);
+    bool compareModeMap(const ModeMap& before, const ModeMap& after);
 
     int id;
     std::string name;
     std::string description;
     std::string hash;
     Type type;
-    QString icon;
-    ModeList modeList;
-    int replicationSource;
+    ModeMap modeList;
+    int replication_source;
 
     QSize resolution;
     double refresh_rate{0};
 
-    QString preferredMode;
-    QStringList preferredModes;
-    QSize sizeMm;
+    std::string preferredMode;
+    std::vector<std::string> preferred_modes;
+    QSize physical_size;
     QPointF position;
     QRectF enforced_geometry;
     Rotation rotation;
     qreal scale;
     bool enabled;
     bool primary;
-    bool followPreferredMode = false;
+    bool follow_preferred_mode = false;
 
     bool auto_resolution{false};
     bool auto_refresh_rate{false};
@@ -116,12 +114,19 @@ public:
 };
 
 template<>
-ModePtr Output::Private::get_mode(const QString& modeId) const
+ModePtr Output::Private::get_mode(std::string const& modeId) const
 {
-    if (!modeList.contains(modeId)) {
-        return ModePtr();
+    if (auto mode = modeList.find(modeId); mode != modeList.end()) {
+        return mode->second;
     }
-    return modeList[modeId];
+    return ModePtr();
+}
+
+template<>
+ModePtr
+Output::Private::get_mode(std::pair<std::string const, std::shared_ptr<Mode>> const& mode) const
+{
+    return mode.second;
 }
 
 }

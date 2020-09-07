@@ -28,21 +28,21 @@
 
 using namespace Disman;
 
-class TestModeListChange : public QObject
+class TestModeMapChange : public QObject
 {
     Q_OBJECT
 
 private:
     Disman::ConfigPtr getConfig();
-    Disman::ModeList createModeList();
-    bool compareModeList(Disman::ModeList before, Disman::ModeList& after);
+    Disman::ModeMap createModeMap();
+    bool compareModeMap(Disman::ModeMap before, Disman::ModeMap& after);
 
     QSize s0 = QSize(1920, 1080);
     QSize s1 = QSize(1600, 1200);
     QSize s2 = QSize(1280, 1024);
     QSize s3 = QSize(800, 600);
     QSize snew = QSize(777, 888);
-    QString idnew = QStringLiteral("666");
+    std::string idnew = "666";
 
 private Q_SLOTS:
     void initTestCase();
@@ -51,127 +51,127 @@ private Q_SLOTS:
     void modeListChange();
 };
 
-ConfigPtr TestModeListChange::getConfig()
+ConfigPtr TestModeMapChange::getConfig()
 {
     qputenv("DISMAN_IN_PROCESS", "1");
     auto* op = new GetConfigOperation();
     if (!op->exec()) {
-        qWarning("ConfigOperation error: %s", qPrintable(op->errorString()));
-        BackendManager::instance()->shutdownBackend();
+        qWarning("ConfigOperation error: %s", qPrintable(op->error_string()));
+        BackendManager::instance()->shutdown_backend();
         return ConfigPtr();
     }
 
-    BackendManager::instance()->shutdownBackend();
+    BackendManager::instance()->shutdown_backend();
 
     return op->config();
 }
 
-Disman::ModeList TestModeListChange::createModeList()
+Disman::ModeMap TestModeMapChange::createModeMap()
 {
 
-    Disman::ModeList newmodes;
+    Disman::ModeMap newmodes;
     {
-        QString _id = QString::number(11);
+        auto _id = std::to_string(11);
         Disman::ModePtr dismanMode(new Disman::Mode);
-        dismanMode->setId(_id);
-        dismanMode->setName(_id);
-        dismanMode->setSize(s0);
-        dismanMode->setRefreshRate(60);
-        newmodes.insert(_id, dismanMode);
+        dismanMode->set_id(_id);
+        dismanMode->set_name(_id);
+        dismanMode->set_size(s0);
+        dismanMode->set_refresh(60);
+        newmodes.insert({_id, dismanMode});
     }
     {
-        QString _id = QString::number(22);
+        auto _id = std::to_string(22);
         Disman::ModePtr dismanMode(new Disman::Mode);
-        dismanMode->setId(_id);
-        dismanMode->setName(_id);
-        dismanMode->setSize(s1);
-        dismanMode->setRefreshRate(60);
-        newmodes.insert(_id, dismanMode);
+        dismanMode->set_id(_id);
+        dismanMode->set_name(_id);
+        dismanMode->set_size(s1);
+        dismanMode->set_refresh(60);
+        newmodes.insert({_id, dismanMode});
     }
     {
-        QString _id = QString::number(33);
+        auto _id = std::to_string(33);
         Disman::ModePtr dismanMode(new Disman::Mode);
-        dismanMode->setId(_id);
-        dismanMode->setName(_id);
-        dismanMode->setSize(s2);
-        dismanMode->setRefreshRate(60);
-        newmodes.insert(_id, dismanMode);
+        dismanMode->set_id(_id);
+        dismanMode->set_name(_id);
+        dismanMode->set_size(s2);
+        dismanMode->set_refresh(60);
+        newmodes.insert({_id, dismanMode});
     }
     return newmodes;
 }
 
-void TestModeListChange::initTestCase()
+void TestModeMapChange::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
     qputenv("DISMAN_BACKEND", "Fake");
 }
 
-void TestModeListChange::cleanupTestCase()
+void TestModeMapChange::cleanupTestCase()
 {
-    BackendManager::instance()->shutdownBackend();
+    BackendManager::instance()->shutdown_backend();
 }
 
-void TestModeListChange::modeListChange()
+void TestModeMapChange::modeListChange()
 {
     // json file for the fake backend
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
 
     const ConfigPtr config = getConfig();
-    QVERIFY(!config.isNull());
+    QVERIFY(config);
 
-    auto output = config->outputs().first();
-    QVERIFY(!output.isNull());
+    auto output = config->outputs().begin()->second;
+    QVERIFY(output);
     auto modelist = output->modes();
 
-    auto mode = modelist.first();
-    mode->setId(QStringLiteral("44"));
-    mode->setSize(QSize(880, 440));
-    output->setModes(modelist);
+    auto mode = modelist.begin()->second;
+    mode->set_id("44");
+    mode->set_size(QSize(880, 440));
+    output->set_modes(modelist);
 
-    QCOMPARE(output->modes().first()->id(), QStringLiteral("44"));
-    QCOMPARE(output->modes().first()->size(), QSize(880, 440));
-    QVERIFY(!modelist.isEmpty());
+    QCOMPARE(output->modes().begin()->second->id(), "44");
+    QCOMPARE(output->modes().begin()->second->size(), QSize(880, 440));
+    QVERIFY(!modelist.empty());
 
-    ConfigMonitor::instance()->addConfig(config);
+    ConfigMonitor::instance()->add_config(config);
 
-    auto before = createModeList();
-    output->setModes(before);
-    output->setModes(before);
-    output->setModes(before);
-    QCOMPARE(output->modes().first()->size(), s0);
-    QCOMPARE(output->modes().first()->id(), QStringLiteral("11"));
+    auto before = createModeMap();
+    output->set_modes(before);
+    output->set_modes(before);
+    output->set_modes(before);
+    QCOMPARE(output->modes().begin()->second->size(), s0);
+    QCOMPARE(output->modes().begin()->second->id(), "11");
 
-    auto after = createModeList();
-    auto firstmode = after.first();
-    QVERIFY(!firstmode.isNull());
+    auto after = createModeMap();
+    auto firstmode = after.begin()->second;
+    QVERIFY(firstmode);
     QCOMPARE(firstmode->size(), s0);
-    QCOMPARE(firstmode->id(), QStringLiteral("11"));
-    firstmode->setSize(snew);
-    firstmode->setId(idnew);
-    output->setModes(after);
+    QCOMPARE(firstmode->id(), "11");
+    firstmode->set_size(snew);
+    firstmode->set_id(idnew);
+    output->set_modes(after);
 
-    QString _id = QString::number(11);
+    auto _id = std::to_string(11);
     Disman::ModePtr dismanMode(new Disman::Mode);
-    dismanMode->setId(_id);
-    dismanMode->setName(_id);
-    dismanMode->setSize(s0);
-    dismanMode->setRefreshRate(60);
-    before.insert(_id, dismanMode);
-    output->setModes(before);
+    dismanMode->set_id(_id);
+    dismanMode->set_name(_id);
+    dismanMode->set_size(s0);
+    dismanMode->set_refresh(60);
+    before.insert({_id, dismanMode});
+    output->set_modes(before);
     QCOMPARE(output->modes().size(), 3);
 
-    QString _id2 = QString::number(999);
+    auto _id2 = std::to_string(999);
     Disman::ModePtr dismanMode2(new Disman::Mode);
-    dismanMode2->setId(_id2);
-    dismanMode2->setName(_id2);
-    dismanMode2->setSize(s0);
-    dismanMode2->setRefreshRate(60);
-    before.insert(_id2, dismanMode2);
-    output->setModes(before);
+    dismanMode2->set_id(_id2);
+    dismanMode2->set_name(_id2);
+    dismanMode2->set_size(s0);
+    dismanMode2->set_refresh(60);
+    before.insert({_id2, dismanMode2});
+    output->set_modes(before);
     QCOMPARE(output->modes().size(), 4);
     QCOMPARE(output->modes()[_id2]->id(), _id2);
 }
 
-QTEST_MAIN(TestModeListChange)
+QTEST_MAIN(TestModeMapChange)
 
 #include "testmodelistchange.moc"
