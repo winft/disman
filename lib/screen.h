@@ -32,13 +32,6 @@ class DISMAN_EXPORT Screen : public QObject
     Q_OBJECT
 
 public:
-    Q_PROPERTY(int id READ id CONSTANT)
-    Q_PROPERTY(
-        QSize current_size READ current_size WRITE set_current_size NOTIFY current_size_changed)
-    Q_PROPERTY(QSize min_size READ min_size CONSTANT)
-    Q_PROPERTY(QSize max_size READ max_size CONSTANT)
-    Q_PROPERTY(int max_outputs_count READ max_outputs_count CONSTANT)
-
     Screen();
     ~Screen() override;
 

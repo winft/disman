@@ -45,7 +45,6 @@ namespace Disman
 class DISMAN_EXPORT Config : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(ScreenPtr screen READ screen)
 
 public:
     enum class Origin {
