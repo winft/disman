@@ -488,7 +488,7 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
     dismanOutput->set_follow_preferred_mode(m_hotplugModeUpdate);
 
     if (isConnected()) {
-        Disman::ModeList dismanModes;
+        Disman::ModeMap dismanModes;
         for (auto const& [key, mode] : m_modes) {
             dismanModes.insert({std::to_string(key), mode->toDismanMode()});
         }

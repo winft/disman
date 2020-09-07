@@ -122,7 +122,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
         | Config::Feature::OutputReplication;
     config->set_supported_features(features);
 
-    Disman::OutputList dismanOutputs;
+    Disman::OutputMap dismanOutputs;
 
     for (auto const& [key, output] : m_outputs) {
         if (!output->isConnected()) {
@@ -148,7 +148,7 @@ Disman::ConfigPtr XRandRConfig::update_config(Disman::ConfigPtr& config) const
 
 bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
 {
-    const Disman::OutputList dismanOutputs = config->outputs();
+    auto const dismanOutputs = config->outputs();
 
     const QSize newScreenSize = screenSize(config);
     const QSize currentScreenSize = m_screen->currentSize();
@@ -175,7 +175,7 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
         }
     }
 
-    Disman::OutputList toDisable, toEnable, toChange;
+    Disman::OutputMap toDisable, toEnable, toChange;
 
     // Only set the output as primary if it is enabled.
     if (auto primary = config->primary_output(); primary && primary->enabled()) {
@@ -391,7 +391,7 @@ void XRandRConfig::printConfig(const ConfigPtr& config) const
                                    ? std::to_string(config->primary_output()->id()).c_str()
                                    : "none");
 
-    const OutputList outputs = config->outputs();
+    auto const outputs = config->outputs();
     for (auto const& [key, output] : outputs) {
         qCDebug(DISMAN_XRANDR) << "\n-----------------------------------------------------\n"
                                << "\n"

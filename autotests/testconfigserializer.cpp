@@ -127,7 +127,7 @@ private Q_SLOTS:
 
     void testSerializeOutput()
     {
-        Disman::ModeList modes;
+        Disman::ModeMap modes;
         Disman::ModePtr mode(new Disman::Mode);
         mode->set_id("1");
         mode->set_name("800x600");

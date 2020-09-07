@@ -127,7 +127,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->set_position(m_head->position());
     output->set_rotation(s_rotationMap.at(m_head->transform()));
 
-    ModeList modeList;
+    ModeMap modeList;
     std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
     QString currentModeId = QStringLiteral("-1");

@@ -104,7 +104,7 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     output->set_position(m_device->globalPosition());
     output->set_rotation(s_rotationMap.at(m_device->transform()));
 
-    ModeList modeList;
+    ModeMap modeList;
     std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
     ModePtr current_mode;

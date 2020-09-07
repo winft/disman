@@ -356,7 +356,7 @@ public:
         info[QStringLiteral("mode")] = mode_info();
     }
 
-    void get_replication_source(OutputPtr& output, OutputList const& outputs) const
+    void get_replication_source(OutputPtr& output, OutputMap const& outputs) const
     {
         auto replicate_hash = get_value(output, "replicate", QString(), nullptr).toStdString();
 

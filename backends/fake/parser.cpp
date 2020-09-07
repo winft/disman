@@ -48,7 +48,7 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
         return config;
     }
 
-    OutputList outputList;
+    OutputMap outputList;
     OutputPtr primary;
     for (auto const& value : outputs) {
         bool is_primary = false;
@@ -136,7 +136,7 @@ OutputPtr Parser::outputFromJson(QMap<QString, QVariant> map, bool& primary)
     output->set_preferred_modes(preferredModes);
     map.remove(QStringLiteral("preferredModes"));
 
-    ModeList modelist;
+    ModeMap modelist;
     const QVariantList modes = map[QStringLiteral("modes")].toList();
     Q_FOREACH (const QVariant& modeValue, modes) {
         const ModePtr mode = Parser::modeFromJson(modeValue);

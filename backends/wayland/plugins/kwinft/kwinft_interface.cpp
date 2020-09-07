@@ -161,8 +161,7 @@ void KwinftInterface::updateConfig(Disman::ConfigPtr& config)
     config->set_valid(m_connection->display());
 
     // Removing removed outputs
-    const Disman::OutputList outputs = config->outputs();
-    for (auto const& [key, output] : outputs) {
+    for (auto const& [key, output] : config->outputs()) {
         if (m_outputMap.find(output->id()) == m_outputMap.end()) {
             config->remove_output(output->id());
         }

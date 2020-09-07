@@ -78,7 +78,7 @@ ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) cons
     return ModePtr();
 }
 
-bool Output::Private::compareModeList(const ModeList& before, const ModeList& after)
+bool Output::Private::compareModeMap(const ModeMap& before, const ModeMap& after)
 {
     if (before.size() != after.size()) {
         return false;
@@ -197,12 +197,12 @@ ModePtr Output::mode(std::string const& id) const
     return d->modeList[id];
 }
 
-ModeList Output::modes() const
+ModeMap Output::modes() const
 {
     return d->modeList;
 }
 
-void Output::set_modes(const ModeList& modes)
+void Output::set_modes(const ModeMap& modes)
 {
     d->modeList = modes;
 }
@@ -474,7 +474,7 @@ void Output::apply(const OutputPtr& other)
     set_replication_source(other->d->replication_source);
 
     set_preferred_modes(other->d->preferred_modes);
-    ModeList modes;
+    ModeMap modes;
     for (auto const& [key, mode] : other->modes()) {
         modes.insert({key, mode->clone()});
     }

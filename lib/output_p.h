@@ -81,14 +81,14 @@ public:
         return mode(resolution, refresh_rate);
     }
 
-    bool compareModeList(const ModeList& before, const ModeList& after);
+    bool compareModeMap(const ModeMap& before, const ModeMap& after);
 
     int id;
     std::string name;
     std::string description;
     std::string hash;
     Type type;
-    ModeList modeList;
+    ModeMap modeList;
     int replication_source;
 
     QSize resolution;

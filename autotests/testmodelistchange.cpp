@@ -28,14 +28,14 @@
 
 using namespace Disman;
 
-class TestModeListChange : public QObject
+class TestModeMapChange : public QObject
 {
     Q_OBJECT
 
 private:
     Disman::ConfigPtr getConfig();
-    Disman::ModeList createModeList();
-    bool compareModeList(Disman::ModeList before, Disman::ModeList& after);
+    Disman::ModeMap createModeMap();
+    bool compareModeMap(Disman::ModeMap before, Disman::ModeMap& after);
 
     QSize s0 = QSize(1920, 1080);
     QSize s1 = QSize(1600, 1200);
@@ -51,7 +51,7 @@ private Q_SLOTS:
     void modeListChange();
 };
 
-ConfigPtr TestModeListChange::getConfig()
+ConfigPtr TestModeMapChange::getConfig()
 {
     qputenv("DISMAN_IN_PROCESS", "1");
     auto* op = new GetConfigOperation();
@@ -66,10 +66,10 @@ ConfigPtr TestModeListChange::getConfig()
     return op->config();
 }
 
-Disman::ModeList TestModeListChange::createModeList()
+Disman::ModeMap TestModeMapChange::createModeMap()
 {
 
-    Disman::ModeList newmodes;
+    Disman::ModeMap newmodes;
     {
         auto _id = std::to_string(11);
         Disman::ModePtr dismanMode(new Disman::Mode);
@@ -100,18 +100,18 @@ Disman::ModeList TestModeListChange::createModeList()
     return newmodes;
 }
 
-void TestModeListChange::initTestCase()
+void TestModeMapChange::initTestCase()
 {
     qputenv("DISMAN_LOGGING", "false");
     qputenv("DISMAN_BACKEND", "Fake");
 }
 
-void TestModeListChange::cleanupTestCase()
+void TestModeMapChange::cleanupTestCase()
 {
     BackendManager::instance()->shutdown_backend();
 }
 
-void TestModeListChange::modeListChange()
+void TestModeMapChange::modeListChange()
 {
     // json file for the fake backend
     qputenv("DISMAN_BACKEND_ARGS", "TEST_DATA=" TEST_DATA "singleoutput.json");
@@ -134,14 +134,14 @@ void TestModeListChange::modeListChange()
 
     ConfigMonitor::instance()->add_config(config);
 
-    auto before = createModeList();
+    auto before = createModeMap();
     output->set_modes(before);
     output->set_modes(before);
     output->set_modes(before);
     QCOMPARE(output->modes().begin()->second->size(), s0);
     QCOMPARE(output->modes().begin()->second->id(), "11");
 
-    auto after = createModeList();
+    auto after = createModeMap();
     auto firstmode = after.begin()->second;
     QVERIFY(firstmode);
     QCOMPARE(firstmode->size(), s0);
@@ -172,6 +172,6 @@ void TestModeListChange::modeListChange()
     QCOMPARE(output->modes()[_id2]->id(), _id2);
 }
 
-QTEST_MAIN(TestModeListChange)
+QTEST_MAIN(TestModeMapChange)
 
 #include "testmodelistchange.moc"

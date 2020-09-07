@@ -26,16 +26,18 @@ namespace Disman
 {
 
 class Config;
-using ConfigPtr = std::shared_ptr<Disman::Config>;
+using ConfigPtr = std::shared_ptr<Config>;
+
 class Screen;
-using ScreenPtr = std::shared_ptr<Disman::Screen>;
+using ScreenPtr = std::shared_ptr<Screen>;
+
 class Output;
-using OutputPtr = std::shared_ptr<Disman::Output>;
-using OutputList = std::map<int, Disman::OutputPtr>;
+using OutputPtr = std::shared_ptr<Output>;
+using OutputMap = std::map<int, OutputPtr>;
 
 class Mode;
-using ModePtr = std::shared_ptr<Disman::Mode>;
-using ModeList = std::map<std::string, Disman::ModePtr>;
+using ModePtr = std::shared_ptr<Mode>;
+using ModeMap = std::map<std::string, ModePtr>;
 
 }
 

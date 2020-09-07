@@ -152,7 +152,7 @@ void testQScreenBackend::commonUsagePattern()
     auto* op = new GetConfigOperation();
     op->exec();
 
-    const Disman::OutputList outputs = op->config()->outputs();
+    auto outputs = op->config()->outputs();
 
     QVariantList outputList;
     for (auto const& [key, output] : outputs) {

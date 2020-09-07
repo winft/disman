@@ -122,7 +122,7 @@ void QScreenOutput::updateDismanOutput(OutputPtr& output) const
         + QString::number(m_qscreen->refreshRate());
     mode->set_name(modename.toStdString());
 
-    ModeList modes;
+    ModeMap modes;
     modes[modeid] = mode;
     output->set_modes(modes);
     output->set_mode(mode);

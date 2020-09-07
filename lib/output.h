@@ -122,8 +122,8 @@ public:
     ModePtr mode(std::string const& id) const;
     ModePtr mode(QSize const& resolution, double refresh_rate) const;
 
-    ModeList modes() const;
-    void set_modes(const ModeList& modes);
+    ModeMap modes() const;
+    void set_modes(const ModeMap& modes);
 
     /**
      * Sets the mode.
@@ -307,7 +307,7 @@ private:
 
 DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output);
 
-Q_DECLARE_METATYPE(Disman::OutputList)
+Q_DECLARE_METATYPE(Disman::OutputMap)
 Q_DECLARE_METATYPE(Disman::Output::Rotation)
 Q_DECLARE_METATYPE(Disman::Output::Type)
 

@@ -120,8 +120,7 @@ void TestPnp::print()
                      ? std::to_string(m_config->primary_output()->id()).c_str()
                      : "none");
 
-    const OutputList outputs = m_config->outputs();
-    for (auto const& [key, output] : outputs) {
+    for (auto const& [key, output] : m_config->outputs()) {
         qDebug() << "\n-----------------------------------------------------\n";
         qDebug() << "Id: " << output->id();
         qDebug() << "Name: " << output->name().c_str();

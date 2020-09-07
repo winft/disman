@@ -274,7 +274,7 @@ ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
     if (map.contains(QLatin1String("outputs"))) {
         const QDBusArgument& outputsArg = map[QStringLiteral("outputs")].value<QDBusArgument>();
         outputsArg.beginArray();
-        OutputList outputs;
+        OutputMap outputs;
         while (!outputsArg.atEnd()) {
             QVariant value;
             outputsArg >> value;
@@ -368,7 +368,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
             output->set_retention(deserialize_retention(value));
         } else if (key == QLatin1String("modes")) {
             const QDBusArgument arg = value.value<QDBusArgument>();
-            ModeList modes;
+            ModeMap modes;
             arg.beginArray();
             while (!arg.atEnd()) {
                 QVariant value;

@@ -171,7 +171,7 @@ void KWaylandInterface::updateConfig(Disman::ConfigPtr& config)
     }
 
     // Add Disman::Outputs that aren't in the list yet.
-    Disman::OutputList dismanOutputs = config->outputs();
+    auto dismanOutputs = config->outputs();
 
     for (auto& [key, output] : m_outputMap) {
         Disman::OutputPtr dismanOutput;

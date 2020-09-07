@@ -44,7 +44,7 @@ public:
     {
     }
 
-    auto remove_output(OutputList::iterator iter)
+    auto remove_output(OutputMap::iterator iter)
     {
         if (iter == outputs.end()) {
             return iter;
@@ -71,7 +71,7 @@ public:
     bool valid;
     ScreenPtr screen;
     OutputPtr primary_output;
-    OutputList outputs;
+    OutputMap outputs;
     Features supported_features;
     bool tablet_mode_available;
     bool tablet_mode_engaged;
@@ -291,7 +291,7 @@ void Config::set_tablet_mode_engaged(bool engaged)
     d->tablet_mode_engaged = engaged;
 }
 
-OutputList Config::outputs() const
+OutputMap Config::outputs() const
 {
     return d->outputs;
 }
@@ -335,7 +335,7 @@ void Config::remove_output(int outputId)
     d->remove_output(d->outputs.find(outputId));
 }
 
-void Config::set_outputs(const OutputList& outputs)
+void Config::set_outputs(OutputMap const& outputs)
 {
     auto primary = primary_output();
     for (auto iter = d->outputs.begin(), end = d->outputs.end(); iter != end;) {

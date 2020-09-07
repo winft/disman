@@ -144,14 +144,14 @@ public:
     void setScreen(const ScreenPtr& screen);
 
     OutputPtr output(int outputId) const;
-    OutputList outputs() const;
+    OutputMap outputs() const;
 
     OutputPtr primary_output() const;
     void set_primary_output(const OutputPtr& output);
 
     void add_output(const OutputPtr& output);
     void remove_output(int outputId);
-    void set_outputs(const OutputList& outputs);
+    void set_outputs(OutputMap const& outputs);
 
     bool valid() const;
     void set_valid(bool valid);

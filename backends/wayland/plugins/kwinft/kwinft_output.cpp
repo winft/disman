@@ -106,7 +106,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
     output->set_position(m_device->geometry().topLeft());
     output->set_rotation(s_rotationMap.at(m_device->transform()));
 
-    ModeList modeList;
+    ModeMap modeList;
 
     ModePtr current_mode;
     std::vector<std::string> preferredModeIds;

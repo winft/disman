@@ -224,7 +224,7 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    auto start_output = first ? first : primary_impl(outputs, OutputList());
+    auto start_output = first ? first : primary_impl(outputs, OutputMap());
     if (!start_output) {
         qCDebug(DISMAN) << "No displays enabled. Nothing to generate.";
         return;
@@ -236,15 +236,15 @@ void Generator::extend_impl(ConfigPtr const& config,
     }
 
     config->set_primary_output(start_output);
-    line_up(start_output, OutputList(), outputs, direction);
+    line_up(start_output, OutputMap(), outputs, direction);
 }
 
 void Generator::extend_derived(ConfigPtr const& config,
                                OutputPtr const& first,
                                Extend_direction direction)
 {
-    OutputList old_outputs;
-    OutputList new_outputs;
+    OutputMap old_outputs;
+    OutputMap new_outputs;
 
     config->set_primary_output(first);
     get_outputs_division(first, config, old_outputs, new_outputs);
@@ -253,8 +253,8 @@ void Generator::extend_derived(ConfigPtr const& config,
 
 void Generator::get_outputs_division(OutputPtr const& first,
                                      ConfigPtr const& config,
-                                     OutputList& old_outputs,
-                                     OutputList& new_outputs)
+                                     OutputMap& old_outputs,
+                                     OutputMap& new_outputs)
 {
     OutputPtr recent_output;
 
@@ -281,8 +281,8 @@ void Generator::get_outputs_division(OutputPtr const& first,
 }
 
 void Generator::line_up(OutputPtr const& first,
-                        OutputList const& old_outputs,
-                        OutputList const& new_outputs,
+                        OutputMap const& old_outputs,
+                        OutputMap const& new_outputs,
                         Extend_direction direction)
 {
     first->set_position(QPointF(0, 0));
@@ -329,7 +329,7 @@ void Generator::replicate_impl(const ConfigPtr& config)
 {
     auto outputs = config->outputs();
 
-    auto source = primary_impl(outputs, OutputList());
+    auto source = primary_impl(outputs, OutputMap());
     config->set_primary_output(source);
 
     if (m_derived) {
@@ -350,8 +350,8 @@ void Generator::replicate_impl(const ConfigPtr& config)
 
 void Generator::replicate_derived(ConfigPtr const& config, OutputPtr const& source)
 {
-    OutputList old_outputs;
-    OutputList new_outputs;
+    OutputMap old_outputs;
+    OutputMap new_outputs;
 
     get_outputs_division(source, config, old_outputs, new_outputs);
 
@@ -385,22 +385,22 @@ bool Generator::check_config(ConfigPtr const& config)
     return true;
 }
 
-OutputPtr Generator::primary(OutputList const& exclusions) const
+OutputPtr Generator::primary(OutputMap const& exclusions) const
 {
     return primary_impl(m_config->outputs(), exclusions);
 }
 
 OutputPtr Generator::embedded() const
 {
-    return embedded_impl(m_config->outputs(), OutputList());
+    return embedded_impl(m_config->outputs(), OutputMap());
 }
 
-OutputPtr Generator::biggest(OutputList const& exclusions) const
+OutputPtr Generator::biggest(OutputMap const& exclusions) const
 {
     return biggest_impl(m_config->outputs(), false, exclusions);
 }
 
-OutputPtr Generator::primary_impl(OutputList const& outputs, OutputList const& exclusions) const
+OutputPtr Generator::primary_impl(OutputMap const& outputs, OutputMap const& exclusions) const
 {
     if (auto output = m_config->primary_output()) {
         if (m_derived && exclusions.find(output->id()) != exclusions.end()) {
@@ -416,7 +416,7 @@ OutputPtr Generator::primary_impl(OutputList const& outputs, OutputList const& e
     return biggest_impl(outputs, true, exclusions);
 }
 
-OutputPtr Generator::embedded_impl(OutputList const& outputs, OutputList const& exclusions) const
+OutputPtr Generator::embedded_impl(OutputMap const& outputs, OutputMap const& exclusions) const
 {
     auto it = std::find_if(outputs.cbegin(), outputs.cend(), [&exclusions](auto const& output) {
         return output.second->type() == Output::Panel
@@ -425,9 +425,9 @@ OutputPtr Generator::embedded_impl(OutputList const& outputs, OutputList const& 
     return it != outputs.cend() ? it->second : OutputPtr();
 }
 
-OutputPtr Generator::biggest_impl(OutputList const& outputs,
+OutputPtr Generator::biggest_impl(OutputMap const& outputs,
                                   bool only_enabled,
-                                  const OutputList& exclusions) const
+                                  const OutputMap& exclusions) const
 {
     auto max_area = 0;
     OutputPtr biggest;
