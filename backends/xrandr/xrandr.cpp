@@ -49,7 +49,7 @@ bool XRandR::s_xorgCacheInitialized = false;
 using namespace Disman;
 
 XRandR::XRandR()
-    : Disman::Backend()
+    : Disman::BackendImpl()
     , m_x11Helper(nullptr)
     , m_valid(false)
     , m_configChangeCompressor(nullptr)

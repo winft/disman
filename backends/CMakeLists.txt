@@ -2,6 +2,7 @@
 # Internal library for backends
 ####################################################################################################
 set(backend_SRCS
+  backend_impl.cpp
   edid.cpp
   filer_controller.cpp
   logging.cpp

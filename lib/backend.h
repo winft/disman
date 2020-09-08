@@ -29,14 +29,12 @@ public:
     explicit Backend(QObject* parent = nullptr);
 
     /**
-     * This is where the backend should perform all initialization. This method
-     * is always called right after the backend is created.
-     *
-     * Default implementation does nothing.
+     * This is where the backend can perform all initialization. This method is always called right
+     * after the backend is created.
      *
      * @p arguments Optional arguments passed by caller. Used mostly for unit-testing.
      */
-    virtual void init(const QVariantMap& arguments);
+    virtual void init(const QVariantMap& arguments) = 0;
 
     /**
      * Returns a user-friendly name of the backend.
