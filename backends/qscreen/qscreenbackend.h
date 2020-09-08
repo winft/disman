@@ -27,7 +27,6 @@
 
 namespace Disman
 {
-class Filer_controller;
 class QScreenConfig;
 
 class QScreenBackend : public Disman::BackendImpl
@@ -48,7 +47,6 @@ public:
 private:
     bool m_valid;
 
-    std::unique_ptr<Filer_controller> m_filer_controller;
     static QScreenConfig* s_internalConfig;
 };
 

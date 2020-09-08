@@ -42,7 +42,6 @@ using namespace Disman;
 
 WaylandBackend::WaylandBackend()
     : Disman::BackendImpl()
-    , m_filer_controller{new Filer_controller}
     , m_screen{new WaylandScreen}
 {
     qCDebug(DISMAN_WAYLAND) << "Loading Wayland backend.";
@@ -127,7 +126,7 @@ ConfigPtr WaylandBackend::config_impl() const
     // configuration and then update one more time so the windowing system can override values
     // it provides itself.
     m_interface->updateConfig(config);
-    m_filer_controller->read(config);
+    filer_controller()->read(config);
     m_interface->updateConfig(config);
 
     ScreenPtr screen = config->screen();
@@ -144,7 +143,7 @@ bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
                                 << "\n  New config:" << config;
     }
 
-    m_filer_controller->write(config);
+    filer_controller()->write(config);
 
     for (auto const& [key, output] : config->outputs()) {
         if (auto source_id = output->replication_source()) {
@@ -265,7 +264,7 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
             } else {
                 // We set the windowing system to our saved values. They were overriden before so
                 // re-read them.
-                m_filer_controller->read(cfg);
+                filer_controller()->read(cfg);
             }
 
             m_config = cfg;

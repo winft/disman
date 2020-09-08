@@ -24,11 +24,6 @@
 #include <QObject>
 #include <memory>
 
-namespace Disman
-{
-class Filer_controller;
-}
-
 class Fake : public Disman::BackendImpl
 {
     Q_OBJECT
@@ -61,8 +56,6 @@ private:
 
     QString mConfigFile;
     mutable Disman::ConfigPtr mConfig;
-
-    std::unique_ptr<Disman::Filer_controller> m_filer_controller;
 };
 
 #endif

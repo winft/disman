@@ -30,7 +30,6 @@ QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
 QScreenBackend::QScreenBackend()
     : Disman::BackendImpl()
     , m_valid(true)
-    , m_filer_controller{new Filer_controller}
 {
     if (s_internalConfig == nullptr) {
         s_internalConfig = new QScreenConfig();
@@ -59,7 +58,7 @@ ConfigPtr QScreenBackend::config_impl() const
     ConfigPtr config(new Config);
 
     s_internalConfig->update_config(config);
-    m_filer_controller->read(config);
+    filer_controller()->read(config);
     s_internalConfig->update_config(config);
 
     return config;

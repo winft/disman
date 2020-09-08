@@ -85,8 +85,6 @@ XRandR::XRandR()
         return;
     }
 
-    m_filer_controller.reset(new Filer_controller);
-
     if (s_screen == nullptr) {
         s_screen = XCB::screenOfDisplay(XCB::connection(), QX11Info::appScreen());
         s_rootWindow = s_screen->root;
@@ -204,7 +202,7 @@ void XRandR::handle_change()
             generator.optimize();
             cfg = generator.config();
         } else {
-            m_filer_controller->read(cfg);
+            filer_controller()->read(cfg);
         }
 
         m_config = cfg;
@@ -242,7 +240,7 @@ ConfigPtr XRandR::config_impl() const
     Disman::ConfigPtr config(new Disman::Config);
 
     s_internalConfig->update_config(config);
-    m_filer_controller->read(config);
+    filer_controller()->read(config);
     s_internalConfig->update_config(config);
 
     return config;
@@ -250,7 +248,7 @@ ConfigPtr XRandR::config_impl() const
 
 bool XRandR::set_config_impl(Disman::ConfigPtr const& config)
 {
-    m_filer_controller->write(config);
+    filer_controller()->write(config);
     return s_internalConfig->applyDismanConfig(config);
 }
 
