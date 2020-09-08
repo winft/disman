@@ -114,7 +114,7 @@ QString WaylandBackend::service_name() const
     return QStringLiteral("org.kwinft.disman.backend.wayland");
 }
 
-ConfigPtr WaylandBackend::config() const
+ConfigPtr WaylandBackend::config_impl() const
 {
     // Note: This should ONLY be called from GetConfigOperation!
 

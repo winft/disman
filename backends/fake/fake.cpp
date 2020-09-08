@@ -79,7 +79,7 @@ QString Fake::service_name() const
     return QStringLiteral("org.kwinft.disman.fakebackend");
 }
 
-ConfigPtr Fake::config() const
+ConfigPtr Fake::config_impl() const
 {
     if (!mConfig) {
         mConfig = Parser::fromJson(mConfigFile);

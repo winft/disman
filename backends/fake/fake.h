@@ -42,7 +42,7 @@ public:
 
     QString name() const override;
     QString service_name() const override;
-    Disman::ConfigPtr config() const override;
+    Disman::ConfigPtr config_impl() const override;
     bool set_config_impl(Disman::ConfigPtr const& config) override;
     bool valid() const override;
 

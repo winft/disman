@@ -17,6 +17,11 @@ void BackendImpl::init([[maybe_unused]] QVariantMap const& arguments)
 {
 }
 
+Disman::ConfigPtr BackendImpl::config() const
+{
+    return config_impl();
+}
+
 void BackendImpl::set_config(Disman::ConfigPtr const& config)
 {
     if (!config) {

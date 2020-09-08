@@ -237,7 +237,7 @@ void XRandR::screenChanged(xcb_randr_rotation_t rotation,
 
 // TODO: read from control file!
 
-ConfigPtr XRandR::config() const
+ConfigPtr XRandR::config_impl() const
 {
     Disman::ConfigPtr config(new Disman::Config);
 

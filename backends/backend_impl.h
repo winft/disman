@@ -19,9 +19,11 @@ public:
     explicit BackendImpl();
     void init(const QVariantMap& arguments) override;
 
+    ConfigPtr config() const override;
     void set_config(ConfigPtr const& config) override;
 
 protected:
+    virtual ConfigPtr config_impl() const = 0;
     virtual bool set_config_impl(ConfigPtr const& config) = 0;
 };
 
