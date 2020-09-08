@@ -248,14 +248,6 @@ ConfigPtr XRandR::config() const
     return config;
 }
 
-void XRandR::set_config(const ConfigPtr& config)
-{
-    if (!config) {
-        return;
-    }
-    set_config_impl(config);
-}
-
 bool XRandR::set_config_impl(Disman::ConfigPtr const& config)
 {
     m_filer_controller->write(config);

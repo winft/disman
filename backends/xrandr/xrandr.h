@@ -49,8 +49,9 @@ public:
 
     QString name() const override;
     QString service_name() const override;
+
     Disman::ConfigPtr config() const override;
-    void set_config(const Disman::ConfigPtr& config) override;
+    bool set_config_impl(Disman::ConfigPtr const& config) override;
     bool valid() const override;
 
     static QByteArray outputEdid(xcb_randr_output_t outputId);
@@ -74,8 +75,6 @@ private:
     void handle_change();
 
     static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
-
-    bool set_config_impl(Disman::ConfigPtr const& config);
 
     static xcb_screen_t* s_screen;
     static xcb_window_t s_rootWindow;

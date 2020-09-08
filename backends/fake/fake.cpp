@@ -90,12 +90,13 @@ ConfigPtr Fake::config() const
     return mConfig;
 }
 
-void Fake::set_config(const ConfigPtr& config)
+bool Fake::set_config_impl(const ConfigPtr& config)
 {
     qCDebug(DISMAN_FAKE) << "set config" << config->outputs();
     m_filer_controller->write(config);
     mConfig = config->clone();
     emit config_changed(mConfig);
+    return true;
 }
 
 bool Fake::valid() const

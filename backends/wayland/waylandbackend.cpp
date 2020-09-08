@@ -136,14 +136,6 @@ ConfigPtr WaylandBackend::config() const
     return config;
 }
 
-void WaylandBackend::set_config(const Disman::ConfigPtr& newconfig)
-{
-    if (!newconfig) {
-        return;
-    }
-    set_config_impl(newconfig);
-}
-
 bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
 {
     if (QLoggingCategory category("disman.wayland"); category.isEnabled(QtDebugMsg)) {

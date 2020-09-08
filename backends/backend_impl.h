@@ -18,6 +18,11 @@ class BackendImpl : public Backend
 public:
     explicit BackendImpl();
     void init(const QVariantMap& arguments) override;
+
+    void set_config(ConfigPtr const& config) override;
+
+protected:
+    virtual bool set_config_impl(ConfigPtr const& config) = 0;
 };
 
 }

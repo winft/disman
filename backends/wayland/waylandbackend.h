@@ -50,7 +50,7 @@ public:
     bool valid() const override;
 
     Disman::ConfigPtr config() const override;
-    void set_config(const Disman::ConfigPtr& config) override;
+    bool set_config_impl(Disman::ConfigPtr const& config) override;
 
     std::map<int, WaylandOutput*> outputMap() const;
 
@@ -72,8 +72,6 @@ private:
     void queryInterface(KPluginMetaData* plugin);
     void takeInterface(const PendingInterface& pending);
     void rejectInterface(const PendingInterface& pending);
-
-    bool set_config_impl(Disman::ConfigPtr const& config);
 
     std::unique_ptr<Filer_controller> m_filer_controller;
 
