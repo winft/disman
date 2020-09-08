@@ -17,7 +17,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
 #include "edid.h"
-#include "disman_debug_edid.h"
+
+#include "logging.h"
 
 #include <math.h>
 
@@ -223,13 +224,13 @@ bool Edid::Private::parse(const QByteArray& rawData)
     /* check header */
     if (length < 128) {
         if (length > 0) {
-            qCWarning(DISMAN_EDID) << "Invalid EDID length (" << length << " bytes)";
+            qCWarning(DISMAN_BACKEND) << "Invalid EDID length (" << length << " bytes)";
         }
         valid = false;
         return valid;
     }
     if (data[0] != 0x00 || data[1] != 0xff) {
-        qCWarning(DISMAN_EDID) << "Failed to parse EDID header";
+        qCWarning(DISMAN_BACKEND) << "Failed to parse EDID header";
         valid = false;
         return valid;
     }
@@ -321,7 +322,7 @@ bool Edid::Private::parse(const QByteArray& rawData)
         } else if (data[i + 3] == GCM_DESCRIPTOR_DISPLAY_PRODUCT_SERIAL_NUMBER) {
             serialNumber = edidParseString(&data[i + 5]);
         } else if (data[i + 3] == GCM_DESCRIPTOR_COLOR_MANAGEMENT_DATA) {
-            qCWarning(DISMAN_EDID) << "failing to parse color management data";
+            qCWarning(DISMAN_BACKEND) << "failing to parse color management data";
         } else if (data[i + 3] == GCM_DESCRIPTOR_ALPHANUMERIC_DATA_STRING) {
             eisaId = edidParseString(&data[i + 5]);
         } else if (data[i + 3] == GCM_DESCRIPTOR_COLOR_POINT) {

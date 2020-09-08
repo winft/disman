@@ -19,8 +19,6 @@
 #ifndef DISMAN_EDID_H
 #define DISMAN_EDID_H
 
-#include "disman_export.h"
-
 #include <QQuaternion>
 #include <QtGlobal>
 
@@ -30,7 +28,7 @@
 namespace Disman
 {
 
-class DISMAN_EXPORT Edid
+class Edid
 {
 public:
     explicit Edid(const QByteArray& data);

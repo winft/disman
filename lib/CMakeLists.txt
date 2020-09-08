@@ -10,7 +10,6 @@ set(disman_SRCS
   generator.cpp
   screen.cpp
   output.cpp
-  edid.cpp
   mode.cpp
   log.cpp
 )
@@ -23,12 +22,6 @@ ecm_qt_declare_logging_category(disman_SRCS
   HEADER disman_debug.h
   IDENTIFIER DISMAN
   CATEGORY_NAME disman
-)
-
-ecm_qt_declare_logging_category(disman_SRCS
-  HEADER disman_debug_edid.h
-  IDENTIFIER DISMAN_EDID
-  CATEGORY_NAME disman.edid
 )
 
 add_library(Disman SHARED ${disman_SRCS})
@@ -72,7 +65,6 @@ set(disman_HEADERS
   config.h
   configmonitor.h
   configoperation.h
-  edid.h
   generator.h
   getconfigoperation.h
   log.h
