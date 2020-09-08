@@ -21,7 +21,7 @@
 #include "qscreenconfig.h"
 #include "qscreenoutput.h"
 
-#include "../filer_controller.h"
+#include "filer_controller.h"
 
 using namespace Disman;
 

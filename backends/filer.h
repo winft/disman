@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filer_helpers.h"
 #include "output_filer.h"
 
-#include "../logging.h"
+#include "logging.h"
 #include <config.h>
 #include <output.h>
 #include <types.h>

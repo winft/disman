@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "filer_controller.h"
 
-#include "../logging.h"
 #include "filer.h"
+#include "logging.h"
 
 namespace Disman
 {

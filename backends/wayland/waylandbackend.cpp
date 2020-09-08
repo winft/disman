@@ -23,7 +23,7 @@
 #include "waylandoutput.h"
 #include "waylandscreen.h"
 
-#include "../filer_controller.h"
+#include "filer_controller.h"
 
 #include "tabletmodemanager_interface.h"
 #include "wayland_logging.h"

@@ -25,7 +25,7 @@
 
 #include "xrandr_logging.h"
 
-#include "../filer_controller.h"
+#include "filer_controller.h"
 
 #include "config.h"
 #include "generator.h"

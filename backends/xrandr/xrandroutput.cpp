@@ -24,7 +24,7 @@
 #include "xrandrconfig.h"
 #include "xrandrmode.h"
 
-#include "../utils.h"
+#include "utils.h"
 #include "xrandr_logging.h"
 
 #include <xcb/render.h>

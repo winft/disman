@@ -20,7 +20,7 @@
 
 #include "fake_logging.h"
 
-#include "../filer_controller.h"
+#include "filer_controller.h"
 
 #include "config.h"
 #include <output.h>
