@@ -27,6 +27,7 @@ namespace Disman
 
 /**
  * Generic Config generator that also provides
+ * TODO
  */
 class DISMAN_EXPORT Generator
 {
@@ -48,6 +49,7 @@ public:
     bool extend(Extend_direction direction);
     bool extend(OutputPtr const& first, Extend_direction direction);
     bool replicate();
+    bool disable_embedded();
 
     OutputPtr primary(OutputMap const& exclusions = OutputMap()) const;
     OutputPtr embedded() const;

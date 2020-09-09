@@ -139,6 +139,35 @@ bool Generator::replicate()
     return true;
 }
 
+bool Generator::disable_embedded()
+{
+    assert(m_config);
+    auto config = m_config->clone();
+
+    auto embedded = embedded_impl(config->outputs(), OutputMap());
+    if (!embedded) {
+        return false;
+    }
+
+    auto biggest_external = biggest_impl(config->outputs(), false, {{embedded->id(), embedded}});
+    if (!biggest_external) {
+        return false;
+    }
+
+    embedded->set_enabled(false);
+    biggest_external->set_enabled(true);
+
+    // TODO: reorder positions.
+
+    if (!check_config(config)) {
+        qCDebug(DISMAN) << "Could not disable embedded output. Config unchanged.";
+        return false;
+    }
+
+    m_config->apply(config);
+    return true;
+}
+
 ConfigPtr Generator::optimize_impl()
 {
     qCDebug(DISMAN) << "Generates ideal config for" << m_config->outputs().size() << "displays.";
