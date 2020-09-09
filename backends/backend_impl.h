@@ -12,6 +12,7 @@
 
 namespace Disman
 {
+class Device;
 class Filer_controller;
 
 class BackendImpl : public Backend
@@ -34,7 +35,12 @@ protected:
     virtual bool set_config_impl(ConfigPtr const& config) = 0;
 
 private:
+    void load_lid_config();
+
+    std::unique_ptr<Device> m_device;
     std::unique_ptr<Filer_controller> m_filer_controller;
+
+    mutable bool m_config_initialized{false};
 };
 
 }
