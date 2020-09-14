@@ -200,10 +200,10 @@ double Generator::best_scale(OutputPtr const& output)
     const auto mode = output->auto_mode();
     const qreal dpi = mode->size().height() / (output->physical_size().height() / 25.4);
 
-    // We see 110 DPI as a good standard. That corresponds to 1440p at 27" and 2160p/UHD at 40".
-    // This is smaller than usual but with high dpi screens this is often easily possible and
+    // We see 110 DPI as a good standard. That corresponds to 1440p at 23" and 2160p/UHD at 34".
+    // This is smaller than usual but with high DPI screens this is often easily possible and
     // otherwise we just don't scale at the moment.
-    auto scale_factor = dpi / 110;
+    auto scale_factor = dpi / 130;
 
     // We only auto-scale displays up.
     if (scale_factor < 1) {
