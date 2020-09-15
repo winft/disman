@@ -18,18 +18,13 @@
 #ifndef FAKE_BACKEND_H
 #define FAKE_BACKEND_H
 
-#include "abstractbackend.h"
+#include "backend_impl.h"
 
 #include <QLoggingCategory>
 #include <QObject>
 #include <memory>
 
-namespace Disman
-{
-class Filer_controller;
-}
-
-class Fake : public Disman::AbstractBackend
+class Fake : public Disman::BackendImpl
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kf5.disman.backends.fake")
@@ -42,9 +37,8 @@ public:
 
     QString name() const override;
     QString service_name() const override;
-    Disman::ConfigPtr config() const override;
-    void set_config(const Disman::ConfigPtr& config) override;
-    QByteArray edid(int outputId) const override;
+    Disman::ConfigPtr config_impl() const override;
+    bool set_config_impl(Disman::ConfigPtr const& config) override;
     bool valid() const override;
 
     void setEnabled(int outputId, bool enabled);
@@ -58,10 +52,10 @@ private Q_SLOTS:
     void delayedInit();
 
 private:
+    QByteArray edid(int outputId) const;
+
     QString mConfigFile;
     mutable Disman::ConfigPtr mConfig;
-
-    std::unique_ptr<Disman::Filer_controller> m_filer_controller;
 };
 
 #endif

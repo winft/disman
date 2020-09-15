@@ -25,7 +25,7 @@
 
 #include "xrandr_logging.h"
 
-#include "../filer_controller.h"
+#include "filer_controller.h"
 
 #include "config.h"
 #include "generator.h"
@@ -49,7 +49,7 @@ bool XRandR::s_xorgCacheInitialized = false;
 using namespace Disman;
 
 XRandR::XRandR()
-    : Disman::AbstractBackend()
+    : Disman::BackendImpl()
     , m_x11Helper(nullptr)
     , m_valid(false)
     , m_configChangeCompressor(nullptr)
@@ -84,8 +84,6 @@ XRandR::XRandR()
         qCWarning(DISMAN_XRANDR) << "XRandR extension not available or unsupported version";
         return;
     }
-
-    m_filer_controller.reset(new Filer_controller);
 
     if (s_screen == nullptr) {
         s_screen = XCB::screenOfDisplay(XCB::connection(), QX11Info::appScreen());
@@ -204,7 +202,7 @@ void XRandR::handle_change()
             generator.optimize();
             cfg = generator.config();
         } else {
-            m_filer_controller->read(cfg);
+            filer_controller()->read(cfg);
         }
 
         m_config = cfg;
@@ -237,39 +235,21 @@ void XRandR::screenChanged(xcb_randr_rotation_t rotation,
 
 // TODO: read from control file!
 
-ConfigPtr XRandR::config() const
+ConfigPtr XRandR::config_impl() const
 {
     Disman::ConfigPtr config(new Disman::Config);
 
     s_internalConfig->update_config(config);
-    m_filer_controller->read(config);
+    filer_controller()->read(config);
     s_internalConfig->update_config(config);
 
     return config;
 }
 
-void XRandR::set_config(const ConfigPtr& config)
-{
-    if (!config) {
-        return;
-    }
-    set_config_impl(config);
-}
-
 bool XRandR::set_config_impl(Disman::ConfigPtr const& config)
 {
-    m_filer_controller->write(config);
+    filer_controller()->write(config);
     return s_internalConfig->applyDismanConfig(config);
-}
-
-QByteArray XRandR::edid(int outputId) const
-{
-    const XRandROutput* output = s_internalConfig->output(outputId);
-    if (!output) {
-        return QByteArray();
-    }
-
-    return output->edid();
 }
 
 bool XRandR::valid() const

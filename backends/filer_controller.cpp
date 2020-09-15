@@ -17,14 +17,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "filer_controller.h"
 
-#include "../logging.h"
+#include "device.h"
 #include "filer.h"
+#include "logging.h"
 
 namespace Disman
 {
 
-Filer_controller::Filer_controller(QObject* parent)
+Filer_controller::Filer_controller(Device* device, QObject* parent)
     : QObject(parent)
+    , m_device{device}
 {
 }
 
@@ -32,12 +34,13 @@ Filer_controller::~Filer_controller() = default;
 
 bool Filer_controller::read(ConfigPtr& config)
 {
-    if (m_filer) {
-        if (m_filer->config()->hash() != config->hash()) {
-            // Different output combination means different combination of filers.
-            reset_filer(config);
+    if (!m_filer || m_filer->config()->hash() != config->hash()) {
+        if (lid_file_exists(config) && m_device->lid_present() && m_device->lid_open()) {
+            // Can happen when while lid closed output combination changes or device is shut down.
+            move_lid_file(config);
         }
-    } else {
+
+        // Different output combination means different combination of filers.
         reset_filer(config);
     }
 
@@ -61,6 +64,39 @@ bool Filer_controller::write(ConfigPtr const& config)
     }
 
     return m_filer->write(config);
+}
+
+bool Filer_controller::load_lid_file(ConfigPtr& config)
+{
+    if (!lid_file_exists(config)) {
+        qDebug(DISMAN_BACKEND) << "Loading open lid file failed: file does not exist.";
+        return false;
+    }
+    move_lid_file(config);
+    reset_filer(config);
+    return read(config);
+}
+
+bool Filer_controller::lid_file_exists(ConfigPtr const& config)
+{
+    auto const file_info = Filer(config, this, "open-lid").file_info();
+    return QFile(file_info.filePath()).exists();
+}
+
+void Filer_controller::move_lid_file(ConfigPtr const& config)
+{
+    assert(lid_file_exists(config));
+
+    auto const file_info = Filer(config, this).file_info();
+    QFile(file_info.filePath()).remove();
+
+    auto const lid_file_info = Filer(config, this, "open-lid").file_info();
+    QFile(lid_file_info.filePath()).rename(file_info.fileName());
+}
+
+bool Filer_controller::save_lid_file(ConfigPtr const& config)
+{
+    return Filer(config, this, "open-lid").write(config);
 }
 
 void Filer_controller::reset_filer(ConfigPtr const& config)

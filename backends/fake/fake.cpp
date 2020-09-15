@@ -20,7 +20,7 @@
 
 #include "fake_logging.h"
 
-#include "../filer_controller.h"
+#include "filer_controller.h"
 
 #include "config.h"
 #include <output.h>
@@ -41,8 +41,7 @@
 using namespace Disman;
 
 Fake::Fake()
-    : Disman::AbstractBackend()
-    , m_filer_controller{new Filer_controller}
+    : Disman::BackendImpl()
 {
     QLoggingCategory::setFilterRules(QStringLiteral("disman.fake.debug = true"));
 
@@ -79,23 +78,24 @@ QString Fake::service_name() const
     return QStringLiteral("org.kwinft.disman.fakebackend");
 }
 
-ConfigPtr Fake::config() const
+ConfigPtr Fake::config_impl() const
 {
     if (!mConfig) {
         mConfig = Parser::fromJson(mConfigFile);
-        m_filer_controller->read(mConfig);
+        filer_controller()->read(mConfig);
         mConfig = Parser::fromJson(mConfigFile);
     }
 
     return mConfig;
 }
 
-void Fake::set_config(const ConfigPtr& config)
+bool Fake::set_config_impl(const ConfigPtr& config)
 {
     qCDebug(DISMAN_FAKE) << "set config" << config->outputs();
-    m_filer_controller->write(config);
+    filer_controller()->write(config);
     mConfig = config->clone();
     emit config_changed(mConfig);
+    return true;
 }
 
 bool Fake::valid() const

@@ -5,9 +5,6 @@ set(wayland_SRCS
   wayland_interface.cpp
   waylandoutput.cpp
   waylandscreen.cpp
-  ../filer_controller.cpp
-  ../logging.cpp
-  ../utils.cpp
 )
 
 ecm_qt_declare_logging_category(wayland_SRCS
@@ -37,6 +34,7 @@ add_library(Disman::Wayland ALIAS DismanWayland)
 generate_export_header(DismanWayland BASE_NAME disman_wayland)
 
 target_link_libraries(DismanWayland
+  PRIVATE Disman::Backend
   PUBLIC ${wayland_LIBS}
 )
 
@@ -119,7 +117,11 @@ add_library(wayland MODULE ${wayland_SRCS})
 set_target_properties(wayland PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
 set_target_properties(wayland PROPERTIES PREFIX "")
 target_compile_features(wayland PRIVATE cxx_std_17)
-target_link_libraries(wayland ${wayland_LIBS})
+
+target_link_libraries(wayland
+  PRIVATE Disman::Backend
+  PUBLIC ${wayland_LIBS}
+)
 
 install(
   TARGETS wayland

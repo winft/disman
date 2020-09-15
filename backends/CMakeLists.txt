@@ -1,3 +1,37 @@
+####################################################################################################
+# Internal library for backends
+####################################################################################################
+set(backend_SRCS
+  backend_impl.cpp
+  device.cpp
+  edid.cpp
+  filer_controller.cpp
+  logging.cpp
+  utils.cpp
+)
+
+qt5_add_dbus_interface(backend_SRCS
+  org.freedesktop.DBus.Properties.xml
+  freedesktop_interface
+)
+
+add_library(DismanBackend OBJECT ${backend_SRCS})
+add_library(Disman::Backend ALIAS DismanBackend)
+
+target_link_libraries(DismanBackend
+  PRIVATE Qt5::DBus
+  PUBLIC Disman::Disman
+)
+
+target_compile_features(DismanBackend PUBLIC cxx_std_17)
+
+target_include_directories(DismanBackend
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+
+####################################################################################################
+# Plugins
+####################################################################################################
 add_subdirectory(fake)
 add_subdirectory(qscreen)
 add_subdirectory(wayland)

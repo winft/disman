@@ -19,7 +19,7 @@
  *************************************************************************************/
 #pragma once
 
-#include "abstractbackend.h"
+#include "../backend_impl.h"
 
 #include <QEventLoop>
 #include <QPointer>
@@ -31,12 +31,11 @@ class KPluginMetaData;
 
 namespace Disman
 {
-class Filer_controller;
 class WaylandInterface;
 class WaylandOutput;
 class WaylandScreen;
 
-class WaylandBackend : public Disman::AbstractBackend
+class WaylandBackend : public Disman::BackendImpl
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.wayland")
@@ -49,10 +48,8 @@ public:
     QString service_name() const override;
     bool valid() const override;
 
-    Disman::ConfigPtr config() const override;
-    void set_config(const Disman::ConfigPtr& config) override;
-
-    QByteArray edid(int outputId) const override;
+    Disman::ConfigPtr config_impl() const override;
+    bool set_config_impl(Disman::ConfigPtr const& config) override;
 
     std::map<int, WaylandOutput*> outputMap() const;
 
@@ -74,10 +71,6 @@ private:
     void queryInterface(KPluginMetaData* plugin);
     void takeInterface(const PendingInterface& pending);
     void rejectInterface(const PendingInterface& pending);
-
-    bool set_config_impl(Disman::ConfigPtr const& config);
-
-    std::unique_ptr<Filer_controller> m_filer_controller;
 
     Disman::ConfigPtr m_config{nullptr};
     std::unique_ptr<WaylandScreen> m_screen;

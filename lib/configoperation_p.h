@@ -18,7 +18,7 @@
  */
 #include <QObject>
 
-#include "abstractbackend.h"
+#include "backend.h"
 #include "backendinterface.h"
 #include "configoperation.h"
 
@@ -37,7 +37,7 @@ public:
     virtual void backend_ready(org::kwinft::disman::backend* backend);
 
     // For in-process
-    Disman::AbstractBackend* loadBackend();
+    Disman::Backend* loadBackend();
 
 public Q_SLOTS:
     void do_emit_result();

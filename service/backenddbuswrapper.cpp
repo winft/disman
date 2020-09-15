@@ -21,19 +21,19 @@
 #include "backendloader.h"
 #include "disman_backend_launcher_debug.h"
 
-#include "abstractbackend.h"
+#include "backend.h"
 #include "config.h"
 #include "configserializer_p.h"
 
 #include <QDBusConnection>
 #include <QDBusError>
 
-BackendDBusWrapper::BackendDBusWrapper(Disman::AbstractBackend* backend)
+BackendDBusWrapper::BackendDBusWrapper(Disman::Backend* backend)
     : QObject()
     , mBackend(backend)
 {
     connect(mBackend,
-            &Disman::AbstractBackend::config_changed,
+            &Disman::Backend::config_changed,
             this,
             &BackendDBusWrapper::backendConfigChanged);
 
@@ -92,16 +92,6 @@ QVariantMap BackendDBusWrapper::setConfig(const QVariantMap& configMap)
     const QJsonObject obj = Disman::ConfigSerializer::serialize_config(mCurrentConfig);
     Q_ASSERT(!obj.isEmpty());
     return obj.toVariantMap();
-}
-
-QByteArray BackendDBusWrapper::getEdid(int output) const
-{
-    const QByteArray edidData = mBackend->edid(output);
-    if (edidData.isEmpty()) {
-        return QByteArray();
-    }
-
-    return edidData;
 }
 
 void BackendDBusWrapper::backendConfigChanged(const Disman::ConfigPtr& config)

@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "filer_helpers.h"
 #include "output_filer.h"
 
-#include "../logging.h"
+#include "logging.h"
 #include <config.h>
 #include <output.h>
 #include <types.h>
@@ -41,9 +41,10 @@ namespace Disman
 class Filer
 {
 public:
-    Filer(Disman::ConfigPtr const& config, Filer_controller* controller)
+    Filer(Disman::ConfigPtr const& config, Filer_controller* controller, std::string suffix = "")
         : m_config{config}
         , m_controller{controller}
+        , m_suffix{suffix}
     {
         m_dir_path = QString(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
                              % QStringLiteral("/disman/control/"))
@@ -386,9 +387,23 @@ public:
                   nullptr);
     }
 
+    std::string dir_path() const
+    {
+        return m_dir_path + "configs/";
+    }
+
+    std::string file_name() const
+    {
+        auto file_name = m_config->hash().toStdString();
+        if (!m_suffix.empty()) {
+            file_name += "-" + m_suffix;
+        }
+        return file_name;
+    }
+
     QFileInfo file_info() const
     {
-        return Filer_helpers::file_info(m_dir_path + "configs/", m_config->hash().toStdString());
+        return Filer_helpers::file_info(dir_path(), file_name());
     }
 
     bool read_file()
@@ -504,6 +519,8 @@ private:
     QStringList m_duplicateOutputIds;
 
     std::string m_dir_path;
+    std::string m_suffix;
+
     QVariantMap m_info;
     bool m_read_success{false};
 };

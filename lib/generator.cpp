@@ -139,6 +139,35 @@ bool Generator::replicate()
     return true;
 }
 
+bool Generator::disable_embedded()
+{
+    assert(m_config);
+    auto config = m_config->clone();
+
+    auto embedded = embedded_impl(config->outputs(), OutputMap());
+    if (!embedded) {
+        return false;
+    }
+
+    auto biggest_external = biggest_impl(config->outputs(), false, {{embedded->id(), embedded}});
+    if (!biggest_external) {
+        return false;
+    }
+
+    embedded->set_enabled(false);
+    biggest_external->set_enabled(true);
+
+    // TODO: reorder positions.
+
+    if (!check_config(config)) {
+        qCDebug(DISMAN) << "Could not disable embedded output. Config unchanged.";
+        return false;
+    }
+
+    m_config->apply(config);
+    return true;
+}
+
 ConfigPtr Generator::optimize_impl()
 {
     qCDebug(DISMAN) << "Generates ideal config for" << m_config->outputs().size() << "displays.";
@@ -171,10 +200,10 @@ double Generator::best_scale(OutputPtr const& output)
     const auto mode = output->auto_mode();
     const qreal dpi = mode->size().height() / (output->physical_size().height() / 25.4);
 
-    // We see 110 DPI as a good standard. That corresponds to 1440p at 27" and 2160p/UHD at 40".
-    // This is smaller than usual but with high dpi screens this is often easily possible and
+    // We see 110 DPI as a good standard. That corresponds to 1440p at 23" and 2160p/UHD at 34".
+    // This is smaller than usual but with high DPI screens this is often easily possible and
     // otherwise we just don't scale at the moment.
-    auto scale_factor = dpi / 110;
+    auto scale_factor = dpi / 130;
 
     // We only auto-scale displays up.
     if (scale_factor < 1) {

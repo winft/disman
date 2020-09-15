@@ -15,11 +15,5 @@
       <arg type="a{sv}" direction="out" />
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap" />
     </signal>
-
-    <method name="getEdid">
-      <arg type="i" direction="in" />
-      <arg type="ay" direction="out" />
-    </method>
-
   </interface>
 </node>

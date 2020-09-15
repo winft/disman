@@ -18,7 +18,7 @@
  *************************************************************************************/
 #pragma once
 
-#include "abstractbackend.h"
+#include "backend_impl.h"
 
 #include <QLoggingCategory>
 #include <QSize>
@@ -38,7 +38,7 @@ class Filer_controller;
 class XCBEventListener;
 class XRandRConfig;
 
-class XRandR : public Disman::AbstractBackend
+class XRandR : public Disman::BackendImpl
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.randr")
@@ -49,10 +49,10 @@ public:
 
     QString name() const override;
     QString service_name() const override;
-    Disman::ConfigPtr config() const override;
-    void set_config(const Disman::ConfigPtr& config) override;
+
+    Disman::ConfigPtr config_impl() const override;
+    bool set_config_impl(Disman::ConfigPtr const& config) override;
     bool valid() const override;
-    QByteArray edid(int outputId) const override;
 
     static QByteArray outputEdid(xcb_randr_output_t outputId);
     static xcb_randr_get_screen_resources_reply_t* screenResources();
@@ -75,8 +75,6 @@ private:
     void handle_change();
 
     static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
-
-    bool set_config_impl(Disman::ConfigPtr const& config);
 
     static xcb_screen_t* s_screen;
     static xcb_window_t s_rootWindow;

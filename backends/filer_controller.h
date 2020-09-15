@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Disman
 {
+class Device;
 class Filer;
 
 /**
@@ -37,7 +38,7 @@ class Filer_controller : public QObject
 {
     Q_OBJECT
 public:
-    explicit Filer_controller(QObject* parent = nullptr);
+    explicit Filer_controller(Device* device, QObject* parent = nullptr);
     ~Filer_controller() override;
 
     /**
@@ -57,10 +58,17 @@ public:
      */
     bool write(ConfigPtr const& config);
 
+    bool load_lid_file(ConfigPtr& config);
+    bool save_lid_file(ConfigPtr const& config);
+
 private:
+    bool lid_file_exists(ConfigPtr const& config);
+    void move_lid_file(ConfigPtr const& config);
+
     void reset_filer(ConfigPtr const& config);
 
     std::unique_ptr<Filer> m_filer;
+    Device* m_device;
 };
 
 }

@@ -20,17 +20,16 @@
 #ifndef QSCREEN_BACKEND_H
 #define QSCREEN_BACKEND_H
 
-#include "abstractbackend.h"
+#include "backend_impl.h"
 
 #include <QLoggingCategory>
 #include <memory>
 
 namespace Disman
 {
-class Filer_controller;
 class QScreenConfig;
 
-class QScreenBackend : public Disman::AbstractBackend
+class QScreenBackend : public Disman::BackendImpl
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.qscreen")
@@ -41,14 +40,13 @@ public:
 
     QString name() const override;
     QString service_name() const override;
-    Disman::ConfigPtr config() const override;
-    void set_config(const Disman::ConfigPtr& config) override;
+    Disman::ConfigPtr config_impl() const override;
+    bool set_config_impl(Disman::ConfigPtr const& config) override;
     bool valid() const override;
 
 private:
     bool m_valid;
 
-    std::unique_ptr<Filer_controller> m_filer_controller;
     static QScreenConfig* s_internalConfig;
 };
 

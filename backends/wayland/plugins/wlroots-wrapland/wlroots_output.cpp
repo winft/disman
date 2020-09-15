@@ -75,12 +75,6 @@ bool WlrootsOutput::enabled() const
     return m_head != nullptr;
 }
 
-QByteArray WlrootsOutput::edid() const
-{
-    // wlroots protocol does not provide edid information.
-    return QByteArray();
-}
-
 bool portraitMode(Wrapland::Client::WlrOutputHeadV1* head)
 {
     auto transform = head->transform();

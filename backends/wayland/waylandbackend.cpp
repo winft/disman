@@ -23,7 +23,7 @@
 #include "waylandoutput.h"
 #include "waylandscreen.h"
 
-#include "../filer_controller.h"
+#include "filer_controller.h"
 
 #include "tabletmodemanager_interface.h"
 #include "wayland_logging.h"
@@ -41,8 +41,7 @@
 using namespace Disman;
 
 WaylandBackend::WaylandBackend()
-    : Disman::AbstractBackend()
-    , m_filer_controller{new Filer_controller}
+    : Disman::BackendImpl()
     , m_screen{new WaylandScreen}
 {
     qCDebug(DISMAN_WAYLAND) << "Loading Wayland backend.";
@@ -114,7 +113,7 @@ QString WaylandBackend::service_name() const
     return QStringLiteral("org.kwinft.disman.backend.wayland");
 }
 
-ConfigPtr WaylandBackend::config() const
+ConfigPtr WaylandBackend::config_impl() const
 {
     // Note: This should ONLY be called from GetConfigOperation!
 
@@ -127,21 +126,13 @@ ConfigPtr WaylandBackend::config() const
     // configuration and then update one more time so the windowing system can override values
     // it provides itself.
     m_interface->updateConfig(config);
-    m_filer_controller->read(config);
+    filer_controller()->read(config);
     m_interface->updateConfig(config);
 
     ScreenPtr screen = config->screen();
     m_screen->updateDismanScreen(screen);
 
     return config;
-}
-
-void WaylandBackend::set_config(const Disman::ConfigPtr& newconfig)
-{
-    if (!newconfig) {
-        return;
-    }
-    set_config_impl(newconfig);
 }
 
 bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
@@ -152,7 +143,7 @@ bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
                                 << "\n  New config:" << config;
     }
 
-    m_filer_controller->write(config);
+    filer_controller()->write(config);
 
     for (auto const& [key, output] : config->outputs()) {
         if (auto source_id = output->replication_source()) {
@@ -162,15 +153,6 @@ bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
         }
     }
     return m_interface->applyConfig(config);
-}
-
-QByteArray WaylandBackend::edid(int outputId) const
-{
-    auto map = outputMap();
-    if (auto output = map.find(outputId); output != map.end()) {
-        return output->second->edid();
-    }
-    return QByteArray();
 }
 
 std::map<int, WaylandOutput*> WaylandBackend::outputMap() const
@@ -282,7 +264,7 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
             } else {
                 // We set the windowing system to our saved values. They were overriden before so
                 // re-read them.
-                m_filer_controller->read(cfg);
+                filer_controller()->read(cfg);
             }
 
             m_config = cfg;
