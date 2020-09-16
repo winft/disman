@@ -33,13 +33,13 @@ class Q_DECL_HIDDEN Config::Private : public QObject
 {
     Q_OBJECT
 public:
-    Private(Config* parent, Origin origin)
+    Private(Config* parent, Cause cause)
         : QObject(parent)
         , valid(true)
         , supported_features(Config::Feature::None)
         , tablet_mode_available(false)
         , tablet_mode_engaged(false)
-        , origin{origin}
+        , cause{cause}
         , q(parent)
     {
     }
@@ -75,7 +75,7 @@ public:
     Features supported_features;
     bool tablet_mode_available;
     bool tablet_mode_engaged;
-    Origin origin;
+    Cause cause;
 
 private:
     Config* q;
@@ -184,13 +184,13 @@ bool Config::can_be_applied(const ConfigPtr& config, ValidityFlags flags)
 }
 
 Config::Config()
-    : Config(Origin::unknown)
+    : Config(Cause::unknown)
 {
 }
 
-Config::Config(Origin origin)
+Config::Config(Cause cause)
     : QObject(nullptr)
-    , d(new Private(this, origin))
+    , d(new Private(this, cause))
 {
 }
 
@@ -201,7 +201,7 @@ Config::~Config()
 
 ConfigPtr Config::clone() const
 {
-    ConfigPtr newConfig(new Config(origin()));
+    ConfigPtr newConfig(new Config(cause()));
     newConfig->d->screen = d->screen->clone();
 
     for (auto const& [key, ourOutput] : d->outputs) {
@@ -233,14 +233,14 @@ QString Config::hash() const
     return QString::fromLatin1(hash.toHex());
 }
 
-Config::Origin Config::origin() const
+Config::Cause Config::cause() const
 {
-    return d->origin;
+    return d->cause;
 }
 
-void Config::set_origin(Origin origin)
+void Config::set_cause(Cause cause)
 {
-    d->origin = origin;
+    d->cause = cause;
 }
 
 ScreenPtr Config::screen() const

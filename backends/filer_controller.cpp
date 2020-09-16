@@ -46,7 +46,7 @@ bool Filer_controller::read(ConfigPtr& config)
 
     auto const success = m_filer->get_values(config);
     if (success) {
-        config->set_origin(Config::Origin::file);
+        config->set_cause(Config::Cause::file);
     }
     return success;
 }

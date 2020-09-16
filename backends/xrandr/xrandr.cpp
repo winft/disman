@@ -195,7 +195,7 @@ void XRandR::handle_change()
     if (!m_config || m_config->hash() != cfg->hash()) {
         qCDebug(DISMAN_XRANDR) << "Config with new output pattern received:" << cfg;
 
-        if (cfg->origin() == Config::Origin::unknown) {
+        if (cfg->cause() == Config::Cause::unknown) {
             qCDebug(DISMAN_XRANDR)
                 << "Config received that is unknown. Creating an optimized config now.";
             Generator generator(cfg, m_config);

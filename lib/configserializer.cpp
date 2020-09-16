@@ -65,7 +65,7 @@ QJsonObject ConfigSerializer::serialize_config(const ConfigPtr& config)
         return obj;
     }
 
-    obj[QLatin1String("origin")] = static_cast<int>(config->origin());
+    obj[QLatin1String("cause")] = static_cast<int>(config->cause());
     obj[QLatin1String("features")] = static_cast<int>(config->supported_features());
     if (auto primary = config->primary_output()) {
         obj[QLatin1String("primary-output")] = primary->id();
@@ -245,19 +245,19 @@ QSizeF ConfigSerializer::deserialize_sizef(const QDBusArgument& arg)
 
 ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
 {
-    auto origin = static_cast<Config::Origin>(
-        map.value(QStringLiteral("origin"), static_cast<int>(Config::Origin::unknown)).toInt());
-    switch (origin) {
-    case Config::Origin::unknown:
-    case Config::Origin::generated:
-    case Config::Origin::file:
+    auto cause = static_cast<Config::Cause>(
+        map.value(QStringLiteral("cause"), static_cast<int>(Config::Cause::unknown)).toInt());
+    switch (cause) {
+    case Config::Cause::unknown:
+    case Config::Cause::generated:
+    case Config::Cause::file:
         break;
     default:
-        qCWarning(DISMAN) << "Deserialized config without valid origin value.";
-        origin = Config::Origin::unknown;
+        qCWarning(DISMAN) << "Deserialized config without valid cause value.";
+        cause = Config::Cause::unknown;
     }
 
-    ConfigPtr config(new Config(origin));
+    ConfigPtr config(new Config(cause));
 
     if (map.contains(QLatin1String("features"))) {
         config->set_supported_features(

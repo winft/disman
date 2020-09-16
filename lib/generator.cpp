@@ -90,7 +90,7 @@ bool Generator::optimize()
         qCDebug(DISMAN) << "Config could not be optimized. Returning unaltered original config.";
         return false;
     }
-    config->set_origin(Config::Origin::generated);
+    config->set_cause(Config::Cause::generated);
 
     qCDebug(DISMAN) << "Config optimized:" << config;
     m_config->apply(config);
@@ -114,7 +114,7 @@ bool Generator::extend(OutputPtr const& first, Extend_direction direction)
         qCDebug(DISMAN) << "Could not extend. Config unchanged.";
         return false;
     }
-    config->set_origin(Config::Origin::unknown);
+    config->set_cause(Config::Cause::unknown);
 
     qCDebug(DISMAN) << "Generated extension configuration:" << config;
     m_config->apply(config);
@@ -132,7 +132,7 @@ bool Generator::replicate()
         qCDebug(DISMAN) << "Could not replicate output. Config unchanged.";
         return false;
     }
-    config->set_origin(Config::Origin::unknown);
+    config->set_cause(Config::Cause::unknown);
 
     qCDebug(DISMAN) << "Generated replica configuration:" << config;
     m_config->apply(config);
