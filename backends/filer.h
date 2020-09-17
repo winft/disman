@@ -51,20 +51,7 @@ public:
                          .toStdString();
         m_read_success = read_file();
 
-        // As global outputs are indexed by a hash of their edid, which is not unique,
-        // to be able to tell apart multiple identical outputs, these need special treatment
-        QStringList allIds;
-        const auto outputs = config->outputs();
-        allIds.reserve(outputs.size());
-        for (auto const& [key, output] : outputs) {
-            const auto outputId = QString::fromStdString(output->hash());
-            if (allIds.contains(outputId) && !m_duplicateOutputIds.contains(outputId)) {
-                m_duplicateOutputIds << outputId;
-            }
-            allIds << outputId;
-        }
-
-        for (auto const& [key, output] : outputs) {
+        for (auto const& [key, output] : config->outputs()) {
             m_output_filers.push_back(
                 std::unique_ptr<Output_filer>(new Output_filer(output, m_controller, m_dir_path)));
         }
@@ -489,16 +476,6 @@ private:
             return false;
         }
 
-        if (output->name().size() && m_duplicateOutputIds.contains(QString::number(output->id()))) {
-            // We may have identical outputs connected, these will have the same id in the config
-            // in order to find the right one, also check the output's name (usually the connector)
-            auto const metadata = info[QStringLiteral("metadata")].toMap();
-            auto const outputNameInfo = metadata[QStringLiteral("name")].toString();
-            if (output->name() != outputNameInfo.toStdString()) {
-                // Was a duplicate id, but info not for this output.
-                return false;
-            }
-        }
         return true;
     }
 
@@ -516,7 +493,6 @@ private:
     Filer_controller* m_controller;
 
     std::vector<std::unique_ptr<Output_filer>> m_output_filers;
-    QStringList m_duplicateOutputIds;
 
     std::string m_dir_path;
     std::string m_suffix;
