@@ -76,6 +76,8 @@ public:
             auto filer = get_output_filer(output);
             assert(filer);
 
+            filer->get_global_data(output);
+
             if (auto mode = get_value(
                     output, "mode", ModePtr(), filer, std::function{Output_filer::get_mode})) {
                 output->set_mode(mode);

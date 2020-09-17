@@ -187,6 +187,36 @@ public:
         return Filer_helpers::write_file(m_info, file_info());
     }
 
+    void get_global_data(OutputPtr& output)
+    {
+        auto mode = get_mode(output, m_info, nullptr);
+        if (!mode) {
+            return;
+        }
+
+        auto rotation = convert_int_to_rotation(Filer_helpers::from_variant(
+            m_info[QStringLiteral("rotation")], static_cast<int>(Output::Rotation::None)));
+        auto scale = Filer_helpers::from_variant(m_info[QStringLiteral("scale")], 1.);
+
+        auto auto_resolution
+            = Filer_helpers::from_variant(m_info[QStringLiteral("auto-resolution")], true);
+        auto auto_refresh_rate
+            = Filer_helpers::from_variant(m_info[QStringLiteral("auto-refresh-rate")], true);
+        auto auto_rotate
+            = Filer_helpers::from_variant(m_info[QStringLiteral("auto-rotate")], false);
+        auto auto_rotate_only_in_tablet_mode
+            = Filer_helpers::from_variant(m_info[QStringLiteral("auto-rotate-tablet-only")], false);
+
+        output->set_global_data({mode->size(),
+                                 mode->refresh(),
+                                 rotation,
+                                 scale,
+                                 auto_resolution,
+                                 auto_refresh_rate,
+                                 auto_rotate,
+                                 auto_rotate_only_in_tablet_mode});
+    }
+
 private:
     OutputPtr m_output;
     Filer_controller* m_controller;
