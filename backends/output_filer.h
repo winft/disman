@@ -91,6 +91,87 @@ public:
         return outputInfo;
     }
 
+    static ModePtr get_mode(OutputPtr const& output, QVariant const& val, ModePtr default_value)
+    {
+        auto const val_map = val.toMap();
+
+        bool success = true;
+
+        auto get_resolution = [&val_map, &success]() {
+            auto const key = QStringLiteral("resolution");
+
+            if (!val_map.contains(key)) {
+                success = false;
+                return QSize();
+            }
+
+            auto const resolution_map = val_map[key].toMap();
+
+            auto get_length = [&resolution_map, &success](QString axis) {
+                if (!resolution_map.contains(axis)) {
+                    success = false;
+                    return 0.;
+                }
+                bool ok;
+                auto const coord = resolution_map[axis].toDouble(&ok);
+                success &= ok;
+                return coord;
+            };
+
+            auto const width = get_length(QStringLiteral("width"));
+            auto const height = get_length(QStringLiteral("height"));
+            return QSize(width, height);
+        };
+
+        if (!val_map.contains(QStringLiteral("mode"))) {
+            return default_value;
+        }
+
+        auto const resolution = get_resolution();
+
+        auto get_refresh_rate = [&val_map, &success]() -> double {
+            auto const key = QStringLiteral("refresh");
+
+            if (!val_map.contains(key)) {
+                success = false;
+                return 0;
+            }
+
+            bool ok;
+            auto const refresh = val_map[key].toDouble(&ok);
+            success &= ok;
+            return refresh;
+        };
+
+        auto const refresh = get_refresh_rate();
+        if (!success) {
+            qCWarning(DISMAN_BACKEND) << "Mode entry broken for:" << output;
+            return default_value;
+        }
+
+        for (auto const& [key, mode] : output->modes()) {
+            if (mode->size() == resolution && mode->refresh() == refresh) {
+                return mode;
+            }
+        }
+        return default_value;
+    }
+
+    static Output::Rotation convert_int_to_rotation(int val)
+    {
+        auto const rotation = static_cast<Output::Rotation>(val);
+        switch (rotation) {
+        case Output::Rotation::Left:
+            return rotation;
+        case Output::Rotation::Right:
+            return rotation;
+        case Output::Rotation::Inverted:
+            return rotation;
+        default:
+            return Output::Rotation::None;
+        }
+    }
+
     QFileInfo file_info() const
     {
         return Filer_helpers::file_info(m_dir_path + "outputs/", m_output->hash());
