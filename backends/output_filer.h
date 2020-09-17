@@ -150,7 +150,7 @@ public:
         }
 
         for (auto const& [key, mode] : output->modes()) {
-            if (mode->size() == resolution && mode->refresh() == refresh) {
+            if (mode->size() == resolution && qFuzzyCompare(mode->refresh(), refresh)) {
                 return mode;
             }
         }
