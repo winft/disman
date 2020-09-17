@@ -288,6 +288,24 @@ public:
 
     void apply(const OutputPtr& other);
 
+    struct GlobalData {
+        QSize resolution;
+        double refresh{0};
+
+        Rotation rotation;
+        double scale;
+
+        bool auto_resolution{true};
+        bool auto_refresh_rate{true};
+        bool auto_rotate{false};
+        bool auto_rotate_only_in_tablet_mode{true};
+
+        bool valid{false};
+    };
+
+    GlobalData global_data() const;
+    void set_global_data(GlobalData data);
+
 Q_SIGNALS:
     /**
      * An update to the output was applied. Changes to its properties could have occured.

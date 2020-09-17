@@ -126,6 +126,24 @@ QJsonObject ConfigSerializer::serialize_output(const OutputPtr& output)
     }
     obj[QLatin1String("modes")] = modes;
 
+    auto data = output->global_data();
+    if (data.valid) {
+        obj[QLatin1String("global")] = true;
+
+        obj[QLatin1String("global.resolution")] = serialize_size(data.resolution);
+        obj[QLatin1String("global.refresh")] = data.refresh;
+
+        obj[QLatin1String("global.rotation")] = data.rotation;
+        obj[QLatin1String("global.scale")] = data.scale;
+
+        obj[QLatin1String("global.auto_resolution")] = data.auto_resolution;
+        obj[QLatin1String("global.auto_refresh_rate")] = data.auto_refresh_rate;
+
+        obj[QLatin1String("global.auto_rotate")] = data.auto_rotate;
+        obj[QLatin1String("global.auto_rotate_only_in_tablet_mode")]
+            = data.auto_rotate_only_in_tablet_mode;
+    }
+
     return obj;
 }
 
@@ -312,6 +330,7 @@ ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
 OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
 {
     OutputPtr output(new Output);
+    Output::GlobalData global_data;
 
     arg.beginMap();
     while (!arg.atEnd()) {
@@ -347,8 +366,29 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
             output->set_auto_resolution(value.toBool());
         } else if (key == QLatin1String("auto_refresh_rate")) {
             output->set_auto_refresh_rate(value.toBool());
+        }
 
-        } else if (key == QLatin1String("preferred_modes")) {
+        else if (key == QLatin1String("global")) {
+            global_data.valid = true;
+        } else if (key == QLatin1String("global.resolution")) {
+            global_data.resolution = deserialize_size(value.value<QDBusArgument>());
+        } else if (key == QLatin1String("global.refresh")) {
+            global_data.refresh = value.toDouble();
+        } else if (key == QLatin1String("global.rotation")) {
+            global_data.rotation = static_cast<Output::Rotation>(value.toInt());
+        } else if (key == QLatin1String("global.scale")) {
+            global_data.scale = value.toDouble();
+        } else if (key == QLatin1String("global.auto_resolution")) {
+            global_data.auto_resolution = value.toBool();
+        } else if (key == QLatin1String("global.auto_refresh_rate")) {
+            global_data.auto_refresh_rate = value.toBool();
+        } else if (key == QLatin1String("global.auto_rotate")) {
+            global_data.auto_rotate = value.toBool();
+        } else if (key == QLatin1String("global.auto_rotate_only_in_tablet_mode")) {
+            global_data.auto_rotate_only_in_tablet_mode = value.toBool();
+        }
+
+        else if (key == QLatin1String("preferred_modes")) {
             auto q_strings = deserialize_list<QString>(value.value<QDBusArgument>());
             std::vector<std::string> strings;
             for (auto qs : q_strings) {
@@ -388,6 +428,10 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         arg.endMapEntry();
     }
     arg.endMap();
+
+    if (global_data.valid) {
+        output->set_global_data(global_data);
+    }
     return output;
 }
 

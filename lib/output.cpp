@@ -62,6 +62,7 @@ Output::Private::Private(const Private& other)
     , auto_rotate{other.auto_rotate}
     , auto_rotate_only_in_tablet_mode{other.auto_rotate_only_in_tablet_mode}
     , retention{other.retention}
+    , global{other.global}
 {
     for (auto const& [key, otherMode] : other.modeList) {
         modeList.insert({key, otherMode->clone()});
@@ -108,6 +109,25 @@ bool Output::Private::compareModeMap(const ModeMap& before, const ModeMap& after
     }
     // They're the same
     return true;
+}
+
+void Output::Private::apply_global()
+{
+    if (!global.valid) {
+        return;
+    }
+    if (retention == Output::Retention::Individual) {
+        return;
+    }
+
+    resolution = global.resolution;
+    refresh_rate = global.refresh;
+    rotation = global.rotation;
+    scale = global.scale;
+    auto_resolution = global.auto_resolution;
+    auto_refresh_rate = global.auto_refresh_rate;
+    auto_rotate = global.auto_rotate;
+    auto_rotate_only_in_tablet_mode = global.auto_rotate_only_in_tablet_mode;
 }
 
 Output::Output()
@@ -489,7 +509,24 @@ void Output::apply(const OutputPtr& other)
     set_auto_rotate_only_in_tablet_mode(other->d->auto_rotate_only_in_tablet_mode);
     set_retention(other->d->retention);
 
+    d->global = other->d->global;
+
     Q_EMIT updated();
+}
+
+Output::GlobalData Output::global_data() const
+{
+    return d->global;
+}
+
+void Output::set_global_data(GlobalData data)
+{
+    assert(data.resolution.isValid());
+    assert(data.refresh > 0);
+    assert(data.scale > 0);
+
+    d->global = data;
+    d->global.valid = data.resolution.isValid() && data.refresh > 0 && data.scale > 0;
 }
 
 }

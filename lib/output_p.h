@@ -85,6 +85,7 @@ public:
     }
 
     bool compareModeMap(const ModeMap& before, const ModeMap& after);
+    void apply_global();
 
     int id;
     std::string name;
@@ -114,6 +115,8 @@ public:
     bool auto_rotate_only_in_tablet_mode{true};
 
     Retention retention{Retention::Undefined};
+
+    GlobalData global;
 };
 
 template<>
