@@ -95,17 +95,22 @@ public:
     {
         auto const val_map = val.toMap();
 
+        if (!val_map.contains(QStringLiteral("mode"))) {
+            return default_value;
+        }
+        auto const mode_map = val_map[QStringLiteral("mode")].toMap();
+
         bool success = true;
 
-        auto get_resolution = [&val_map, &success]() {
+        auto get_resolution = [&mode_map, &success]() {
             auto const key = QStringLiteral("resolution");
 
-            if (!val_map.contains(key)) {
+            if (!mode_map.contains(key)) {
                 success = false;
                 return QSize();
             }
 
-            auto const resolution_map = val_map[key].toMap();
+            auto const resolution_map = mode_map[key].toMap();
 
             auto get_length = [&resolution_map, &success](QString axis) {
                 if (!resolution_map.contains(axis)) {
@@ -122,28 +127,23 @@ public:
             auto const height = get_length(QStringLiteral("height"));
             return QSize(width, height);
         };
-
-        if (!val_map.contains(QStringLiteral("mode"))) {
-            return default_value;
-        }
-
         auto const resolution = get_resolution();
 
-        auto get_refresh_rate = [&val_map, &success]() -> double {
+        auto get_refresh_rate = [&mode_map, &success]() -> double {
             auto const key = QStringLiteral("refresh");
 
-            if (!val_map.contains(key)) {
+            if (!mode_map.contains(key)) {
                 success = false;
                 return 0;
             }
 
             bool ok;
-            auto const refresh = val_map[key].toDouble(&ok);
+            auto const refresh = mode_map[key].toDouble(&ok);
             success &= ok;
             return refresh;
         };
-
         auto const refresh = get_refresh_rate();
+
         if (!success) {
             qCWarning(DISMAN_BACKEND) << "Mode entry broken for:" << output;
             return default_value;
