@@ -66,7 +66,6 @@ void BackendImpl::load_lid_config()
         // The lid has been closed, we write the current config as open-lid-config and then generate
         // an optimized one with the embedded display disabled that gets applied.
         Generator generator(cfg);
-        generator.set_derived();
         qCDebug(DISMAN_BACKEND) << "Lid closed, trying to disable embedded display.";
 
         if (!generator.disable_embedded()) {

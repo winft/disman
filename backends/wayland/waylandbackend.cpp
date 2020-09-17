@@ -258,7 +258,7 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
             if (cfg->cause() == Config::Cause::unknown) {
                 qCDebug(DISMAN_WAYLAND)
                     << "Config received that is unknown. Creating an optimized config now.";
-                Generator generator(cfg, m_config);
+                Generator generator(cfg);
                 generator.optimize();
                 cfg = generator.config();
             } else {

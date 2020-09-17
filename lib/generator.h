@@ -38,9 +38,7 @@ public:
     };
 
     explicit Generator(ConfigPtr const& config);
-    Generator(ConfigPtr const& config, ConfigPtr const& predecessor);
 
-    void set_derived();
     void set_validities(Config::ValidityFlags validities);
 
     ConfigPtr config() const;
@@ -66,15 +64,12 @@ private:
     void single_output(ConfigPtr const& config);
 
     void extend_impl(ConfigPtr const& config, OutputPtr const& first, Extend_direction direction);
-    void
-    extend_derived(ConfigPtr const& config, OutputPtr const& first, Extend_direction direction);
     void line_up(OutputPtr const& first,
                  OutputMap const& old_outputs,
                  OutputMap const& new_outputs,
                  Extend_direction direction);
 
     void replicate_impl(ConfigPtr const& config);
-    void replicate_derived(ConfigPtr const& config, OutputPtr const& source);
 
     ConfigPtr multi_output_fallback(ConfigPtr const& config);
 
@@ -90,7 +85,6 @@ private:
 
     ConfigPtr m_config;
     ConfigPtr m_predecessor_config;
-    bool m_derived{false};
     Config::ValidityFlags m_validities;
 };
 

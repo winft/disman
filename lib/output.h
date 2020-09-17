@@ -319,6 +319,8 @@ private:
     Private* const d;
 
     Output(Private* dd);
+
+    friend class Generator;
 };
 
 }

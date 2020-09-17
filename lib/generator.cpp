@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #include "generator.h"
 
-#include <output.h>
+#include "output_p.h"
 
 #include "disman_debug.h"
 
@@ -33,32 +33,14 @@ Generator::Generator(ConfigPtr const& config)
     prepare_config();
 }
 
-Generator::Generator(ConfigPtr const& config, ConfigPtr const& predecessor)
-    : m_config{config->clone()}
-    , m_predecessor_config{predecessor}
-{
-    prepare_config();
-    set_derived();
-}
-
-void Generator::set_derived()
-{
-    if (!m_predecessor_config) {
-        return;
-    }
-
-    m_derived = true;
-
-    for (auto const& [key, output] : m_config->outputs()) {
-        if (auto predecessor_output = m_predecessor_config->output(output->id())) {
-            output->apply(predecessor_output);
-        }
-    }
-}
-
 void Generator::prepare_config()
 {
     for (auto const& [key, output] : m_config->outputs()) {
+        if (output->d->global.valid) {
+            // We have global data for the output. We fall back to these values if necessary.
+            continue;
+        }
+
         // The scale will generally be independent no matter where the output is
         // scale will affect geometry, so do this first.
         if (m_config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling)) {
@@ -234,8 +216,11 @@ void Generator::single_output(ConfigPtr const& config)
         return;
     }
 
+    // TODO: Do this only if config supports primary output.
     config->set_primary_output(output);
     output->set_position(QPointF(0, 0));
+
+    output->d->apply_global();
 }
 
 void Generator::extend_impl(ConfigPtr const& config,
@@ -259,25 +244,9 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    if (m_derived) {
-        extend_derived(config, start_output, direction);
-        return;
-    }
-
+    // TODO: Do this only if config supports primary output and no primary output is set.
     config->set_primary_output(start_output);
     line_up(start_output, OutputMap(), outputs, direction);
-}
-
-void Generator::extend_derived(ConfigPtr const& config,
-                               OutputPtr const& first,
-                               Extend_direction direction)
-{
-    OutputMap old_outputs;
-    OutputMap new_outputs;
-
-    config->set_primary_output(first);
-    get_outputs_division(first, config, old_outputs, new_outputs);
-    line_up(first, old_outputs, new_outputs, direction);
 }
 
 void Generator::get_outputs_division(OutputPtr const& first,
@@ -315,6 +284,7 @@ void Generator::line_up(OutputPtr const& first,
                         Extend_direction direction)
 {
     first->set_position(QPointF(0, 0));
+    first->d->apply_global();
 
     double globalWidth
         = direction == Extend_direction::right ? first->geometry().width() : first->position().x();
@@ -341,6 +311,8 @@ void Generator::line_up(OutputPtr const& first,
             continue;
         }
 
+        output->d->apply_global();
+
         if (direction == Extend_direction::left) {
             globalWidth -= output->geometry().width();
             output->set_position(QPointF(globalWidth, 0));
@@ -359,12 +331,11 @@ void Generator::replicate_impl(const ConfigPtr& config)
     auto outputs = config->outputs();
 
     auto source = primary_impl(outputs, OutputMap());
-    config->set_primary_output(source);
+    source->d->apply_global();
 
-    if (m_derived) {
-        replicate_derived(config, source);
-        return;
-    }
+    // TODO: Do this only if config supports primary output and there is not a primary output that
+    //       independent of this replication.
+    config->set_primary_output(source);
 
     qCDebug(DISMAN) << "Generate multi-output config by replicating" << source << "on"
                     << outputs.size() - 1 << "other outputs.";
@@ -373,18 +344,8 @@ void Generator::replicate_impl(const ConfigPtr& config)
         if (output == source) {
             continue;
         }
-        output->set_replication_source(source->id());
-    }
-}
 
-void Generator::replicate_derived(ConfigPtr const& config, OutputPtr const& source)
-{
-    OutputMap old_outputs;
-    OutputMap new_outputs;
-
-    get_outputs_division(source, config, old_outputs, new_outputs);
-
-    for (auto& [key, output] : new_outputs) {
+        output->d->apply_global();
         output->set_replication_source(source->id());
     }
 }
@@ -411,6 +372,8 @@ bool Generator::check_config(ConfigPtr const& config)
         qCDebug(DISMAN) << "Generator check failed: no enabled display, but required by flag.";
         return false;
     }
+
+    // TODO: check for primary output being set when primary output supported.
     return true;
 }
 
@@ -431,11 +394,6 @@ OutputPtr Generator::biggest(OutputMap const& exclusions) const
 
 OutputPtr Generator::primary_impl(OutputMap const& outputs, OutputMap const& exclusions) const
 {
-    if (auto output = m_config->primary_output()) {
-        if (m_derived && exclusions.find(output->id()) != exclusions.end()) {
-            return output;
-        }
-    }
     // If one of the outputs is a embedded (panel) display, then we take this one as primary.
     if (auto output = embedded_impl(outputs, exclusions)) {
         if (output->enabled()) {
