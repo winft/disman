@@ -15,6 +15,9 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
+#ifndef OUTPUT_P_H
+#define OUTPUT_P_H
+
 #include "output.h"
 
 #include <QRectF>
@@ -114,7 +117,7 @@ public:
 };
 
 template<>
-ModePtr Output::Private::get_mode(std::string const& modeId) const
+inline ModePtr Output::Private::get_mode(std::string const& modeId) const
 {
     if (auto mode = modeList.find(modeId); mode != modeList.end()) {
         return mode->second;
@@ -123,10 +126,12 @@ ModePtr Output::Private::get_mode(std::string const& modeId) const
 }
 
 template<>
-ModePtr
+inline ModePtr
 Output::Private::get_mode(std::pair<std::string const, std::shared_ptr<Mode>> const& mode) const
 {
     return mode.second;
 }
 
 }
+
+#endif
