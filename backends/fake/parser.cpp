@@ -177,7 +177,7 @@ ModePtr Parser::modeFromJson(const QVariant& data)
 
     mode->set_id(map[QStringLiteral("id")].toString().toStdString());
     mode->set_name(map[QStringLiteral("name")].toString().toStdString());
-    mode->set_refresh(map[QStringLiteral("refresh")].toDouble());
+    mode->set_refresh(map[QStringLiteral("refresh")].toDouble() * 1000);
     mode->set_size(Parser::sizeFromJson(map[QStringLiteral("size")].toMap()));
 
     return mode;

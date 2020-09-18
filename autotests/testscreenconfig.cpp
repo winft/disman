@@ -109,7 +109,7 @@ void testScreenConfig::singleOutput()
 
     const ModePtr mode = output->auto_mode();
     QCOMPARE(mode->size(), QSize(1280, 800));
-    QCOMPARE(mode->refresh(), 59.9);
+    QCOMPARE(mode->refresh(), 59900);
 }
 
 void testScreenConfig::singleOutputWithoutPreferred()
@@ -160,7 +160,7 @@ void testScreenConfig::multiOutput()
     const ModePtr mode = output->auto_mode();
     QVERIFY(mode);
     QCOMPARE(mode->size(), QSize(1920, 1080));
-    QCOMPARE(mode->refresh(), 60.0);
+    QCOMPARE(mode->refresh(), 60000);
 }
 
 void testScreenConfig::configCanBeApplied()

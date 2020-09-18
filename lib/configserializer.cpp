@@ -357,7 +357,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("resolution")) {
             output->set_resolution(value.toSize());
         } else if (key == QLatin1String("refresh")) {
-            output->set_refresh_rate(value.toDouble());
+            output->set_refresh_rate(value.toInt());
         } else if (key == QLatin1String("auto_rotate")) {
             output->set_auto_rotate(value.toBool());
         } else if (key == QLatin1String("auto_rotate_only_in_tablet_mode")) {
@@ -373,7 +373,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("global.resolution")) {
             global_data.resolution = deserialize_size(value.value<QDBusArgument>());
         } else if (key == QLatin1String("global.refresh")) {
-            global_data.refresh = value.toDouble();
+            global_data.refresh = value.toInt();
         } else if (key == QLatin1String("global.rotation")) {
             global_data.rotation = static_cast<Output::Rotation>(value.toInt());
         } else if (key == QLatin1String("global.scale")) {

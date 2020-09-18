@@ -138,7 +138,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
         mode->set_id(modeId);
 
         // Wrapland gives the refresh rate as int in mHz.
-        mode->set_refresh(wlMode->refresh() / 1000.0);
+        mode->set_refresh(wlMode->refresh());
         mode->set_size(wlMode->size());
         mode->set_name(modeName(wlMode).toStdString());
 

@@ -120,8 +120,7 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
         }
         mode->set_id(modeId);
 
-        // KWayland gives the refresh rate as int in mHz
-        mode->set_refresh(wlMode.refreshRate / 1000.0);
+        mode->set_refresh(wlMode.refreshRate);
         mode->set_size(wlMode.size);
         mode->set_name(name);
 
@@ -209,7 +208,7 @@ bool KWaylandOutput::setWlConfig(Wl::OutputConfiguration* wlConfig, const Disman
 QString KWaylandOutput::modeName(const Wl::OutputDevice::Mode& m) const
 {
     return QString::number(m.size.width()) + QLatin1Char('x') + QString::number(m.size.height())
-        + QLatin1Char('@') + QString::number(qRound(m.refreshRate / 1000.0));
+        + QLatin1Char('@') + QString::number(m.refreshRate);
 }
 
 QString KWaylandOutput::name() const

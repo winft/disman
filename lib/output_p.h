@@ -32,7 +32,7 @@ public:
     Private();
     Private(const Private& other);
 
-    ModePtr mode(QSize const& resolution, double refresh_rate) const;
+    ModePtr mode(QSize const& resolution, int refresh_rate) const;
 
     template<typename M>
     ModePtr get_mode(M const& mode) const
@@ -56,10 +56,10 @@ public:
     }
 
     template<typename List>
-    double best_refresh_rate(const List& modes, QSize const& resolution) const
+    int best_refresh_rate(const List& modes, QSize const& resolution) const
     {
         ModePtr best_mode;
-        double best_refresh = 0.;
+        int best_refresh = 0;
 
         for (auto _mode : modes) {
             auto mode = get_mode(_mode);
@@ -96,7 +96,7 @@ public:
     int replication_source;
 
     QSize resolution;
-    double refresh_rate{0};
+    int refresh_rate{0};
 
     std::string preferredMode;
     std::vector<std::string> preferred_modes;

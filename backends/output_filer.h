@@ -138,7 +138,7 @@ public:
             }
 
             bool ok;
-            auto const refresh = mode_map[key].toDouble(&ok);
+            auto const refresh = mode_map[key].toInt(&ok);
             success &= ok;
             return refresh;
         };
@@ -150,7 +150,7 @@ public:
         }
 
         for (auto const& [key, mode] : output->modes()) {
-            if (mode->size() == resolution && qFuzzyCompare(mode->refresh(), refresh)) {
+            if (mode->size() == resolution && mode->refresh() == refresh) {
                 return mode;
             }
         }

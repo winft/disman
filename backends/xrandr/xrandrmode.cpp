@@ -42,7 +42,7 @@ Disman::ModePtr XRandRMode::toDismanMode()
     dismanMode->set_id(std::to_string(m_id));
     dismanMode->set_name(m_name.toStdString());
     dismanMode->set_size(m_size);
-    dismanMode->set_refresh(m_refreshRate);
+    dismanMode->set_refresh(m_refreshRate * 1000);
 
     return dismanMode;
 }

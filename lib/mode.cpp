@@ -40,7 +40,7 @@ public:
     std::string id;
     std::string name;
     QSize size;
-    double rate;
+    int rate;
 };
 
 Mode::Mode()
@@ -105,14 +105,14 @@ void Mode::set_size(const QSize& size)
     d->size = size;
 }
 
-double Mode::refresh() const
+int Mode::refresh() const
 {
     return d->rate;
 }
 
-void Mode::set_refresh(double refresh)
+void Mode::set_refresh(int refresh)
 {
-    if (qFuzzyCompare(d->rate, refresh)) {
+    if (d->rate == refresh) {
         return;
     }
 

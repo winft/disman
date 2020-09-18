@@ -289,7 +289,7 @@ void Doctor::showOutputs(const Disman::ConfigPtr& config)
             auto name = QStringLiteral("%1x%2@%3")
                             .arg(QString::number(mode->size().width()),
                                  QString::number(mode->size().height()),
-                                 QString::number(qRound(mode->refresh())));
+                                 QString::number(mode->refresh()));
             if (mode == output->auto_mode()) {
                 name = green + name + QLatin1Char('*') + cr;
             }
@@ -370,7 +370,7 @@ bool Doctor::setMode(int id, std::string const& mode_id)
                 auto name = QStringLiteral("%1x%2@%3")
                                 .arg(QString::number(mode->size().width()),
                                      QString::number(mode->size().height()),
-                                     QString::number(qRound(mode->refresh())));
+                                     QString::number(mode->refresh()));
                 if (mode->id() == mode_id || name.toStdString() == mode_id) {
                     qCDebug(DISMAN_CTL) << "Taddaaa! Found mode" << mode->id().c_str() << name;
                     output->set_mode(mode);

@@ -69,10 +69,10 @@ Output::Private::Private(const Private& other)
     }
 }
 
-ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) const
+ModePtr Output::Private::mode(QSize const& resolution, int refresh) const
 {
     for (auto const& [key, mode] : modeList) {
-        if (resolution == mode->size() && qFuzzyCompare(refresh_rate, mode->refresh())) {
+        if (resolution == mode->size() && refresh == mode->refresh()) {
             return mode;
         }
     }
@@ -100,7 +100,7 @@ bool Output::Private::compareModeMap(const ModeMap& before, const ModeMap& after
         if (mb->size() != ma->size()) {
             return false;
         }
-        if (!qFuzzyCompare(mb->refresh(), ma->refresh())) {
+        if (mb->refresh() != ma->refresh()) {
             return false;
         }
         if (mb->name() != ma->name()) {
@@ -241,7 +241,7 @@ void Output::set_to_preferred_mode()
 ModePtr Output::commanded_mode() const
 {
     for (auto [key, mode] : d->modeList) {
-        if (mode->size() == d->resolution && qFuzzyCompare(mode->refresh(), d->refresh_rate)) {
+        if (mode->size() == d->resolution && mode->refresh() == d->refresh_rate) {
             return mode;
         }
     }
@@ -254,7 +254,7 @@ bool Output::set_resolution(QSize const& size)
     return commanded_mode() != nullptr;
 }
 
-bool Output::set_refresh_rate(double rate)
+bool Output::set_refresh_rate(int rate)
 {
     d->refresh_rate = rate;
     return commanded_mode() != nullptr;
@@ -265,7 +265,7 @@ QSize Output::best_resolution() const
     return d->best_resolution(modes());
 }
 
-double Output::best_refresh_rate(QSize const& resolution) const
+int Output::best_refresh_rate(QSize const& resolution) const
 {
     return d->best_refresh_rate(modes(), resolution);
 }

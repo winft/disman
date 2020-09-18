@@ -503,7 +503,7 @@ void XRandROutput::updateDismanOutput(Disman::OutputPtr& dismanOutput) const
             if (cur_mode) {
                 dismanOutput->set_mode(dismanOutput->mode(std::to_string(cur_mode->id())));
                 dismanOutput->set_resolution(cur_mode->size());
-                dismanOutput->set_refresh_rate(cur_mode->refreshRate());
+                dismanOutput->set_refresh_rate(cur_mode->refreshRate() * 1000);
             }
         }
         // TODO: set logical size?
