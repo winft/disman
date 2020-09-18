@@ -51,20 +51,7 @@ public:
                          .toStdString();
         m_read_success = read_file();
 
-        // As global outputs are indexed by a hash of their edid, which is not unique,
-        // to be able to tell apart multiple identical outputs, these need special treatment
-        QStringList allIds;
-        const auto outputs = config->outputs();
-        allIds.reserve(outputs.size());
-        for (auto const& [key, output] : outputs) {
-            const auto outputId = QString::fromStdString(output->hash());
-            if (allIds.contains(outputId) && !m_duplicateOutputIds.contains(outputId)) {
-                m_duplicateOutputIds << outputId;
-            }
-            allIds << outputId;
-        }
-
-        for (auto const& [key, output] : outputs) {
+        for (auto const& [key, output] : config->outputs()) {
             m_output_filers.push_back(
                 std::unique_ptr<Output_filer>(new Output_filer(output, m_controller, m_dir_path)));
         }
@@ -89,7 +76,10 @@ public:
             auto filer = get_output_filer(output);
             assert(filer);
 
-            if (auto mode = get_value(output, "mode", ModePtr(), filer, std::function{get_mode})) {
+            filer->get_global_data(output);
+
+            if (auto mode = get_value(
+                    output, "mode", ModePtr(), filer, std::function{Output_filer::get_mode})) {
                 output->set_mode(mode);
             } else {
                 // Set an invalid commanded mode.
@@ -103,7 +93,7 @@ public:
 
             auto const rotation
                 = get_value(output, "rotation", static_cast<int>(Output::Rotation::None), filer);
-            output->set_rotation(convert_int_to_rotation(rotation));
+            output->set_rotation(Output_filer::convert_int_to_rotation(rotation));
 
             output->set_auto_resolution(get_value(output, "auto-resolution", true, filer));
             output->set_auto_refresh_rate(get_value(output, "auto-refresh-rate", true, filer));
@@ -268,72 +258,6 @@ public:
         info[QStringLiteral("pos")] = pos_info();
     }
 
-    static ModePtr get_mode(OutputPtr const& output, QVariant const& val, ModePtr default_value)
-    {
-        auto const val_map = val.toMap();
-
-        bool success = true;
-
-        auto get_resolution = [&val_map, &success]() {
-            auto const key = QStringLiteral("resolution");
-
-            if (!val_map.contains(key)) {
-                success = false;
-                return QSize();
-            }
-
-            auto const resolution_map = val_map[key].toMap();
-
-            auto get_length = [&resolution_map, &success](QString axis) {
-                if (!resolution_map.contains(axis)) {
-                    success = false;
-                    return 0.;
-                }
-                bool ok;
-                auto const coord = resolution_map[axis].toDouble(&ok);
-                success &= ok;
-                return coord;
-            };
-
-            auto const width = get_length(QStringLiteral("width"));
-            auto const height = get_length(QStringLiteral("height"));
-            return QSize(width, height);
-        };
-
-        if (!val_map.contains(QStringLiteral("mode"))) {
-            return default_value;
-        }
-
-        auto const resolution = get_resolution();
-
-        auto get_refresh_rate = [&val_map, &success]() -> double {
-            auto const key = QStringLiteral("refresh");
-
-            if (!val_map.contains(key)) {
-                success = false;
-                return 0;
-            }
-
-            bool ok;
-            auto const refresh = val_map[key].toDouble(&ok);
-            success &= ok;
-            return refresh;
-        };
-
-        auto const refresh = get_refresh_rate();
-        if (!success) {
-            qCWarning(DISMAN_BACKEND) << "Mode entry broken for:" << output;
-            return default_value;
-        }
-
-        for (auto const& [key, mode] : output->modes()) {
-            if (mode->size() == resolution && mode->refresh() == refresh) {
-                return mode;
-            }
-        }
-        return default_value;
-    }
-
     static void
     set_mode(QVariantMap& info, [[maybe_unused]] std::string const& id, Disman::ModePtr mode)
     {
@@ -447,21 +371,6 @@ public:
         return Output::Retention::Undefined;
     }
 
-    static Output::Rotation convert_int_to_rotation(int val)
-    {
-        auto const rotation = static_cast<Output::Rotation>(val);
-        switch (rotation) {
-        case Output::Rotation::Left:
-            return rotation;
-        case Output::Rotation::Right:
-            return rotation;
-        case Output::Rotation::Inverted:
-            return rotation;
-        default:
-            return Output::Rotation::None;
-        }
-    }
-
     ConfigPtr config() const
     {
         return m_config;
@@ -489,16 +398,6 @@ private:
             return false;
         }
 
-        if (output->name().size() && m_duplicateOutputIds.contains(QString::number(output->id()))) {
-            // We may have identical outputs connected, these will have the same id in the config
-            // in order to find the right one, also check the output's name (usually the connector)
-            auto const metadata = info[QStringLiteral("metadata")].toMap();
-            auto const outputNameInfo = metadata[QStringLiteral("name")].toString();
-            if (output->name() != outputNameInfo.toStdString()) {
-                // Was a duplicate id, but info not for this output.
-                return false;
-            }
-        }
         return true;
     }
 
@@ -516,7 +415,6 @@ private:
     Filer_controller* m_controller;
 
     std::vector<std::unique_ptr<Output_filer>> m_output_filers;
-    QStringList m_duplicateOutputIds;
 
     std::string m_dir_path;
     std::string m_suffix;

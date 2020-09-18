@@ -46,8 +46,8 @@ public:
     QSize size() const;
     void set_size(const QSize& size);
 
-    double refresh() const;
-    void set_refresh(double refresh);
+    int refresh() const;
+    void set_refresh(int refresh);
 
 private:
     Q_DISABLE_COPY(Mode)

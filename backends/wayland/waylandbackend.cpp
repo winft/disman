@@ -255,10 +255,10 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
         if (!m_config || m_config->hash() != cfg->hash()) {
             qCDebug(DISMAN_WAYLAND) << "Config with new output pattern received:" << cfg;
 
-            if (cfg->origin() == Config::Origin::unknown) {
+            if (cfg->cause() == Config::Cause::unknown) {
                 qCDebug(DISMAN_WAYLAND)
                     << "Config received that is unknown. Creating an optimized config now.";
-                Generator generator(cfg, m_config);
+                Generator generator(cfg);
                 generator.optimize();
                 cfg = generator.config();
             } else {

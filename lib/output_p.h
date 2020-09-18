@@ -15,6 +15,9 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
+#ifndef OUTPUT_P_H
+#define OUTPUT_P_H
+
 #include "output.h"
 
 #include <QRectF>
@@ -29,7 +32,7 @@ public:
     Private();
     Private(const Private& other);
 
-    ModePtr mode(QSize const& resolution, double refresh_rate) const;
+    ModePtr mode(QSize const& resolution, int refresh_rate) const;
 
     template<typename M>
     ModePtr get_mode(M const& mode) const
@@ -53,10 +56,10 @@ public:
     }
 
     template<typename List>
-    double best_refresh_rate(const List& modes, QSize const& resolution) const
+    int best_refresh_rate(const List& modes, QSize const& resolution) const
     {
         ModePtr best_mode;
-        double best_refresh = 0.;
+        int best_refresh = 0;
 
         for (auto _mode : modes) {
             auto mode = get_mode(_mode);
@@ -82,6 +85,7 @@ public:
     }
 
     bool compareModeMap(const ModeMap& before, const ModeMap& after);
+    void apply_global();
 
     int id;
     std::string name;
@@ -92,7 +96,7 @@ public:
     int replication_source;
 
     QSize resolution;
-    double refresh_rate{0};
+    int refresh_rate{0};
 
     std::string preferredMode;
     std::vector<std::string> preferred_modes;
@@ -111,10 +115,12 @@ public:
     bool auto_rotate_only_in_tablet_mode{true};
 
     Retention retention{Retention::Undefined};
+
+    GlobalData global;
 };
 
 template<>
-ModePtr Output::Private::get_mode(std::string const& modeId) const
+inline ModePtr Output::Private::get_mode(std::string const& modeId) const
 {
     if (auto mode = modeList.find(modeId); mode != modeList.end()) {
         return mode->second;
@@ -123,10 +129,12 @@ ModePtr Output::Private::get_mode(std::string const& modeId) const
 }
 
 template<>
-ModePtr
+inline ModePtr
 Output::Private::get_mode(std::pair<std::string const, std::shared_ptr<Mode>> const& mode) const
 {
     return mode.second;
 }
 
 }
+
+#endif

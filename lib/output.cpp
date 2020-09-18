@@ -62,16 +62,17 @@ Output::Private::Private(const Private& other)
     , auto_rotate{other.auto_rotate}
     , auto_rotate_only_in_tablet_mode{other.auto_rotate_only_in_tablet_mode}
     , retention{other.retention}
+    , global{other.global}
 {
     for (auto const& [key, otherMode] : other.modeList) {
         modeList.insert({key, otherMode->clone()});
     }
 }
 
-ModePtr Output::Private::mode(QSize const& resolution, double refresh_rate) const
+ModePtr Output::Private::mode(QSize const& resolution, int refresh) const
 {
     for (auto const& [key, mode] : modeList) {
-        if (resolution == mode->size() && qFuzzyCompare(refresh_rate, mode->refresh())) {
+        if (resolution == mode->size() && refresh == mode->refresh()) {
             return mode;
         }
     }
@@ -99,7 +100,7 @@ bool Output::Private::compareModeMap(const ModeMap& before, const ModeMap& after
         if (mb->size() != ma->size()) {
             return false;
         }
-        if (!qFuzzyCompare(mb->refresh(), ma->refresh())) {
+        if (mb->refresh() != ma->refresh()) {
             return false;
         }
         if (mb->name() != ma->name()) {
@@ -108,6 +109,25 @@ bool Output::Private::compareModeMap(const ModeMap& before, const ModeMap& after
     }
     // They're the same
     return true;
+}
+
+void Output::Private::apply_global()
+{
+    if (!global.valid) {
+        return;
+    }
+    if (retention == Output::Retention::Individual) {
+        return;
+    }
+
+    resolution = global.resolution;
+    refresh_rate = global.refresh;
+    rotation = global.rotation;
+    scale = global.scale;
+    auto_resolution = global.auto_resolution;
+    auto_refresh_rate = global.auto_refresh_rate;
+    auto_rotate = global.auto_rotate;
+    auto_rotate_only_in_tablet_mode = global.auto_rotate_only_in_tablet_mode;
 }
 
 Output::Output()
@@ -221,7 +241,7 @@ void Output::set_to_preferred_mode()
 ModePtr Output::commanded_mode() const
 {
     for (auto [key, mode] : d->modeList) {
-        if (mode->size() == d->resolution && qFuzzyCompare(mode->refresh(), d->refresh_rate)) {
+        if (mode->size() == d->resolution && mode->refresh() == d->refresh_rate) {
             return mode;
         }
     }
@@ -234,7 +254,7 @@ bool Output::set_resolution(QSize const& size)
     return commanded_mode() != nullptr;
 }
 
-bool Output::set_refresh_rate(double rate)
+bool Output::set_refresh_rate(int rate)
 {
     d->refresh_rate = rate;
     return commanded_mode() != nullptr;
@@ -245,7 +265,7 @@ QSize Output::best_resolution() const
     return d->best_resolution(modes());
 }
 
-double Output::best_refresh_rate(QSize const& resolution) const
+int Output::best_refresh_rate(QSize const& resolution) const
 {
     return d->best_refresh_rate(modes(), resolution);
 }
@@ -489,7 +509,24 @@ void Output::apply(const OutputPtr& other)
     set_auto_rotate_only_in_tablet_mode(other->d->auto_rotate_only_in_tablet_mode);
     set_retention(other->d->retention);
 
+    d->global = other->d->global;
+
     Q_EMIT updated();
+}
+
+Output::GlobalData Output::global_data() const
+{
+    return d->global;
+}
+
+void Output::set_global_data(GlobalData data)
+{
+    assert(data.resolution.isValid());
+    assert(data.refresh > 0);
+    assert(data.scale > 0);
+
+    d->global = data;
+    d->global.valid = data.resolution.isValid() && data.refresh > 0 && data.scale > 0;
 }
 
 }

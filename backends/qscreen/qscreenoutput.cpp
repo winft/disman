@@ -114,7 +114,7 @@ void QScreenOutput::updateDismanOutput(OutputPtr& output) const
     ModePtr mode(new Mode);
     std::string const modeid = "defaultmode";
     mode->set_id(modeid);
-    mode->set_refresh(m_qscreen->refreshRate());
+    mode->set_refresh(m_qscreen->refreshRate() * 1000);
     mode->set_size(m_qscreen->size());
 
     const QString modename = QString::number(m_qscreen->size().width()) + QLatin1String("x")

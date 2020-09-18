@@ -120,7 +120,7 @@ public:
     void setType(Type type);
 
     ModePtr mode(std::string const& id) const;
-    ModePtr mode(QSize const& resolution, double refresh_rate) const;
+    ModePtr mode(QSize const& resolution, int refresh) const;
 
     ModeMap modes() const;
     void set_modes(const ModeMap& modes);
@@ -132,7 +132,7 @@ public:
      */
     void set_mode(ModePtr const& mode);
     bool set_resolution(QSize const& size);
-    bool set_refresh_rate(double rate);
+    bool set_refresh_rate(int rate);
 
     void set_to_preferred_mode();
 
@@ -168,7 +168,7 @@ public:
     ModePtr auto_mode() const;
 
     QSize best_resolution() const;
-    double best_refresh_rate(QSize const& resolution) const;
+    int best_refresh_rate(QSize const& resolution) const;
 
     void set_preferred_modes(std::vector<std::string> const& modes);
     std::vector<std::string> const& preferred_modes() const;
@@ -288,6 +288,24 @@ public:
 
     void apply(const OutputPtr& other);
 
+    struct GlobalData {
+        QSize resolution;
+        int refresh{0};
+
+        Rotation rotation;
+        double scale;
+
+        bool auto_resolution{true};
+        bool auto_refresh_rate{true};
+        bool auto_rotate{false};
+        bool auto_rotate_only_in_tablet_mode{true};
+
+        bool valid{false};
+    };
+
+    GlobalData global_data() const;
+    void set_global_data(GlobalData data);
+
 Q_SIGNALS:
     /**
      * An update to the output was applied. Changes to its properties could have occured.
@@ -301,6 +319,8 @@ private:
     Private* const d;
 
     Output(Private* dd);
+
+    friend class Generator;
 };
 
 }

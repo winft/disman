@@ -123,8 +123,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
         }
         mode->set_id(modeId);
 
-        // Wrapland gives the refresh rate as int in mHz
-        mode->set_refresh(wlMode.refreshRate / 1000.0);
+        mode->set_refresh(wlMode.refreshRate);
         mode->set_size(wlMode.size);
         mode->set_name(name);
 

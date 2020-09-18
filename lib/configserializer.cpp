@@ -65,7 +65,7 @@ QJsonObject ConfigSerializer::serialize_config(const ConfigPtr& config)
         return obj;
     }
 
-    obj[QLatin1String("origin")] = static_cast<int>(config->origin());
+    obj[QLatin1String("cause")] = static_cast<int>(config->cause());
     obj[QLatin1String("features")] = static_cast<int>(config->supported_features());
     if (auto primary = config->primary_output()) {
         obj[QLatin1String("primary-output")] = primary->id();
@@ -125,6 +125,24 @@ QJsonObject ConfigSerializer::serialize_output(const OutputPtr& output)
         modes.append(serialize_mode(mode));
     }
     obj[QLatin1String("modes")] = modes;
+
+    auto data = output->global_data();
+    if (data.valid) {
+        obj[QLatin1String("global")] = true;
+
+        obj[QLatin1String("global.resolution")] = serialize_size(data.resolution);
+        obj[QLatin1String("global.refresh")] = data.refresh;
+
+        obj[QLatin1String("global.rotation")] = data.rotation;
+        obj[QLatin1String("global.scale")] = data.scale;
+
+        obj[QLatin1String("global.auto_resolution")] = data.auto_resolution;
+        obj[QLatin1String("global.auto_refresh_rate")] = data.auto_refresh_rate;
+
+        obj[QLatin1String("global.auto_rotate")] = data.auto_rotate;
+        obj[QLatin1String("global.auto_rotate_only_in_tablet_mode")]
+            = data.auto_rotate_only_in_tablet_mode;
+    }
 
     return obj;
 }
@@ -245,19 +263,19 @@ QSizeF ConfigSerializer::deserialize_sizef(const QDBusArgument& arg)
 
 ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
 {
-    auto origin = static_cast<Config::Origin>(
-        map.value(QStringLiteral("origin"), static_cast<int>(Config::Origin::unknown)).toInt());
-    switch (origin) {
-    case Config::Origin::unknown:
-    case Config::Origin::generated:
-    case Config::Origin::file:
+    auto cause = static_cast<Config::Cause>(
+        map.value(QStringLiteral("cause"), static_cast<int>(Config::Cause::unknown)).toInt());
+    switch (cause) {
+    case Config::Cause::unknown:
+    case Config::Cause::generated:
+    case Config::Cause::file:
         break;
     default:
-        qCWarning(DISMAN) << "Deserialized config without valid origin value.";
-        origin = Config::Origin::unknown;
+        qCWarning(DISMAN) << "Deserialized config without valid cause value.";
+        cause = Config::Cause::unknown;
     }
 
-    ConfigPtr config(new Config(origin));
+    ConfigPtr config(new Config(cause));
 
     if (map.contains(QLatin1String("features"))) {
         config->set_supported_features(
@@ -312,6 +330,7 @@ ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
 OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
 {
     OutputPtr output(new Output);
+    Output::GlobalData global_data;
 
     arg.beginMap();
     while (!arg.atEnd()) {
@@ -338,7 +357,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("resolution")) {
             output->set_resolution(value.toSize());
         } else if (key == QLatin1String("refresh")) {
-            output->set_refresh_rate(value.toDouble());
+            output->set_refresh_rate(value.toInt());
         } else if (key == QLatin1String("auto_rotate")) {
             output->set_auto_rotate(value.toBool());
         } else if (key == QLatin1String("auto_rotate_only_in_tablet_mode")) {
@@ -347,8 +366,29 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
             output->set_auto_resolution(value.toBool());
         } else if (key == QLatin1String("auto_refresh_rate")) {
             output->set_auto_refresh_rate(value.toBool());
+        }
 
-        } else if (key == QLatin1String("preferred_modes")) {
+        else if (key == QLatin1String("global")) {
+            global_data.valid = true;
+        } else if (key == QLatin1String("global.resolution")) {
+            global_data.resolution = deserialize_size(value.value<QDBusArgument>());
+        } else if (key == QLatin1String("global.refresh")) {
+            global_data.refresh = value.toInt();
+        } else if (key == QLatin1String("global.rotation")) {
+            global_data.rotation = static_cast<Output::Rotation>(value.toInt());
+        } else if (key == QLatin1String("global.scale")) {
+            global_data.scale = value.toDouble();
+        } else if (key == QLatin1String("global.auto_resolution")) {
+            global_data.auto_resolution = value.toBool();
+        } else if (key == QLatin1String("global.auto_refresh_rate")) {
+            global_data.auto_refresh_rate = value.toBool();
+        } else if (key == QLatin1String("global.auto_rotate")) {
+            global_data.auto_rotate = value.toBool();
+        } else if (key == QLatin1String("global.auto_rotate_only_in_tablet_mode")) {
+            global_data.auto_rotate_only_in_tablet_mode = value.toBool();
+        }
+
+        else if (key == QLatin1String("preferred_modes")) {
             auto q_strings = deserialize_list<QString>(value.value<QDBusArgument>());
             std::vector<std::string> strings;
             for (auto qs : q_strings) {
@@ -388,6 +428,10 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         arg.endMapEntry();
     }
     arg.endMap();
+
+    if (global_data.valid) {
+        output->set_global_data(global_data);
+    }
     return output;
 }
 

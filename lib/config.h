@@ -47,7 +47,7 @@ class DISMAN_EXPORT Config : public QObject
     Q_OBJECT
 
 public:
-    enum class Origin {
+    enum class Cause {
         unknown,
         file,
         generated,
@@ -114,7 +114,7 @@ public:
      * whatever you need.
      */
     Config();
-    explicit Config(Origin origin);
+    explicit Config(Cause cause);
     ~Config() override;
 
     /**
@@ -136,8 +136,8 @@ public:
      */
     QString hash() const;
 
-    Origin origin() const;
-    void set_origin(Origin origin);
+    Cause cause() const;
+    void set_cause(Cause cause);
 
     ScreenPtr screen() const;
     void setScreen(const ScreenPtr& screen);
