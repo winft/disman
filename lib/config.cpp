@@ -397,6 +397,7 @@ void Config::apply(const ConfigPtr& other)
 
     // Update validity
     set_valid(other->valid());
+    set_cause(other->cause());
 }
 
 QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
