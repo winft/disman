@@ -233,17 +233,9 @@ void XRandR::screenChanged(xcb_randr_rotation_t rotation,
     m_configChangeCompressor->start();
 }
 
-// TODO: read from control file!
-
-ConfigPtr XRandR::config_impl() const
+void XRandR::update_config(ConfigPtr& config) const
 {
-    Disman::ConfigPtr config(new Disman::Config);
-
     s_internalConfig->update_config(config);
-    filer_controller()->read(config);
-    s_internalConfig->update_config(config);
-
-    return config;
 }
 
 bool XRandR::set_config_impl(Disman::ConfigPtr const& config)

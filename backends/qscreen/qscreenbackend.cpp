@@ -53,15 +53,9 @@ QString QScreenBackend::service_name() const
     return QStringLiteral("org.kde.Disman.Backend.QScreen");
 }
 
-ConfigPtr QScreenBackend::config_impl() const
+void QScreenBackend::update_config(ConfigPtr& config) const
 {
-    ConfigPtr config(new Config);
-
     s_internalConfig->update_config(config);
-    filer_controller()->read(config);
-    s_internalConfig->update_config(config);
-
-    return config;
 }
 
 bool QScreenBackend::set_config_impl([[maybe_unused]] const ConfigPtr& config)

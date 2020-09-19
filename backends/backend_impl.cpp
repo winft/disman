@@ -36,7 +36,17 @@ Filer_controller* BackendImpl::filer_controller() const
 Disman::ConfigPtr BackendImpl::config() const
 {
     m_config_initialized = true;
-    return config_impl();
+
+    auto config = std::make_shared<Config>();
+
+    // We update from the windowing system first so the controller knows about the current
+    // configuration and then update one more time so the windowing system can override values
+    // it provides itself.
+    update_config(config);
+    filer_controller()->read(config);
+    update_config(config);
+
+    return config;
 }
 
 void BackendImpl::set_config(Disman::ConfigPtr const& config)

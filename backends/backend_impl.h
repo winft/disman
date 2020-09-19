@@ -31,7 +31,7 @@ public:
 protected:
     Filer_controller* filer_controller() const;
 
-    virtual ConfigPtr config_impl() const = 0;
+    virtual void update_config(ConfigPtr& config) const = 0;
     virtual bool set_config_impl(ConfigPtr const& config) = 0;
 
 private:

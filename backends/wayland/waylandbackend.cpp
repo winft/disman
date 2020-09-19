@@ -113,26 +113,15 @@ QString WaylandBackend::service_name() const
     return QStringLiteral("org.kwinft.disman.backend.wayland");
 }
 
-ConfigPtr WaylandBackend::config_impl() const
+void WaylandBackend::update_config(ConfigPtr& config) const
 {
-    // Note: This should ONLY be called from GetConfigOperation!
-
-    ConfigPtr config(new Config);
-
     // TODO: do this setScreen call less clunky
     config->setScreen(m_screen->toDismanScreen(config));
 
-    // We update from the windowing system first so the controller knows about the current
-    // configuration and then update one more time so the windowing system can override values
-    // it provides itself.
-    m_interface->updateConfig(config);
-    filer_controller()->read(config);
     m_interface->updateConfig(config);
 
     ScreenPtr screen = config->screen();
     m_screen->updateDismanScreen(screen);
-
-    return config;
 }
 
 bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)

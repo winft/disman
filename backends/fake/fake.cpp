@@ -78,15 +78,10 @@ QString Fake::service_name() const
     return QStringLiteral("org.kwinft.disman.fakebackend");
 }
 
-ConfigPtr Fake::config_impl() const
+void Fake::update_config(ConfigPtr& config) const
 {
-    if (!mConfig) {
-        mConfig = Parser::fromJson(mConfigFile);
-        filer_controller()->read(mConfig);
-        mConfig = Parser::fromJson(mConfigFile);
-    }
-
-    return mConfig;
+    Parser::fromJson(mConfigFile, config);
+    mConfig = config;
 }
 
 bool Fake::set_config_impl(const ConfigPtr& config)

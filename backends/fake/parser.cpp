@@ -33,10 +33,8 @@
 
 using namespace Disman;
 
-ConfigPtr Parser::fromJson(const QByteArray& data)
+void Parser::fromJson(const QByteArray& data, ConfigPtr& config)
 {
-    ConfigPtr config(new Config);
-
     const QJsonObject json = QJsonDocument::fromJson(data).object();
 
     ScreenPtr screen
@@ -45,7 +43,7 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
 
     const QVariantList outputs = json[QStringLiteral("outputs")].toArray().toVariantList();
     if (outputs.isEmpty()) {
-        return config;
+        return;
     }
 
     OutputMap outputList;
@@ -61,19 +59,18 @@ ConfigPtr Parser::fromJson(const QByteArray& data)
 
     config->set_outputs(outputList);
     config->set_primary_output(primary);
-    return config;
 }
 
-ConfigPtr Parser::fromJson(const QString& path)
+void Parser::fromJson(const QString& path, Disman::ConfigPtr& config)
 {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << file.errorString();
         qWarning() << "File: " << path;
-        return ConfigPtr();
+        return;
     }
 
-    return Parser::fromJson(file.readAll());
+    Parser::fromJson(file.readAll(), config);
 }
 
 ScreenPtr Parser::screenFromJson(const QVariantMap& data)
