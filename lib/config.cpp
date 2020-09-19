@@ -402,13 +402,29 @@ void Config::apply(const ConfigPtr& other)
 
 QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
 {
+    auto print_cause = [](Config::Cause cause) -> std::string {
+        switch (cause) {
+        case Config::Cause::unknown:
+            return "unknown";
+        case Config::Cause::file:
+            return "file";
+        case Config::Cause::generated:
+            return "generated";
+        case Config::Cause::interactive:
+            return "interactive";
+        default:
+            return "ill-defined";
+        }
+    };
+
     if (config) {
         dbg << "Disman::Config(";
+        dbg << "cause:" << print_cause(config->cause()).c_str();
         if (auto primary = config->primary_output()) {
-            dbg << "Primary:" << primary->id();
+            dbg << "primary:" << primary->id();
         }
         const auto outputs = config->outputs();
-        for (const auto& output : outputs) {
+        for (auto const& [key, output] : outputs) {
             dbg << Qt::endl << output;
         }
         dbg << ")";
