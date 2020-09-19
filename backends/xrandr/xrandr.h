@@ -72,14 +72,12 @@ private:
                      const QRect& geom);
     void
     screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& physical_size);
-    void handle_change();
 
     static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
 
     static xcb_screen_t* s_screen;
     static xcb_window_t s_rootWindow;
     static XRandRConfig* s_internalConfig;
-    Disman::ConfigPtr m_config{nullptr};
 
     static int s_randrBase;
     static int s_randrError;

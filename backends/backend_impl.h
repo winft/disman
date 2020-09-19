@@ -34,6 +34,13 @@ protected:
     virtual void update_config(ConfigPtr& config) const = 0;
     virtual bool set_config_impl(ConfigPtr const& config) = 0;
 
+    /**
+     * Handles a change in the window system. Sets a stored or generated config if needed and
+     * returns false in this case. If the state correspondes to the stored state or is already
+     * optimal returns true.
+     */
+    bool handle_config_change();
+
 private:
     void load_lid_config();
 
@@ -41,6 +48,8 @@ private:
     std::unique_ptr<Filer_controller> m_filer_controller;
 
     mutable bool m_config_initialized{false};
+
+    ConfigPtr m_config;
 };
 
 }

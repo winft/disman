@@ -72,7 +72,6 @@ private:
     void takeInterface(const PendingInterface& pending);
     void rejectInterface(const PendingInterface& pending);
 
-    Disman::ConfigPtr m_config{nullptr};
     std::unique_ptr<WaylandScreen> m_screen;
     QPointer<WaylandInterface> m_interface;
     QThread* m_thread{nullptr};

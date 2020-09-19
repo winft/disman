@@ -57,6 +57,37 @@ void BackendImpl::set_config(Disman::ConfigPtr const& config)
     set_config_impl(config);
 }
 
+bool BackendImpl::handle_config_change()
+{
+    auto cfg = config();
+
+    if (!m_config || m_config->hash() != cfg->hash()) {
+        qCDebug(DISMAN_BACKEND) << "Config with new output pattern received:" << cfg;
+
+        if (cfg->cause() == Config::Cause::unknown) {
+            qCDebug(DISMAN_BACKEND)
+                << "Config received that is unknown. Creating an optimized config now.";
+            Generator generator(cfg);
+            generator.optimize();
+            cfg = generator.config();
+        } else {
+            // We set the windowing system to our saved values. They were overriden before so
+            // re-read them.
+            m_filer_controller->read(cfg);
+        }
+
+        m_config = cfg;
+
+        if (set_config_impl(cfg)) {
+            qCDebug(DISMAN_BACKEND) << "Config for new output pattern sent.";
+            return false;
+        }
+    }
+
+    Q_EMIT config_changed(cfg);
+    return true;
+}
+
 void BackendImpl::load_lid_config()
 {
     if (!m_config_initialized) {

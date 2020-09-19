@@ -240,32 +240,11 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
     m_interface = pending.interface;
     m_thread = pending.thread;
     connect(m_interface, &WaylandInterface::config_changed, this, [this] {
-        auto cfg = config();
-        if (!m_config || m_config->hash() != cfg->hash()) {
-            qCDebug(DISMAN_WAYLAND) << "Config with new output pattern received:" << cfg;
-
-            if (cfg->cause() == Config::Cause::unknown) {
-                qCDebug(DISMAN_WAYLAND)
-                    << "Config received that is unknown. Creating an optimized config now.";
-                Generator generator(cfg);
-                generator.optimize();
-                cfg = generator.config();
-            } else {
-                // We set the windowing system to our saved values. They were overriden before so
-                // re-read them.
-                filer_controller()->read(cfg);
-            }
-
-            m_config = cfg;
-
-            if (set_config_impl(cfg)) {
-                qCDebug(DISMAN_WAYLAND) << "Config for new output pattern sent.";
-                return;
-            }
+        if (handle_config_change()) {
+            // When windowing system and us have been synced up quit the sync loop.
+            // That returns the current config.
+            m_syncLoop.quit();
         }
-
-        m_syncLoop.quit();
-        Q_EMIT config_changed(cfg);
     });
 
     setScreenOutputs();

@@ -21,8 +21,6 @@
 #include "qscreenconfig.h"
 #include "qscreenoutput.h"
 
-#include "filer_controller.h"
-
 using namespace Disman;
 
 QScreenConfig* QScreenBackend::s_internalConfig = nullptr;

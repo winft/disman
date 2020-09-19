@@ -123,9 +123,9 @@ XRandR::XRandR()
         m_configChangeCompressor = new QTimer(this);
         m_configChangeCompressor->setSingleShot(true);
         m_configChangeCompressor->setInterval(500);
-        connect(m_configChangeCompressor, &QTimer::timeout, this, &XRandR::handle_change);
+        connect(m_configChangeCompressor, &QTimer::timeout, this, &XRandR::handle_config_change);
 
-        handle_change();
+        handle_config_change();
         s_monitorInitialized = true;
     }
 }
@@ -187,32 +187,6 @@ void XRandR::crtcChanged(xcb_randr_crtc_t crtc,
     }
 
     m_configChangeCompressor->start();
-}
-
-void XRandR::handle_change()
-{
-    auto cfg = config();
-    if (!m_config || m_config->hash() != cfg->hash()) {
-        qCDebug(DISMAN_XRANDR) << "Config with new output pattern received:" << cfg;
-
-        if (cfg->cause() == Config::Cause::unknown) {
-            qCDebug(DISMAN_XRANDR)
-                << "Config received that is unknown. Creating an optimized config now.";
-            Generator generator(cfg);
-            generator.optimize();
-            cfg = generator.config();
-        } else {
-            filer_controller()->read(cfg);
-        }
-
-        m_config = cfg;
-
-        if (set_config_impl(cfg)) {
-            qCDebug(DISMAN_XRANDR) << "Config for new output pattern sent.";
-            return;
-        }
-    }
-    Q_EMIT config_changed(cfg);
 }
 
 void XRandR::screenChanged(xcb_randr_rotation_t rotation,
