@@ -30,11 +30,6 @@
 class QRect;
 class QTimer;
 
-namespace Disman
-{
-class Filer_controller;
-}
-
 class XCBEventListener;
 class XRandRConfig;
 
@@ -51,7 +46,7 @@ public:
     QString service_name() const override;
 
     void update_config(Disman::ConfigPtr& config) const override;
-    bool set_config_impl(Disman::ConfigPtr const& config) override;
+    bool set_config_system(Disman::ConfigPtr const& config) override;
     bool valid() const override;
 
     static QByteArray outputEdid(xcb_randr_output_t outputId);
@@ -88,6 +83,5 @@ private:
     XCBEventListener* m_x11Helper;
     bool m_valid;
 
-    std::unique_ptr<Disman::Filer_controller> m_filer_controller;
     QTimer* m_configChangeCompressor;
 };

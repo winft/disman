@@ -25,8 +25,6 @@
 
 #include "xrandr_logging.h"
 
-#include "filer_controller.h"
-
 #include "config.h"
 #include "generator.h"
 #include "output.h"
@@ -212,9 +210,8 @@ void XRandR::update_config(ConfigPtr& config) const
     s_internalConfig->update_config(config);
 }
 
-bool XRandR::set_config_impl(Disman::ConfigPtr const& config)
+bool XRandR::set_config_system(Disman::ConfigPtr const& config)
 {
-    filer_controller()->write(config);
     return s_internalConfig->applyDismanConfig(config);
 }
 

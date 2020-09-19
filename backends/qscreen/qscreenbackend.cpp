@@ -56,7 +56,7 @@ void QScreenBackend::update_config(ConfigPtr& config) const
     s_internalConfig->update_config(config);
 }
 
-bool QScreenBackend::set_config_impl([[maybe_unused]] const ConfigPtr& config)
+bool QScreenBackend::set_config_system([[maybe_unused]] const ConfigPtr& config)
 {
     qWarning() << "The QScreen backend for disman is read-only,";
     qWarning() << "setting a configuration is not supported.";

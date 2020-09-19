@@ -23,8 +23,6 @@
 #include "waylandoutput.h"
 #include "waylandscreen.h"
 
-#include "filer_controller.h"
-
 #include "tabletmodemanager_interface.h"
 #include "wayland_logging.h"
 
@@ -124,16 +122,8 @@ void WaylandBackend::update_config(ConfigPtr& config) const
     m_screen->updateDismanScreen(screen);
 }
 
-bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
+bool WaylandBackend::set_config_system(Disman::ConfigPtr const& config)
 {
-    if (QLoggingCategory category("disman.wayland"); category.isEnabled(QtDebugMsg)) {
-        qCDebug(DISMAN_WAYLAND) << "About to set config."
-                                << "\n  Previous config:" << this->config()
-                                << "\n  New config:" << config;
-    }
-
-    filer_controller()->write(config);
-
     for (auto const& [key, output] : config->outputs()) {
         if (auto source_id = output->replication_source()) {
             auto source = config->output(source_id);

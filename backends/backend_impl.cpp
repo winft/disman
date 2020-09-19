@@ -28,11 +28,6 @@ void BackendImpl::init([[maybe_unused]] QVariantMap const& arguments)
     // noop, maybe overridden in individual backends.
 }
 
-Filer_controller* BackendImpl::filer_controller() const
-{
-    return m_filer_controller.get();
-}
-
 Disman::ConfigPtr BackendImpl::config() const
 {
     m_config_initialized = true;
@@ -43,7 +38,7 @@ Disman::ConfigPtr BackendImpl::config() const
     // configuration and then update one more time so the windowing system can override values
     // it provides itself.
     update_config(config);
-    filer_controller()->read(config);
+    m_filer_controller->read(config);
     update_config(config);
 
     return config;
@@ -55,6 +50,18 @@ void BackendImpl::set_config(Disman::ConfigPtr const& config)
         return;
     }
     set_config_impl(config);
+}
+
+bool BackendImpl::set_config_impl(Disman::ConfigPtr const& config)
+{
+    if (QLoggingCategory category("disman.backend"); category.isEnabled(QtDebugMsg)) {
+        qCDebug(DISMAN_BACKEND) << "About to set config."
+                                << "\n  Previous config:" << this->config()
+                                << "\n  New config:" << config;
+    }
+
+    m_filer_controller->write(config);
+    return set_config_system(config);
 }
 
 bool BackendImpl::handle_config_change()

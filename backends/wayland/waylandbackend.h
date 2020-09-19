@@ -49,7 +49,7 @@ public:
     bool valid() const override;
 
     void update_config(ConfigPtr& config) const override;
-    bool set_config_impl(Disman::ConfigPtr const& config) override;
+    bool set_config_system(Disman::ConfigPtr const& config) override;
 
     std::map<int, WaylandOutput*> outputMap() const;
 
