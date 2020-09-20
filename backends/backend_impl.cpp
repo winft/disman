@@ -32,6 +32,17 @@ Disman::ConfigPtr BackendImpl::config() const
 {
     m_config_initialized = true;
 
+    auto config = config_impl();
+
+    if (config->cause() == Config::Cause::unknown && m_config) {
+        config->set_cause(m_config->cause());
+    }
+
+    return config;
+}
+
+Disman::ConfigPtr BackendImpl::config_impl() const
+{
     auto config = std::make_shared<Config>();
 
     // We update from the windowing system first so the controller knows about the current
@@ -66,7 +77,8 @@ bool BackendImpl::set_config_impl(Disman::ConfigPtr const& config)
 
 bool BackendImpl::handle_config_change()
 {
-    auto cfg = config();
+    // We need the config with its own cause, so we call config_impl here.
+    auto cfg = config_impl();
 
     if (!m_config || m_config->hash() != cfg->hash()) {
         qCDebug(DISMAN_BACKEND) << "Config with new output pattern received:" << cfg;

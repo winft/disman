@@ -40,7 +40,9 @@ protected:
     bool handle_config_change();
 
 private:
+    ConfigPtr config_impl() const;
     bool set_config_impl(ConfigPtr const& config);
+
     void load_lid_config();
 
     std::unique_ptr<Device> m_device;
