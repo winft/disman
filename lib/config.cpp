@@ -423,6 +423,9 @@ QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
         if (auto primary = config->primary_output()) {
             dbg << "primary:" << primary->id();
         }
+        if (config->tablet_mode_available()) {
+            dbg << "tablet-mode:" << (config->tablet_mode_engaged() ? "engaged" : "disengaged");
+        }
         const auto outputs = config->outputs();
         for (auto const& [key, output] : outputs) {
             dbg << Qt::endl << output;
