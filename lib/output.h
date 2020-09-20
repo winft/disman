@@ -80,6 +80,13 @@ public:
 
     OutputPtr clone() const;
 
+    /**
+     * Compares the data of this object with @param output.
+     *
+     * @return true if data is same otherwise false
+     */
+    bool compare(OutputPtr output) const;
+
     int id() const;
     void set_id(int id);
 

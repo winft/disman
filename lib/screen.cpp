@@ -67,6 +67,17 @@ ScreenPtr Screen::clone() const
     return ScreenPtr(new Screen(new Private(*d)));
 }
 
+bool Screen::compare(ScreenPtr screen) const
+{
+    if (!screen) {
+        return false;
+    }
+
+    return d->id == screen->d->id && d->max_outputs_count == screen->d->max_outputs_count
+        && d->current_size == screen->d->current_size && d->min_size == screen->d->min_size
+        && d->max_size == screen->d->max_size;
+}
+
 int Screen::id() const
 {
     return d->id;
