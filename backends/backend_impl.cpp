@@ -57,14 +57,15 @@ Disman::ConfigPtr BackendImpl::config_impl() const
 
 void BackendImpl::set_config(Disman::ConfigPtr const& config)
 {
-    if (!config) {
+    if (!config || config->compare(m_config)) {
+        // No change by new config. Do nothing.
         return;
     }
 
     if (!set_config_impl(config)) {
-        // We currently have no way to check if the new config changed anything at all so if it did
-        // not change the system one in order to communicate potential other changes to Dimsman
-        // clients indiscriminately emit a config_changed signal for now.
+        // No change to the system but other changes that need to be synced with other Disman
+        // clients so emit a config_changed signal directly.
+        m_config = config;
         Q_EMIT config_changed(config);
     }
 }
