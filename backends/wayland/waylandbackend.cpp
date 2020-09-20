@@ -117,6 +117,8 @@ void WaylandBackend::update_config(ConfigPtr& config) const
     config->setScreen(m_screen->toDismanScreen(config));
 
     m_interface->updateConfig(config);
+    config->set_tablet_mode_available(m_tabletModeAvailable);
+    config->set_tablet_mode_engaged(m_tabletModeEngaged);
 
     ScreenPtr screen = config->screen();
     m_screen->updateDismanScreen(screen);
