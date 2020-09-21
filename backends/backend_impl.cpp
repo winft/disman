@@ -121,7 +121,12 @@ void BackendImpl::load_lid_config()
                                      "initialized. Doing nothing.";
         return;
     }
+
     auto cfg = config();
+    if (cfg->outputs().size() == 1) {
+        // Open lid configuration is only relevant with more than one output.
+        return;
+    }
 
     if (m_device->lid_open()) {
         // The lid has been opnened. Try to load the open lid file.
