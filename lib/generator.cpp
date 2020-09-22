@@ -161,13 +161,18 @@ bool Generator::disable_embedded()
 
     auto embedded = embedded_impl(config->outputs(), OutputMap());
     if (!embedded) {
+        qCWarning(DISMAN) << "No embedded output found to disable. Config unchanged.";
         return false;
     }
 
     auto biggest_external = biggest_impl(config->outputs(), false, {{embedded->id(), embedded}});
     if (!biggest_external) {
+        qCWarning(DISMAN) << "No external output found when disabling embedded. Config unchanged.";
         return false;
     }
+
+    qCDebug(DISMAN) << "Disable embedded:" << embedded;
+    qCDebug(DISMAN) << "Enable external:" << biggest_external;
 
     embedded->set_enabled(false);
     biggest_external->set_enabled(true);
@@ -176,7 +181,7 @@ bool Generator::disable_embedded()
     normalize_positions(config);
 
     if (!check_config(config)) {
-        qCDebug(DISMAN) << "Could not disable embedded output. Config unchanged.";
+        qCWarning(DISMAN) << "Could not disable embedded output. Config unchanged.";
         return false;
     }
 

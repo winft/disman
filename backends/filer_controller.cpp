@@ -69,7 +69,7 @@ bool Filer_controller::write(ConfigPtr const& config)
 bool Filer_controller::load_lid_file(ConfigPtr& config)
 {
     if (!lid_file_exists(config)) {
-        qDebug(DISMAN_BACKEND) << "Loading open lid file failed: file does not exist.";
+        qCWarning(DISMAN_BACKEND) << "Loading open-lid file failed: file does not exist.";
         return false;
     }
     if (!move_lid_file(config)) {

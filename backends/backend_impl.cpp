@@ -124,13 +124,15 @@ void BackendImpl::load_lid_config()
 
     auto cfg = config();
     if (cfg->outputs().size() == 1) {
-        // Open lid configuration is only relevant with more than one output.
+        // Open-lid configuration is only relevant with more than one output.
         return;
     }
 
     if (m_device->lid_open()) {
-        // The lid has been opnened. Try to load the open lid file.
+        // The lid has been opnened. Try to load the open-lid file.
         if (!m_filer_controller->load_lid_file(cfg)) {
+            qCWarning(DISMAN_BACKEND)
+                << "Loading open-lid file failed. Generating an optimal config instead.";
             return;
         }
         qCDebug(DISMAN_BACKEND) << "Loaded lid-open file on lid being opened.";
