@@ -72,7 +72,9 @@ bool Filer_controller::load_lid_file(ConfigPtr& config)
         qDebug(DISMAN_BACKEND) << "Loading open lid file failed: file does not exist.";
         return false;
     }
-    move_lid_file(config);
+    if (!move_lid_file(config)) {
+        qCWarning(DISMAN_BACKEND) << "Could not move open-lid file back to normal config file.";
+    }
     reset_filer(config);
     return read(config);
 }
@@ -83,7 +85,7 @@ bool Filer_controller::lid_file_exists(ConfigPtr const& config)
     return QFile(file_info.filePath()).exists();
 }
 
-void Filer_controller::move_lid_file(ConfigPtr const& config)
+bool Filer_controller::move_lid_file(ConfigPtr const& config)
 {
     assert(lid_file_exists(config));
 
@@ -91,7 +93,7 @@ void Filer_controller::move_lid_file(ConfigPtr const& config)
     QFile(file_info.filePath()).remove();
 
     auto const lid_file_info = Filer(config, this, "open-lid").file_info();
-    QFile(lid_file_info.filePath()).rename(file_info.fileName());
+    return QFile::rename(lid_file_info.filePath(), file_info.filePath());
 }
 
 bool Filer_controller::save_lid_file(ConfigPtr const& config)

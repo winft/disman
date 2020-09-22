@@ -63,7 +63,7 @@ public:
 
 private:
     bool lid_file_exists(ConfigPtr const& config);
-    void move_lid_file(ConfigPtr const& config);
+    bool move_lid_file(ConfigPtr const& config);
 
     void reset_filer(ConfigPtr const& config);
 
