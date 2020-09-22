@@ -145,7 +145,7 @@ void BackendImpl::load_lid_config()
             qCWarning(DISMAN_BACKEND) << "Embedded display could not be disabled.";
             return;
         }
-        if (m_filer_controller->save_lid_file(cfg)) {
+        if (!m_filer_controller->save_lid_file(cfg)) {
             qCWarning(DISMAN_BACKEND) << "Failed to save open-lid file.";
             return;
         }
