@@ -80,6 +80,39 @@ bool Generator::optimize()
     return true;
 }
 
+void normalize_positions(ConfigPtr& config)
+{
+    double min_x = 0;
+    double min_y = 0;
+    bool is_set = false;
+
+    for (auto const& [key, output] : config->outputs()) {
+        if (!output->positionable()) {
+            continue;
+        }
+
+        auto const x = output->position().x();
+        auto const y = output->position().y();
+        if (!is_set) {
+            min_x = x;
+            min_y = y;
+            is_set = true;
+        }
+
+        if (x < min_x) {
+            min_x = x;
+        }
+        if (y < min_y) {
+            min_y = y;
+        }
+    }
+
+    for (auto& [key, output] : config->outputs()) {
+        auto const pos = output->position();
+        output->set_position(QPointF(pos.x() - min_x, pos.y() - min_y));
+    }
+}
+
 bool Generator::extend(Extend_direction direction)
 {
     return extend(nullptr, direction);
@@ -140,6 +173,7 @@ bool Generator::disable_embedded()
     biggest_external->set_enabled(true);
 
     // TODO: reorder positions.
+    normalize_positions(config);
 
     if (!check_config(config)) {
         qCDebug(DISMAN) << "Could not disable embedded output. Config unchanged.";
