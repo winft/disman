@@ -30,8 +30,8 @@
 class Parser
 {
 public:
-    static Disman::ConfigPtr fromJson(const QByteArray& data);
-    static Disman::ConfigPtr fromJson(const QString& path);
+    static void fromJson(const QByteArray& data, Disman::ConfigPtr& config);
+    static void fromJson(const QString& path, Disman::ConfigPtr& config);
     static bool validate(const QByteArray& data);
     static bool validate(const QString& data);
 

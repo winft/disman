@@ -48,8 +48,8 @@ public:
     QString service_name() const override;
     bool valid() const override;
 
-    Disman::ConfigPtr config_impl() const override;
-    bool set_config_impl(Disman::ConfigPtr const& config) override;
+    void update_config(ConfigPtr& config) const override;
+    bool set_config_system(Disman::ConfigPtr const& config) override;
 
     std::map<int, WaylandOutput*> outputMap() const;
 
@@ -72,7 +72,6 @@ private:
     void takeInterface(const PendingInterface& pending);
     void rejectInterface(const PendingInterface& pending);
 
-    Disman::ConfigPtr m_config{nullptr};
     std::unique_ptr<WaylandScreen> m_screen;
     QPointer<WaylandInterface> m_interface;
     QThread* m_thread{nullptr};

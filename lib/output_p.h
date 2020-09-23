@@ -106,7 +106,6 @@ public:
     Rotation rotation;
     qreal scale;
     bool enabled;
-    bool primary;
     bool follow_preferred_mode = false;
 
     bool auto_resolution{false};

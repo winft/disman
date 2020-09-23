@@ -23,8 +23,6 @@
 #include "waylandoutput.h"
 #include "waylandscreen.h"
 
-#include "filer_controller.h"
-
 #include "tabletmodemanager_interface.h"
 #include "wayland_logging.h"
 
@@ -113,38 +111,21 @@ QString WaylandBackend::service_name() const
     return QStringLiteral("org.kwinft.disman.backend.wayland");
 }
 
-ConfigPtr WaylandBackend::config_impl() const
+void WaylandBackend::update_config(ConfigPtr& config) const
 {
-    // Note: This should ONLY be called from GetConfigOperation!
-
-    ConfigPtr config(new Config);
-
     // TODO: do this setScreen call less clunky
     config->setScreen(m_screen->toDismanScreen(config));
 
-    // We update from the windowing system first so the controller knows about the current
-    // configuration and then update one more time so the windowing system can override values
-    // it provides itself.
     m_interface->updateConfig(config);
-    filer_controller()->read(config);
-    m_interface->updateConfig(config);
+    config->set_tablet_mode_available(m_tabletModeAvailable);
+    config->set_tablet_mode_engaged(m_tabletModeEngaged);
 
     ScreenPtr screen = config->screen();
     m_screen->updateDismanScreen(screen);
-
-    return config;
 }
 
-bool WaylandBackend::set_config_impl(Disman::ConfigPtr const& config)
+bool WaylandBackend::set_config_system(Disman::ConfigPtr const& config)
 {
-    if (QLoggingCategory category("disman.wayland"); category.isEnabled(QtDebugMsg)) {
-        qCDebug(DISMAN_WAYLAND) << "About to set config."
-                                << "\n  Previous config:" << this->config()
-                                << "\n  New config:" << config;
-    }
-
-    filer_controller()->write(config);
-
     for (auto const& [key, output] : config->outputs()) {
         if (auto source_id = output->replication_source()) {
             auto source = config->output(source_id);
@@ -251,32 +232,11 @@ void WaylandBackend::takeInterface(const PendingInterface& pending)
     m_interface = pending.interface;
     m_thread = pending.thread;
     connect(m_interface, &WaylandInterface::config_changed, this, [this] {
-        auto cfg = config();
-        if (!m_config || m_config->hash() != cfg->hash()) {
-            qCDebug(DISMAN_WAYLAND) << "Config with new output pattern received:" << cfg;
-
-            if (cfg->cause() == Config::Cause::unknown) {
-                qCDebug(DISMAN_WAYLAND)
-                    << "Config received that is unknown. Creating an optimized config now.";
-                Generator generator(cfg);
-                generator.optimize();
-                cfg = generator.config();
-            } else {
-                // We set the windowing system to our saved values. They were overriden before so
-                // re-read them.
-                filer_controller()->read(cfg);
-            }
-
-            m_config = cfg;
-
-            if (set_config_impl(cfg)) {
-                qCDebug(DISMAN_WAYLAND) << "Config for new output pattern sent.";
-                return;
-            }
+        if (handle_config_change()) {
+            // When windowing system and us have been synced up quit the sync loop.
+            // That returns the current config.
+            m_syncLoop.quit();
         }
-
-        m_syncLoop.quit();
-        Q_EMIT config_changed(cfg);
     });
 
     setScreenOutputs();

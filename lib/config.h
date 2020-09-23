@@ -125,6 +125,13 @@ public:
     ConfigPtr clone() const;
 
     /**
+     * Compares the data of this object with @param config.
+     *
+     * @return true if data is same otherwise false
+     */
+    bool compare(ConfigPtr config) const;
+
+    /**
      * Returns an identifying hash for this config in regards to its
      * connected outputs.
      *

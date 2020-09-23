@@ -223,7 +223,7 @@ bool KWaylandInterface::applyConfig(const Disman::ConfigPtr& newConfig)
     if (signalsBlocked()) {
         /* Last apply still pending, remember new changes and apply afterwards */
         m_dismanPendingConfig = newConfig;
-        return false;
+        return true;
     }
 
     for (auto const& [key, output] : newConfig->outputs()) {

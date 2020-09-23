@@ -35,6 +35,7 @@ Q_SIGNALS:
     void lid_open_changed();
 
 private Q_SLOTS:
+    void fetch_lid_closed();
     void prepare_for_sleep(bool start);
 
 private:
@@ -43,7 +44,6 @@ private:
     void fetch_lid_present();
     void lid_present_fetched(QDBusPendingCallWatcher* watcher);
 
-    void fetch_lid_closed();
     void lid_closed_fetched(QDBusPendingCallWatcher* watcher);
 
     bool m_ready{false};

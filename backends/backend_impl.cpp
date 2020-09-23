@@ -28,23 +28,90 @@ void BackendImpl::init([[maybe_unused]] QVariantMap const& arguments)
     // noop, maybe overridden in individual backends.
 }
 
-Filer_controller* BackendImpl::filer_controller() const
-{
-    return m_filer_controller.get();
-}
-
 Disman::ConfigPtr BackendImpl::config() const
 {
     m_config_initialized = true;
-    return config_impl();
+
+    auto config = config_impl();
+
+    if (config->cause() == Config::Cause::unknown && m_config) {
+        config->set_cause(m_config->cause());
+    }
+
+    return config;
+}
+
+Disman::ConfigPtr BackendImpl::config_impl() const
+{
+    auto config = std::make_shared<Config>();
+
+    // We update from the windowing system first so the controller knows about the current
+    // configuration and then update one more time so the windowing system can override values
+    // it provides itself.
+    update_config(config);
+    m_filer_controller->read(config);
+    update_config(config);
+
+    return config;
 }
 
 void BackendImpl::set_config(Disman::ConfigPtr const& config)
 {
-    if (!config) {
+    if (!config || config->compare(m_config)) {
+        // No change by new config. Do nothing.
         return;
     }
-    set_config_impl(config);
+
+    if (!set_config_impl(config)) {
+        // No change to the system but other changes that need to be synced with other Disman
+        // clients so emit a config_changed signal directly.
+        m_config = config;
+        Q_EMIT config_changed(config);
+    }
+}
+
+bool BackendImpl::set_config_impl(Disman::ConfigPtr const& config)
+{
+    if (QLoggingCategory category("disman.backend"); category.isEnabled(QtDebugMsg)) {
+        qCDebug(DISMAN_BACKEND) << "About to set config."
+                                << "\n  Previous config:" << this->config()
+                                << "\n  New config:" << config;
+    }
+
+    m_filer_controller->write(config);
+    return set_config_system(config);
+}
+
+bool BackendImpl::handle_config_change()
+{
+    // We need the config with its own cause, so we call config_impl here.
+    auto cfg = config_impl();
+
+    if (!m_config || m_config->hash() != cfg->hash()) {
+        qCDebug(DISMAN_BACKEND) << "Config with new output pattern received:" << cfg;
+
+        if (cfg->cause() == Config::Cause::unknown) {
+            qCDebug(DISMAN_BACKEND)
+                << "Config received that is unknown. Creating an optimized config now.";
+            Generator generator(cfg);
+            generator.optimize();
+            cfg = generator.config();
+        } else {
+            // We set the windowing system to our saved values. They were overriden before so
+            // re-read them.
+            m_filer_controller->read(cfg);
+        }
+
+        m_config = cfg;
+
+        if (set_config_impl(cfg)) {
+            qCDebug(DISMAN_BACKEND) << "Config for new output pattern sent.";
+            return false;
+        }
+    }
+
+    Q_EMIT config_changed(cfg);
+    return true;
 }
 
 void BackendImpl::load_lid_config()
@@ -54,11 +121,18 @@ void BackendImpl::load_lid_config()
                                      "initialized. Doing nothing.";
         return;
     }
+
     auto cfg = config();
+    if (cfg->outputs().size() == 1) {
+        // Open-lid configuration is only relevant with more than one output.
+        return;
+    }
 
     if (m_device->lid_open()) {
-        // The lid has been opnened. Try to load the open lid file.
+        // The lid has been opnened. Try to load the open-lid file.
         if (!m_filer_controller->load_lid_file(cfg)) {
+            qCWarning(DISMAN_BACKEND)
+                << "Loading open-lid file failed. Generating an optimal config instead.";
             return;
         }
         qCDebug(DISMAN_BACKEND) << "Loaded lid-open file on lid being opened.";
@@ -73,7 +147,7 @@ void BackendImpl::load_lid_config()
             qCWarning(DISMAN_BACKEND) << "Embedded display could not be disabled.";
             return;
         }
-        if (m_filer_controller->save_lid_file(cfg)) {
+        if (!m_filer_controller->save_lid_file(cfg)) {
             qCWarning(DISMAN_BACKEND) << "Failed to save open-lid file.";
             return;
         }

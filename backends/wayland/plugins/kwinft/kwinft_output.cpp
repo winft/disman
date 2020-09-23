@@ -157,7 +157,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
         }
     }
 
-    output->setType(guessType(m_device->model(), m_device->model()));
+    output->setType(guessType(m_device->name(), m_device->name()));
 }
 
 bool KwinftOutput::setWlConfig(Wl::OutputConfigurationV1* wlConfig, const Disman::OutputPtr& output)

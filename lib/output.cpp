@@ -152,6 +152,46 @@ OutputPtr Output::clone() const
     return OutputPtr(new Output(new Private(*d)));
 }
 
+bool Output::compare(OutputPtr output) const
+{
+    if (!output) {
+        return false;
+    }
+
+    auto const simple_data_compare = d->id == output->d->id && d->name == output->d->name
+        && d->description == output->d->description && d->hash == output->d->hash
+        && d->type == output->d->type && d->replication_source == output->d->replication_source
+        && d->resolution == output->d->resolution && d->refresh_rate == output->d->refresh_rate
+        && d->preferredMode == output->d->preferredMode
+        && d->preferred_modes == output->d->preferred_modes
+        && d->physical_size == output->d->physical_size && d->position == output->d->position
+        && d->enforced_geometry == output->d->enforced_geometry
+        && d->rotation == output->d->rotation && d->scale == output->d->scale
+        && d->enabled == output->d->enabled
+        && d->follow_preferred_mode == output->d->follow_preferred_mode
+        && d->auto_resolution == output->d->auto_resolution
+        && d->auto_refresh_rate == output->d->auto_refresh_rate
+        && d->auto_rotate == output->d->auto_rotate
+        && d->auto_rotate_only_in_tablet_mode == output->d->auto_rotate_only_in_tablet_mode
+        && d->retention == output->d->retention;
+
+    auto const& own_global = d->global;
+    auto const& other_global = output->d->global;
+
+    auto const global_data_compare = own_global.resolution == other_global.resolution
+        && own_global.refresh == other_global.refresh
+        && own_global.rotation == other_global.rotation && own_global.scale == other_global.scale
+        && own_global.auto_resolution == other_global.auto_resolution
+        && own_global.auto_refresh_rate == other_global.auto_refresh_rate
+        && own_global.auto_rotate == other_global.auto_rotate
+        && own_global.auto_rotate_only_in_tablet_mode
+            == other_global.auto_rotate_only_in_tablet_mode
+        && own_global.valid == other_global.valid;
+
+    // We assume the mode list is the same when hashes are. So nothing more to compare.
+    return simple_data_compare && global_data_compare;
+}
+
 int Output::id() const
 {
     return d->id;

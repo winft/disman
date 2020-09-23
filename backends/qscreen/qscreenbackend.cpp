@@ -21,8 +21,6 @@
 #include "qscreenconfig.h"
 #include "qscreenoutput.h"
 
-#include "filer_controller.h"
-
 using namespace Disman;
 
 QScreenConfig* QScreenBackend::s_internalConfig = nullptr;
@@ -53,18 +51,12 @@ QString QScreenBackend::service_name() const
     return QStringLiteral("org.kde.Disman.Backend.QScreen");
 }
 
-ConfigPtr QScreenBackend::config_impl() const
+void QScreenBackend::update_config(ConfigPtr& config) const
 {
-    ConfigPtr config(new Config);
-
     s_internalConfig->update_config(config);
-    filer_controller()->read(config);
-    s_internalConfig->update_config(config);
-
-    return config;
 }
 
-bool QScreenBackend::set_config_impl([[maybe_unused]] const ConfigPtr& config)
+bool QScreenBackend::set_config_system([[maybe_unused]] const ConfigPtr& config)
 {
     qWarning() << "The QScreen backend for disman is read-only,";
     qWarning() << "setting a configuration is not supported.";

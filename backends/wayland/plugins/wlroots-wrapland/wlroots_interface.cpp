@@ -232,7 +232,7 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
         qCDebug(DISMAN_WAYLAND)
             << "Last apply still pending, remembering new changes and will apply afterwards.";
         m_dismanPendingConfig = newConfig;
-        return false;
+        return true;
     }
 
     for (auto const& [key, output] : newConfig->outputs()) {

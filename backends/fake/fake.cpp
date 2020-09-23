@@ -20,8 +20,6 @@
 
 #include "fake_logging.h"
 
-#include "filer_controller.h"
-
 #include "config.h"
 #include <output.h>
 
@@ -78,21 +76,14 @@ QString Fake::service_name() const
     return QStringLiteral("org.kwinft.disman.fakebackend");
 }
 
-ConfigPtr Fake::config_impl() const
+void Fake::update_config(ConfigPtr& config) const
 {
-    if (!mConfig) {
-        mConfig = Parser::fromJson(mConfigFile);
-        filer_controller()->read(mConfig);
-        mConfig = Parser::fromJson(mConfigFile);
-    }
-
-    return mConfig;
+    Parser::fromJson(mConfigFile, config);
+    mConfig = config;
 }
 
-bool Fake::set_config_impl(const ConfigPtr& config)
+bool Fake::set_config_system(const ConfigPtr& config)
 {
-    qCDebug(DISMAN_FAKE) << "set config" << config->outputs();
-    filer_controller()->write(config);
     mConfig = config->clone();
     emit config_changed(mConfig);
     return true;

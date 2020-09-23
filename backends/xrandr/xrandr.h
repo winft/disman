@@ -30,11 +30,6 @@
 class QRect;
 class QTimer;
 
-namespace Disman
-{
-class Filer_controller;
-}
-
 class XCBEventListener;
 class XRandRConfig;
 
@@ -50,8 +45,8 @@ public:
     QString name() const override;
     QString service_name() const override;
 
-    Disman::ConfigPtr config_impl() const override;
-    bool set_config_impl(Disman::ConfigPtr const& config) override;
+    void update_config(Disman::ConfigPtr& config) const override;
+    bool set_config_system(Disman::ConfigPtr const& config) override;
     bool valid() const override;
 
     static QByteArray outputEdid(xcb_randr_output_t outputId);
@@ -72,14 +67,12 @@ private:
                      const QRect& geom);
     void
     screenChanged(xcb_randr_rotation_t rotation, const QSize& sizePx, const QSize& physical_size);
-    void handle_change();
 
     static quint8* getXProperty(xcb_randr_output_t output, xcb_atom_t atom, size_t& len);
 
     static xcb_screen_t* s_screen;
     static xcb_window_t s_rootWindow;
     static XRandRConfig* s_internalConfig;
-    Disman::ConfigPtr m_config{nullptr};
 
     static int s_randrBase;
     static int s_randrError;
@@ -90,6 +83,5 @@ private:
     XCBEventListener* m_x11Helper;
     bool m_valid;
 
-    std::unique_ptr<Disman::Filer_controller> m_filer_controller;
     QTimer* m_configChangeCompressor;
 };

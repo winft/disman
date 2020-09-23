@@ -220,6 +220,55 @@ ConfigPtr Config::clone() const
     return newConfig;
 }
 
+bool Config::compare(ConfigPtr config) const
+{
+    if (!config) {
+        return false;
+    }
+
+    auto const simple_data_compare = d->valid == config->d->valid && hash() == config->hash()
+        && d->supported_features == config->d->supported_features
+        && d->tablet_mode_available == config->d->tablet_mode_available
+        && d->tablet_mode_engaged == config->d->tablet_mode_engaged && d->cause == config->d->cause;
+
+    if (!simple_data_compare) {
+        return false;
+    }
+
+    auto other_screen = config->screen();
+    if (d->screen) {
+        if (!other_screen || !d->screen->compare(other_screen)) {
+            return false;
+        }
+    } else if (other_screen) {
+        return false;
+    }
+
+    auto other_primary = config->primary_output();
+    if (d->primary_output) {
+        if (!other_primary || d->primary_output->id() != other_primary->id()) {
+            return false;
+        }
+    } else if (other_primary) {
+        return false;
+    }
+
+    // Check that we have all outputs of the other config.
+    for (auto const& [key, output] : config->d->outputs) {
+        if (!this->output(output->id())) {
+            return false;
+        }
+    }
+    // Check that the other config has also all our outputs and that these have the same data.
+    for (auto const& [key, output] : d->outputs) {
+        auto other_output = config->output(output->id());
+        if (!other_output || !output->compare(other_output)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 QString Config::hash() const
 {
     QStringList hashedOutputs;
@@ -397,17 +446,37 @@ void Config::apply(const ConfigPtr& other)
 
     // Update validity
     set_valid(other->valid());
+    set_cause(other->cause());
 }
 
 QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
 {
+    auto print_cause = [](Config::Cause cause) -> std::string {
+        switch (cause) {
+        case Config::Cause::unknown:
+            return "unknown";
+        case Config::Cause::file:
+            return "file";
+        case Config::Cause::generated:
+            return "generated";
+        case Config::Cause::interactive:
+            return "interactive";
+        default:
+            return "ill-defined";
+        }
+    };
+
     if (config) {
         dbg << "Disman::Config(";
+        dbg << "cause:" << print_cause(config->cause()).c_str();
         if (auto primary = config->primary_output()) {
-            dbg << "Primary:" << primary->id();
+            dbg << "primary:" << primary->id();
+        }
+        if (config->tablet_mode_available()) {
+            dbg << "tablet-mode:" << (config->tablet_mode_engaged() ? "engaged" : "disengaged");
         }
         const auto outputs = config->outputs();
-        for (const auto& output : outputs) {
+        for (auto const& [key, output] : outputs) {
             dbg << Qt::endl << output;
         }
         dbg << ")";

@@ -47,6 +47,7 @@ macro(DISMAN_ADD_TEST2)
     endforeach(_testname)
 endmacro(DISMAN_ADD_TEST2)
 
+disman_add_test2(config)
 disman_add_test2(generator)
 disman_add_test(testscreenconfig)
 disman_add_test(testqscreenbackend)

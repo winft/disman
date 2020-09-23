@@ -38,6 +38,13 @@ public:
     ScreenPtr clone() const;
 
     /**
+     * Compares the data of this object with @param screen.
+     *
+     * @return true if data is same otherwise false
+     */
+    bool compare(ScreenPtr screen) const;
+
+    /**
      * The id of this screen.
      * @return id of this screen
      */

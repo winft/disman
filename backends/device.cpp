@@ -122,6 +122,7 @@ void Device::lid_closed_fetched(QDBusPendingCallWatcher* watcher)
 
     m_lid_closed = closed;
     if (m_ready && !closed) {
+        m_lid_timer->stop();
         Q_EMIT lid_open_changed();
     } else {
         m_lid_timer->start();
