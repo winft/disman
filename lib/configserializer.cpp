@@ -355,7 +355,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("rotation")) {
             output->set_rotation(static_cast<Output::Rotation>(value.toInt()));
         } else if (key == QLatin1String("resolution")) {
-            output->set_resolution(value.toSize());
+            output->set_resolution(deserialize_size(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("refresh")) {
             output->set_refresh_rate(value.toInt());
         } else if (key == QLatin1String("auto_rotate")) {
