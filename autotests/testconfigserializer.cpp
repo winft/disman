@@ -163,8 +163,11 @@ private Q_SLOTS:
         QCOMPARE(static_cast<Disman::Output::Rotation>(obj[QLatin1String("rotation")].toInt()),
                  output->rotation());
 
-        QVERIFY(!obj.contains(QStringLiteral("resolution")));
-        QVERIFY(!obj.contains(QStringLiteral("refresh")));
+        auto res = obj[QStringLiteral("resolution")].toObject();
+        QCOMPARE(res[QStringLiteral("width")].toInt(), output->auto_mode()->size().width());
+        QCOMPARE(res[QStringLiteral("height")].toInt(), output->auto_mode()->size().height());
+
+        QCOMPARE(obj[QStringLiteral("refresh")].toDouble(), output->auto_mode()->refresh());
 
         QCOMPARE(obj[QLatin1String("enabled")].toBool(), output->enabled());
         const QJsonObject physical_size = obj[QLatin1String("physical_size")].toObject();
@@ -175,7 +178,7 @@ private Q_SLOTS:
 
         auto const obj2 = Disman::ConfigSerializer::serialize_output(output);
 
-        auto const res = obj2[QStringLiteral("resolution")].toObject();
+        res = obj2[QStringLiteral("resolution")].toObject();
         QCOMPARE(res[QStringLiteral("width")].toInt(), output->commanded_mode()->size().width());
         QCOMPARE(res[QStringLiteral("height")].toInt(), output->commanded_mode()->size().height());
 

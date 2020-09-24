@@ -98,10 +98,11 @@ QJsonObject ConfigSerializer::serialize_output(const OutputPtr& output)
     obj[QLatin1String("position")] = serialize_point(output->position());
     obj[QLatin1String("scale")] = output->scale();
     obj[QLatin1String("rotation")] = static_cast<int>(output->rotation());
-    if (auto const mode = output->commanded_mode()) {
-        obj[QLatin1String("resolution")] = serialize_size(mode->size());
-        obj[QLatin1String("refresh")] = mode->refresh();
-    }
+
+    auto const mode = output->auto_mode();
+    assert(mode);
+    obj[QLatin1String("resolution")] = serialize_size(mode->size());
+    obj[QLatin1String("refresh")] = mode->refresh();
 
     QStringList mode_q_strings;
     for (auto mode_string : output->preferred_modes()) {
