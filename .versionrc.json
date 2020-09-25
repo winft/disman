@@ -1,14 +1,15 @@
 {
   "header": "# Changelog\nAll notable changes to Disman will be documented in this file.",
   "types": [
-    {"type": "feat", "section": "Features"},
-    {"type": "fix", "section": "Bug Fixes"},
-    {"type": "chore", "hidden": true},
-    {"type": "docs", "hidden": true},
-    {"type": "style", "hidden": true},
-    {"type": "refactor", "section": "Refactors"},
-    {"type": "perf", "hidden": true},
-    {"type": "test", "hidden": true}
+    {"type": "build",       "hidden": true,     "section": "Build"      },
+    {"type": "feat",        "hidden": false,    "section": "Features"   },
+    {"type": "fix",         "hidden": false,    "section": "Bug Fixes"  },
+    {"type": "chore",       "hidden": true                              },
+    {"type": "docs",        "hidden": true                              },
+    {"type": "style",       "hidden": true,     "section": "Code Style" },
+    {"type": "refactor",    "hidden": false,    "section": "Refactors"  },
+    {"type": "perf",        "hidden": false,    "section": "Performance"},
+    {"type": "test",        "hidden": true                              }
     ],
   "issuePrefixes": ["Closes #", "Fixes #"]
 }
