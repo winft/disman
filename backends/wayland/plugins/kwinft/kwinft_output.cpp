@@ -54,6 +54,7 @@ Wl::OutputDeviceV1::Transform toWraplandTransform(const Output::Rotation rotatio
         }
     }
     assert(false);
+    return Wl::OutputDeviceV1::Transform::Normal;
 }
 
 KwinftOutput::KwinftOutput(quint32 id, QObject* parent)

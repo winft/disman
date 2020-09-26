@@ -53,6 +53,7 @@ Wl::OutputDevice::Transform toKWaylandTransform(const Output::Rotation rotation)
         }
     }
     assert(false);
+    return Wl::OutputDevice::Transform::Normal;
 }
 
 KWaylandOutput::KWaylandOutput(quint32 id, QObject* parent)
