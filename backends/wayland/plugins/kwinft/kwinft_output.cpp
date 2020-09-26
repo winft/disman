@@ -54,6 +54,7 @@ Wl::OutputDeviceV1::Transform toWraplandTransform(const Output::Rotation rotatio
         }
     }
     assert(false);
+    return Wl::OutputDeviceV1::Transform::Normal;
 }
 
 KwinftOutput::KwinftOutput(quint32 id, QObject* parent)
@@ -151,8 +152,7 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
-        auto success = output->set_refresh_rate(current_mode->refresh());
-        if (!success) {
+        if (!output->set_refresh_rate(current_mode->refresh())) {
             qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
         }
     }

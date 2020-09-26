@@ -52,6 +52,7 @@ Wl::WlrOutputHeadV1::Transform toWraplandTransform(const Output::Rotation rotati
         }
     }
     assert(false);
+    return Wl::WlrOutputHeadV1::Transform::Normal;
 }
 
 WlrootsOutput::WlrootsOutput(quint32 id,
@@ -167,8 +168,9 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     } else {
         output->set_mode(current_mode);
         output->set_resolution(current_mode->size());
-        auto success = output->set_refresh_rate(current_mode->refresh());
-        assert(success);
+        if (!output->set_refresh_rate(current_mode->refresh())) {
+            qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
+        }
     }
 
     output->set_scale(m_head->scale());
