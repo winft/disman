@@ -52,6 +52,7 @@ Wl::WlrOutputHeadV1::Transform toWraplandTransform(const Output::Rotation rotati
         }
     }
     assert(false);
+    return Wl::WlrOutputHeadV1::Transform::Normal;
 }
 
 WlrootsOutput::WlrootsOutput(quint32 id,
