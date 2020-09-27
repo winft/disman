@@ -196,6 +196,11 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     // In any case set the enabled state to initialize the output's native handle.
     wlConfig->setEnabled(m_head, output->enabled());
 
+    if (!output->enabled()) {
+        // A disabled head can not be configured in any way.
+        return changed;
+    }
+
     // position
     if (m_head->position() != output->position()) {
         changed = true;
