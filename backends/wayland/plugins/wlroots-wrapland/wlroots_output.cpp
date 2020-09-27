@@ -87,7 +87,11 @@ bool portraitMode(Wrapland::Client::WlrOutputHeadV1* head)
 
 QRectF WlrootsOutput::geometry() const
 {
-    auto modeSize = m_head->currentMode()->size();
+    auto const current_mode = m_head->currentMode();
+    if (!current_mode) {
+        return QRectF();
+    }
+    auto modeSize = current_mode->size();
 
     // Rotate and scale.
     if (portraitMode(m_head)) {
@@ -160,16 +164,18 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->set_preferred_modes(preferredModeIds);
     output->set_modes(modeList);
 
-    if (!current_mode) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
-        for (auto const& [key, mode] : modeList) {
-            qCWarning(DISMAN_WAYLAND) << "  " << mode;
-        }
-    } else {
-        output->set_mode(current_mode);
-        output->set_resolution(current_mode->size());
-        if (!output->set_refresh_rate(current_mode->refresh())) {
-            qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
+    if (current_head_mode) {
+        if (!current_mode) {
+            qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
+            for (auto const& [key, mode] : modeList) {
+                qCWarning(DISMAN_WAYLAND) << "  " << mode;
+            }
+        } else {
+            output->set_mode(current_mode);
+            output->set_resolution(current_mode->size());
+            if (!output->set_refresh_rate(current_mode->refresh())) {
+                qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
+            }
         }
     }
 
