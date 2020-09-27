@@ -120,7 +120,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->set_hash(hash().toStdString());
     output->set_physical_size(m_head->physicalSize());
     output->set_position(m_head->position());
-    output->set_rotation(s_rotationMap.at(m_head->transform()));
+    output->set_rotation(toDismanRotation(m_head->transform()));
 
     ModeMap modeList;
     std::vector<std::string> preferredModeIds;
