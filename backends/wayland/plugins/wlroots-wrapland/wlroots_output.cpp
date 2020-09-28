@@ -61,12 +61,12 @@ WlrootsOutput::WlrootsOutput(quint32 id,
     : WaylandOutput(id, parent)
     , m_head(head)
 {
-    connect(m_head, &Wl::WlrOutputHeadV1::changed, this, &WlrootsOutput::changed);
     connect(m_head, &Wl::WlrOutputHeadV1::removed, this, &WlrootsOutput::removed);
 
     auto manager = parent->outputManager();
     connect(manager, &Wl::WlrOutputManagerV1::done, this, [this, manager]() {
         disconnect(manager, &Wl::WlrOutputManagerV1::done, this, nullptr);
+        connect(m_head, &Wl::WlrOutputHeadV1::changed, this, &WlrootsOutput::changed);
         Q_EMIT dataReceived();
     });
 }

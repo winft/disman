@@ -218,6 +218,11 @@ void WlrootsInterface::tryPendingConfig()
 
 bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
 {
+    return apply_config_impl(newConfig, false);
+}
+
+bool WlrootsInterface::apply_config_impl(const Disman::ConfigPtr& newConfig, bool force)
+{
     using namespace Wrapland::Client;
 
     qCDebug(DISMAN_WAYLAND) << "Applying config in wlroots backend.";
@@ -239,7 +244,7 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
         changed |= m_outputMap[output->id()]->setWlConfig(wlConfig, output);
     }
 
-    if (!changed) {
+    if (!changed && !force) {
         qCDebug(DISMAN_WAYLAND)
             << "New config equals compositor's current data. Aborting apply request.";
         return false;
@@ -262,14 +267,14 @@ bool WlrootsInterface::applyConfig(const Disman::ConfigPtr& newConfig)
         Q_EMIT config_changed();
         tryPendingConfig();
     });
-    connect(wlConfig, &WlrOutputConfigurationV1::cancelled, this, [this, wlConfig] {
-        // This should never be received since we apply the new config directly. But in case we just
-        // do the same as on failed.
-        qCWarning(DISMAN_WAYLAND) << "Applying config failed.";
+    connect(wlConfig, &WlrOutputConfigurationV1::cancelled, this, [this, newConfig, wlConfig] {
+        // Can occur if serials were not in sync because of some simultaneous change server-side.
+        // We try to apply the current config again as we should have received a done event now.
         wlConfig->deleteLater();
         unblockSignals();
-        Q_EMIT config_changed();
-        tryPendingConfig();
+        auto cfg = m_dismanPendingConfig ? m_dismanPendingConfig : newConfig;
+        m_dismanPendingConfig = nullptr;
+        apply_config_impl(cfg, true);
     });
 
     blockSignals();

@@ -73,6 +73,8 @@ protected:
 private:
     void setupRegistry();
     void addHead(Wrapland::Client::WlrOutputHeadV1* head);
+
+    bool apply_config_impl(const Disman::ConfigPtr& newConfig, bool force);
     void tryPendingConfig();
 
     Wrapland::Client::ConnectionThread* m_connection;
