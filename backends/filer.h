@@ -69,6 +69,12 @@ public:
             output->set_retention(convert_int_to_retention(retention));
             output->set_enabled(get_value(output, "enabled", true, nullptr));
 
+            if (config->supported_features().testFlag(Disman::Config::Feature::PrimaryDisplay)) {
+                if (get_value(output, "primary", false, nullptr)) {
+                    config->set_primary_output(output);
+                }
+            }
+
             output->set_position(
                 get_value(output, "pos", QPointF(0, 0), nullptr, std::function{get_pos}));
             get_replication_source(output, outputs);
@@ -124,6 +130,11 @@ public:
 
             set_value(output, "retention", static_cast<int>(output->retention()), nullptr);
             set_value(output, "enabled", output->enabled(), nullptr);
+
+            if (config->supported_features().testFlag(Disman::Config::Feature::PrimaryDisplay)) {
+                set_value(output, "primary", config->primary_output().get() == output.get(), filer);
+            }
+
             set_replication_source(output, config);
             set_value(output, "pos", output->position(), nullptr, std::function{set_pos});
 
