@@ -61,12 +61,12 @@ WlrootsOutput::WlrootsOutput(quint32 id,
     : WaylandOutput(id, parent)
     , m_head(head)
 {
-    connect(m_head, &Wl::WlrOutputHeadV1::changed, this, &WlrootsOutput::changed);
     connect(m_head, &Wl::WlrOutputHeadV1::removed, this, &WlrootsOutput::removed);
 
     auto manager = parent->outputManager();
     connect(manager, &Wl::WlrOutputManagerV1::done, this, [this, manager]() {
         disconnect(manager, &Wl::WlrOutputManagerV1::done, this, nullptr);
+        connect(m_head, &Wl::WlrOutputHeadV1::changed, this, &WlrootsOutput::changed);
         Q_EMIT dataReceived();
     });
 }
@@ -87,7 +87,11 @@ bool portraitMode(Wrapland::Client::WlrOutputHeadV1* head)
 
 QRectF WlrootsOutput::geometry() const
 {
-    auto modeSize = m_head->currentMode()->size();
+    auto const current_mode = m_head->currentMode();
+    if (!current_mode) {
+        return QRectF();
+    }
+    auto modeSize = current_mode->size();
 
     // Rotate and scale.
     if (portraitMode(m_head)) {
@@ -120,7 +124,7 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->set_hash(hash().toStdString());
     output->set_physical_size(m_head->physicalSize());
     output->set_position(m_head->position());
-    output->set_rotation(s_rotationMap.at(m_head->transform()));
+    output->set_rotation(toDismanRotation(m_head->transform()));
 
     ModeMap modeList;
     std::vector<std::string> preferredModeIds;
@@ -160,16 +164,18 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     output->set_preferred_modes(preferredModeIds);
     output->set_modes(modeList);
 
-    if (!current_mode) {
-        qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
-        for (auto const& [key, mode] : modeList) {
-            qCWarning(DISMAN_WAYLAND) << "  " << mode;
-        }
-    } else {
-        output->set_mode(current_mode);
-        output->set_resolution(current_mode->size());
-        if (!output->set_refresh_rate(current_mode->refresh())) {
-            qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
+    if (current_head_mode) {
+        if (!current_mode) {
+            qCWarning(DISMAN_WAYLAND) << "Could not find the current mode in:";
+            for (auto const& [key, mode] : modeList) {
+                qCWarning(DISMAN_WAYLAND) << "  " << mode;
+            }
+        } else {
+            output->set_mode(current_mode);
+            output->set_resolution(current_mode->size());
+            if (!output->set_refresh_rate(current_mode->refresh())) {
+                qCWarning(DISMAN_WAYLAND) << "Failed setting the current mode:" << current_mode;
+            }
         }
     }
 
@@ -189,6 +195,11 @@ bool WlrootsOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
 
     // In any case set the enabled state to initialize the output's native handle.
     wlConfig->setEnabled(m_head, output->enabled());
+
+    if (!output->enabled()) {
+        // A disabled head can not be configured in any way.
+        return changed;
+    }
 
     // position
     if (m_head->position() != output->position()) {
