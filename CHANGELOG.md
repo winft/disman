@@ -1,5 +1,16 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.520.0-beta.1](https://gitlab.com/kwinft/disman/compare/disman@0.520.0-beta.0...disman@0.520.0-beta.1) (2020-10-02)
+
+
+### Bug Fixes
+
+* write primary property to config control file ([43d800c](https://gitlab.com/kwinft/disman/commit/43d800c1bd46cec076092f29fa22d2fc981d15db))
+* **wayland:** add return to transform getters ([f6622f4](https://gitlab.com/kwinft/disman/commit/f6622f4d025fa9e8929b3bd143b12b590dbb0685))
+* **wayland:** check null mode in wlroots backend ([e858f9a](https://gitlab.com/kwinft/disman/commit/e858f9a11ebc2d87ea55a8d6750b0d7267efe1de))
+* **wayland:** omit sending any other data on disabling wlr heads ([61a06a8](https://gitlab.com/kwinft/disman/commit/61a06a89530c42224b2f03126c65872168cd082a))
+* **wayland:** retry on cancelled wlroots config ([f94b33a](https://gitlab.com/kwinft/disman/commit/f94b33a1c293fedfc81e82679d571c9ff4876ce5))
+
 ## [0.520.0-beta.0](https://gitlab.com/kwinft/disman/compare/disman@0.519.0-beta.0...disman@0.520.0-beta.0) (2020-09-25)
 
 
