@@ -200,7 +200,7 @@ void WaylandBackend::queryInterface(KPluginMetaData* plugin)
     pending.thread = new QThread();
 
     m_pendingInterfaces.push_back(pending);
-    connect(pending.interface, &WaylandInterface::connectionFailed, this, [this, &pending] {
+    connect(pending.interface, &WaylandInterface::connectionFailed, this, [this, pending] {
         qCWarning(DISMAN_WAYLAND) << "Backend" << pending.name << "failed.";
         rejectInterface(pending);
         m_pendingInterfaces.erase(
