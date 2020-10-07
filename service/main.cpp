@@ -24,6 +24,8 @@
 #include "disman_backend_launcher_debug.h"
 #include "log.h"
 
+#include <memory>
+
 int main(int argc, char** argv)
 {
     Disman::Log::instance();
@@ -41,16 +43,15 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    BackendLoader* loader = new BackendLoader;
+    // The backend must be destroyed and unloaded while the QApplication object
+    // and its XCB connection still exist. This is guaranteed by the fact that
+    // local variables are destructed in the reverse order of construction.
+    auto loader = std::make_unique<BackendLoader>();
     if (!loader->init()) {
         return -2;
     }
 
     const int ret = app.exec();
-
-    // Make sure the backend is destroyed and unloaded before we return (i.e.
-    // as long as QApplication object and it's XCB connection still exist
-    delete loader;
 
     return ret;
 }
