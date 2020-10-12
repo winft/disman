@@ -157,8 +157,26 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
             return "randr";
         }
 
-        if (!qgetenv("WAYLAND_DISPLAY").isEmpty()) {
-            return "wayland";
+        if (auto display = qgetenv("WAYLAND_DISPLAY"); !display.isEmpty()) {
+            auto dsp_str = QString::fromLatin1(display);
+
+            auto socket_exists = [&dsp_str] {
+                if (QDir::isAbsolutePath(dsp_str)) {
+                    return QFile(dsp_str).exists();
+                }
+                auto const locations
+                    = QStandardPaths::standardLocations(QStandardPaths::RuntimeLocation);
+                for (auto const dir : locations) {
+                    if (QFileInfo(QDir(dir), dsp_str).exists()) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            if (socket_exists()) {
+                return "wayland";
+            }
         }
         if (!qgetenv("DISPLAY").isEmpty()) {
             return "randr";
