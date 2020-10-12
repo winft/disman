@@ -147,6 +147,16 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
             return env_select;
         }
 
+        // If XDG_SESSION_TYPE is defined and indicates a certain windowing system we prefer
+        // that variable, since it likely reflects correctly the current session setup.
+        auto const session_type = qgetenv("XDG_SESSION_TYPE");
+        if (session_type == "wayland") {
+            return "wayland";
+        }
+        if (session_type == "x11") {
+            return "randr";
+        }
+
         if (!qgetenv("WAYLAND_DISPLAY").isEmpty()) {
             return "wayland";
         }
