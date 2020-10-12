@@ -45,6 +45,34 @@ So in a KDE Plasma session it is not necessary
 to call e.g. `dismanctl -o` from a startup script
 as described above.
 
+### Session restarts
+
+When using a display manager
+(for example [SDDM][sddm])
+session restarts should be unproblematic.
+
+In case a graphical session is started directly from a virtual terminal
+make sure the D-Bus environment is reset on a restart.
+Otherwise a restart of the D-Bus service might fail
+due to outdated environment variables
+which are inherited by D-Bus services.
+
+One way to ensure such a reset is to start your desktop session
+with `dbus-run-session`.
+For example, in the case of KDE Plasma,
+if you use `startx` to run Plasma X11 sessions,
+you should have the following line in `~/.xinitrc`:
+
+```sh
+dbus-run-session startplasma-x11
+```
+
+Similarly, if you run a Plasma Wayland session from a terminal, do it like this:
+
+```sh
+dbus-run-session startplasma-wayland
+```
+
 ### Reporting issues
 #### Disman or frontend
 If you hit bugs while using dismanctl that have not yet been [reported][issues]
@@ -91,3 +119,4 @@ See the [CONTRIBUTING.md](CONTRIBUTING.md) file on how to start contributing.
 [kdisplay]: https://gitlab.com/kwinft/kdisplay
 [kdisplay-config]: https://gitlab.com/kwinft/kdisplay/-/blob/master/kcm/config_handler.cpp
 [plasma-schedule]: https://community.kde.org/Schedules/Plasma_5
+[sddm]: https://en.wikipedia.org/wiki/Simple_Desktop_Display_Manager
