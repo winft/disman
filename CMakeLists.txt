@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 project(Disman)
-set(PROJECT_VERSION "0.519.90")
+set(PROJECT_VERSION "0.520.0")
 set(PROJECT_VERSION_MAJOR "0")
 
 set(QT_MIN_VERSION "5.14.0")

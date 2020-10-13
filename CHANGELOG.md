@@ -1,5 +1,20 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.520.0](https://gitlab.com/kwinft/disman/compare/disman@0.520.0-beta.1...disman@0.520.0) (2020-10-13)
+
+
+### Features
+
+* **lib:** improve backend manager logging ([bc760c4](https://gitlab.com/kwinft/disman/commit/bc760c40720fd97a3ecac6a28cf92451a182883a))
+
+
+### Bug Fixes
+
+* **lib:** on backend selection check that Wayland socket exists ([61a3a20](https://gitlab.com/kwinft/disman/commit/61a3a20b25c490b3995ce2da2b077390590c3af3))
+* **lib:** prefer XDG_SESSION_TYPE for backend selection ([fd89b72](https://gitlab.com/kwinft/disman/commit/fd89b721ed46348d819ce3aebf9426f19e249be2))
+* replace new/delete with unique_ptr ([5e7423b](https://gitlab.com/kwinft/disman/commit/5e7423b08df829c0c3f7f9c052e68578774f74aa))
+* **wayland:** capture variable by value ([1306f1d](https://gitlab.com/kwinft/disman/commit/1306f1d73a65d2096eb6bc80628c6532ca285075))
+
 ## [0.520.0-beta.1](https://gitlab.com/kwinft/disman/compare/disman@0.520.0-beta.0...disman@0.520.0-beta.1) (2020-10-02)
 
 
