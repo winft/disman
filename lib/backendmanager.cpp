@@ -147,8 +147,36 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
             return env_select;
         }
 
-        if (!qgetenv("WAYLAND_DISPLAY").isEmpty()) {
+        // If XDG_SESSION_TYPE is defined and indicates a certain windowing system we prefer
+        // that variable, since it likely reflects correctly the current session setup.
+        auto const session_type = qgetenv("XDG_SESSION_TYPE");
+        if (session_type == "wayland") {
             return "wayland";
+        }
+        if (session_type == "x11") {
+            return "randr";
+        }
+
+        if (auto display = qgetenv("WAYLAND_DISPLAY"); !display.isEmpty()) {
+            auto dsp_str = QString::fromLatin1(display);
+
+            auto socket_exists = [&dsp_str] {
+                if (QDir::isAbsolutePath(dsp_str)) {
+                    return QFile(dsp_str).exists();
+                }
+                auto const locations
+                    = QStandardPaths::standardLocations(QStandardPaths::RuntimeLocation);
+                for (auto const dir : locations) {
+                    if (QFileInfo(QDir(dir), dsp_str).exists()) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            if (socket_exists()) {
+                return "wayland";
+            }
         }
         if (!qgetenv("DISPLAY").isEmpty()) {
             return "randr";
@@ -156,6 +184,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
         return "qscreen";
     };
     auto const select = get_selection();
+    qCDebug(DISMAN) << "Selection for preferred backend:" << select.c_str();
 
     QFileInfo fallback;
     for (auto const& file_info : list_backends()) {
@@ -195,6 +224,8 @@ Disman::Backend* BackendManager::load_backend_plugin(QPluginLoader* loader,
 {
     const auto finfo = preferred_backend(name.toStdString());
     loader->setFileName(finfo.filePath());
+    qCDebug(DISMAN) << "Loading backend plugin:" << finfo.filePath();
+
     QObject* instance = loader->instance();
     if (!instance) {
         qCDebug(DISMAN) << loader->errorString();
@@ -209,10 +240,10 @@ Disman::Backend* BackendManager::load_backend_plugin(QPluginLoader* loader,
             delete backend;
             return nullptr;
         }
-        // qCDebug(DISMAN) << "Loaded" << backend->name() << "backend";
+        qCDebug(DISMAN) << "Loaded successfully backend:" << backend->name();
         return backend;
     } else {
-        qCDebug(DISMAN) << finfo.fileName() << "does not provide valid Disman backend";
+        qCWarning(DISMAN) << finfo.fileName() << "does not provide a valid Disman backend.";
     }
 
     return nullptr;
