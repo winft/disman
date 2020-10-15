@@ -176,10 +176,19 @@ bool XRandRConfig::applyDismanConfig(const Disman::ConfigPtr& config)
     }
 
     Disman::OutputMap toDisable, toEnable, toChange;
+    auto primary = config->primary_output();
 
     // Only set the output as primary if it is enabled.
-    if (auto primary = config->primary_output(); primary && primary->enabled()) {
+    if (primary && primary->enabled()) {
         primaryOutput = primary->id();
+    }
+
+    // If there's only one output, set the output as primary.
+    if (dismanOutputs.size() == 1) {
+        auto output = dismanOutputs.begin()->second;
+        if (output->enabled()) {
+            primaryOutput = output->id();
+        }
     }
 
     for (auto const& [key, dismanOutput] : dismanOutputs) {
