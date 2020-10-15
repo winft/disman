@@ -255,8 +255,10 @@ void Generator::single_output(ConfigPtr const& config)
         return;
     }
 
-    // TODO: Do this only if config supports primary output.
-    config->set_primary_output(output);
+    if (config->supported_features().testFlag(Config::Feature::PrimaryDisplay)) {
+        config->set_primary_output(output);
+    }
+
     output->set_position(QPointF(0, 0));
 
     output->d->apply_global();
@@ -283,8 +285,11 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    // TODO: Do this only if config supports primary output and no primary output is set.
-    config->set_primary_output(start_output);
+    if (config->supported_features().testFlag(Config::Feature::PrimaryDisplay)
+        && config->primary_output() == nullptr) {
+        config->set_primary_output(start_output);
+    }
+
     line_up(start_output, OutputMap(), outputs, direction);
 }
 
