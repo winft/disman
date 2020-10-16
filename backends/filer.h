@@ -132,7 +132,8 @@ public:
             set_value(output, "enabled", output->enabled(), nullptr);
 
             if (config->supported_features().testFlag(Disman::Config::Feature::PrimaryDisplay)) {
-                set_value(output, "primary", config->primary_output().get() == output.get(), filer);
+                set_value(
+                    output, "primary", config->primary_output().get() == output.get(), nullptr);
             }
 
             set_replication_source(output, config);
