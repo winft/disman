@@ -285,9 +285,10 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    if (config->supported_features().testFlag(Config::Feature::PrimaryDisplay)
-        && config->primary_output() == nullptr) {
-        config->set_primary_output(start_output);
+    if (config->supported_features().testFlag(Config::Feature::PrimaryDisplay)) {
+        if (auto primary = config->primary_output(); !primary || !primary->enabled()) {
+            config->set_primary_output(start_output);
+        }
     }
 
     line_up(start_output, OutputMap(), outputs, direction);
