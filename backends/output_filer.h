@@ -93,13 +93,7 @@ public:
 
     static ModePtr get_mode(OutputPtr const& output, QVariant const& val, ModePtr default_value)
     {
-        auto const val_map = val.toMap();
-
-        if (!val_map.contains(QStringLiteral("mode"))) {
-            return default_value;
-        }
-        auto const mode_map = val_map[QStringLiteral("mode")].toMap();
-
+        auto const mode_map = val.toMap();
         bool success = true;
 
         auto get_resolution = [&mode_map, &success]() {
@@ -189,6 +183,9 @@ public:
 
     void get_global_data(OutputPtr& output)
     {
+        if (!m_info.contains(QStringLiteral("mode"))) {
+            return;
+        }
         auto mode = get_mode(output, m_info, nullptr);
         if (!mode) {
             return;
