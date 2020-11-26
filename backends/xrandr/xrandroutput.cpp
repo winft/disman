@@ -308,6 +308,11 @@ void XRandROutput::updateModes(const XCB::OutputInfo& outputInfo)
             }
 
             XRandRMode* mode = new XRandRMode(modes[j], this);
+            if (mode->doubleScan()) {
+                delete mode;
+                continue;
+            }
+
             m_modes.insert({mode->id(), mode});
 
             if (i < outputInfo->num_preferred) {
