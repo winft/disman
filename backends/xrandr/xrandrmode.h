@@ -47,12 +47,14 @@ public:
     QSize size() const;
     float refreshRate() const;
     QString name() const;
+    bool doubleScan() const;
 
 private:
     xcb_randr_mode_t m_id;
     QString m_name;
     QSize m_size;
     float m_refreshRate;
+    bool m_doubleScan{false};
 };
 
 Q_DECLARE_METATYPE(XRandRMode::Map)
