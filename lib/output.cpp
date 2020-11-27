@@ -317,6 +317,14 @@ ModePtr Output::best_mode() const
 
 ModePtr Output::auto_mode() const
 {
+    // Pick the preferred mode if the resolution and refresh rate is set to auto.
+    // Picking the highest one causes issues for monitors that advertise preferred modes lower
+    // than the highest available monitor (best example would be a 640x480 CRT that
+    // exposes a 800x600 mode, but there's also a gaming monitor that gives a preferred
+    // 144Hz mode, but exposes a 165Hz mode when "overclocking")
+    if (auto_resolution() && auto_refresh_rate()) {
+        return preferred_mode();
+    }
     auto const resolution = auto_resolution() ? best_resolution() : d->resolution;
     auto const refresh_rate = auto_refresh_rate() ? best_refresh_rate(resolution) : d->refresh_rate;
 
