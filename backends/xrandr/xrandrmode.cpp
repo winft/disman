@@ -29,6 +29,8 @@ XRandRMode::XRandRMode(const xcb_randr_mode_info_t& modeInfo, XRandROutput* outp
     // m_name = QString::fromUtf8(modeInfo->name);
     m_size = QSize(modeInfo.width, modeInfo.height);
     m_refreshRate = (float)modeInfo.dot_clock / ((float)modeInfo.htotal * (float)modeInfo.vtotal);
+    // From RandR: pub const RR_DoubleScan: c_int = 32
+    m_doubleScan = modeInfo.mode_flags & 32;
 }
 
 XRandRMode::~XRandRMode()
@@ -60,6 +62,11 @@ QSize XRandRMode::size() const
 float XRandRMode::refreshRate() const
 {
     return m_refreshRate;
+}
+
+bool XRandRMode::doubleScan() const
+{
+    return m_doubleScan;
 }
 
 QString XRandRMode::name() const

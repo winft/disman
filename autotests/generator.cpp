@@ -132,7 +132,9 @@ void TestGenerator::multi_output_embedded()
     QCOMPARE(generated_config->primary_output()->id(), output->id());
 
     QCOMPARE(generator.embedded(), output);
-    QCOMPARE(output->auto_mode()->id(), "3");
+    // Preferred mode is 2 on multipleoutput.json, so we expect 2
+    // When using auto mode.
+    QCOMPARE(output->auto_mode()->id(), "2");
     QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
 
@@ -141,7 +143,7 @@ void TestGenerator::multi_output_embedded()
     QCOMPARE(generator.biggest(), output);
     QCOMPARE(output->auto_mode()->id(), "4");
     QCOMPARE(output->enabled(), true);
-    QCOMPARE(output->position(), QPointF(1280, 0));
+    QCOMPARE(output->position(), QPointF(1024, 0));
 }
 
 void TestGenerator::replicate_embedded()
@@ -175,7 +177,7 @@ void TestGenerator::replicate_embedded()
     QCOMPARE(generated_config->primary_output()->id(), output->id());
 
     QCOMPARE(generator.embedded(), output);
-    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->auto_mode()->id(), "2");
     QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
     QCOMPARE(output->replication_source(), 0);
@@ -214,7 +216,7 @@ void TestGenerator::multi_output_pc()
     auto generated_config = generator.config();
     auto output = generated_config->outputs().at(1);
 
-    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->auto_mode()->id(), "2");
     QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPoint(1920, 0));
 
@@ -256,7 +258,7 @@ void TestGenerator::replicate_pc()
     auto generated_config = generator.config();
     auto output = generated_config->outputs().at(1);
 
-    QCOMPARE(output->auto_mode()->id(), "3");
+    QCOMPARE(output->auto_mode()->id(), "2");
     QCOMPARE(output->enabled(), true);
     QCOMPARE(output->position(), QPoint(0, 0));
     QCOMPARE(output->replication_source(), 2);
