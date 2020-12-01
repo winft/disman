@@ -606,11 +606,10 @@ QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 
            // basic properties
            << (output->enabled() ? " [enabled]" : "[disabled]")
-           << (output->retention() == Disman::Output::Retention::Global
-                   ? "[global retention]"
+           << (output->retention() == Disman::Output::Retention::Global ? "[global retention]"
                    : output->retention() == Disman::Output::Retention::Individual
-                       ? "[individual retention]"
-                       : "")
+                   ? "[individual retention]"
+                   : "")
            << (output->follow_preferred_mode() ? " [hotplug-mode-update (QXL/SPICE)]" : "")
            << (output->auto_resolution() ? " [auto resolution]" : "")
            << (output->auto_refresh_rate() ? " [auto refresh rate]" : "")
