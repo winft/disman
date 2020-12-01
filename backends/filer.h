@@ -79,13 +79,13 @@ public:
                 get_value(output, "pos", QPointF(0, 0), nullptr, std::function{get_pos}));
             get_replication_source(output, outputs);
 
-            auto filer = get_output_filer(output);
-            assert(filer);
+            auto ofiler = get_output_filer(output);
+            assert(ofiler);
 
-            filer->get_global_data(output);
+            ofiler->get_global_data(output);
 
             if (auto mode = get_value(
-                    output, "mode", ModePtr(), filer, std::function{Output_filer::get_mode})) {
+                    output, "mode", ModePtr(), ofiler, std::function{Output_filer::get_mode})) {
                 output->set_mode(mode);
             } else {
                 // Set an invalid commanded mode.
@@ -94,21 +94,21 @@ public:
             }
 
             if (config->supported_features().testFlag(Disman::Config::Feature::PerOutputScaling)) {
-                output->set_scale(get_value(output, "scale", 1., filer));
+                output->set_scale(get_value(output, "scale", 1., ofiler));
             }
 
             auto const rotation
-                = get_value(output, "rotation", static_cast<int>(Output::Rotation::None), filer);
+                = get_value(output, "rotation", static_cast<int>(Output::Rotation::None), ofiler);
             output->set_rotation(Output_filer::convert_int_to_rotation(rotation));
 
-            output->set_auto_resolution(get_value(output, "auto-resolution", true, filer));
-            output->set_auto_refresh_rate(get_value(output, "auto-refresh-rate", true, filer));
+            output->set_auto_resolution(get_value(output, "auto-resolution", true, ofiler));
+            output->set_auto_refresh_rate(get_value(output, "auto-refresh-rate", true, ofiler));
 
             if (config->supported_features().testFlag(Disman::Config::Feature::AutoRotation)) {
-                output->set_auto_rotate(get_value(output, "auto-rotate", false, filer));
+                output->set_auto_rotate(get_value(output, "auto-rotate", false, ofiler));
                 if (config->supported_features().testFlag(Disman::Config::Feature::TabletMode)) {
                     output->set_auto_rotate_only_in_tablet_mode(
-                        get_value(output, "auto-rotate-tablet-only", false, filer));
+                        get_value(output, "auto-rotate-tablet-only", false, ofiler));
                 }
             }
         }
