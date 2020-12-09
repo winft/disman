@@ -1,5 +1,18 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+### [0.520.1](https://gitlab.com/kwinft/disman/compare/disman@0.520.0...disman@0.520.1) (2020-12-09)
+
+
+### Bug Fixes
+
+* read mode from root value map always ([84468e1](https://gitlab.com/kwinft/disman/commit/84468e1072e4335b73a5e65081a6e9c8dd5d9355))
+* **lib:** only apply primary output when the config supports it ([6aab533](https://gitlab.com/kwinft/disman/commit/6aab5339b894af41445ccd1cc70e1e294704adef))
+* **lib:** pick preferred mode instead of highest ([786dcfa](https://gitlab.com/kwinft/disman/commit/786dcfae30a3332604271ff09578fa6f8d2f35cf))
+* **lib:** set primary output when old one is disabled ([01ec60c](https://gitlab.com/kwinft/disman/commit/01ec60c18ab63dbf4a1702efc857be27f6de7782))
+* **randr:** skip DoubleScan modes ([24f833d](https://gitlab.com/kwinft/disman/commit/24f833d1229a175752da67cf78f6d603b561bff6))
+* only save primary value to config control file ([228f2aa](https://gitlab.com/kwinft/disman/commit/228f2aa6a43140821ecff4f3d0e43d6dc6a775df))
+* **randr:** set primary monitor to the only output present ([794d6ef](https://gitlab.com/kwinft/disman/commit/794d6ef31ec5f01a9b1586f481ce5c9465a1d269))
+
 ## [0.520.0](https://gitlab.com/kwinft/disman/compare/disman@0.520.0-beta.1...disman@0.520.0) (2020-10-13)
 
 
