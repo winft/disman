@@ -24,10 +24,10 @@ git checkout $BRANCH_NAME
 # This updates version number from beta to its release
 RELEASE_VERSION=$(semver -i minor $CURRENT_BETA_VERSION)
 
-# The CMake project version is the same as the SemVer version.
+# The CMake project version is the same as the release version.
 CMAKE_VERSION=$RELEASE_VERSION
 
-echo "Next SemVer version: '${RELEASE_VERSION}' Corresponding CMake project version: '${CMAKE_VERSION}'"
+echo "Next stable version: '${RELEASE_VERSION}' Corresponding CMake project version: '${CMAKE_VERSION}'"
 
 # This creates the changelog.
 standard-version -t disman\@ --skip.commit true --skip.tag true --preMajor --release-as $RELEASE_VERSION
