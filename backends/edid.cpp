@@ -373,14 +373,29 @@ float Edid::Private::edidDecodeFraction(int high, int low) const
 
 std::string Edid::Private::edidParseString(const quint8* data) const
 {
-    /* this is always 13 bytes, but we can't guarantee it's null
-     * terminated or not junk. */
-    auto text = QString::fromLatin1(reinterpret_cast<const char*>(data), 13).simplified();
+    // We know his is always 13 bytes but might not be null-terminated.
+    auto text = std::string(reinterpret_cast<const char*>(data), 13);
 
-    for (int i = 0; i < text.size(); ++i) {
-        if (!text.at(i).isPrint()) {
+    auto i = text.size();
+    while (i > 0) {
+        i--;
+        if (std::isprint(text.at(i)) && text.at(i) != ' ') {
+            // Found the first printable char. Everything before is cleaned up in the forward loop.
+            break;
+        }
+        text[i] = '\0';
+    };
+
+    text.resize(i + 1);
+
+    for (i = 0; i < text.size(); ++i) {
+        if (text.at(i) == '\0') {
+            break;
+        }
+        if (!std::isprint(text.at(i))) {
             text[i] = '-';
         }
     }
-    return text.toStdString();
+
+    return text;
 }
