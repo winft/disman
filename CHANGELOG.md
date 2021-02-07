@@ -1,5 +1,33 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.521.0-beta.0](https://gitlab.com/kwinft/disman/compare/disman@0.520.0-beta.0...disman@0.521.0-beta.0) (2021-02-07)
+
+
+### Features
+
+* **lib:** improve backend manager logging ([9540d7d](https://gitlab.com/kwinft/disman/commit/9540d7d8b750c024c7eaee2c9e3899d142b5ac7f))
+
+
+### Bug Fixes
+
+* read mode from root value map always ([354c494](https://gitlab.com/kwinft/disman/commit/354c494c89c7e9611af14af12933bf112f4b112d))
+* use std::string for EDID parsing ([0e9309d](https://gitlab.com/kwinft/disman/commit/0e9309d2b374e6a13b5f54407e65147dfc887e46))
+* **lib:** on backend selection check that Wayland socket exists ([1c3e15b](https://gitlab.com/kwinft/disman/commit/1c3e15b7c4cfc3b2c119bae55f6f79fef755565d))
+* **lib:** only apply primary output when the config supports it ([58534b7](https://gitlab.com/kwinft/disman/commit/58534b7b5d933269738ac860a0d0c41b0958e342))
+* **lib:** pick preferred mode instead of highest ([b8a47d0](https://gitlab.com/kwinft/disman/commit/b8a47d0ae36e20571044ed8d59a27560f609dd25))
+* **lib:** prefer XDG_SESSION_TYPE for backend selection ([7c7d95f](https://gitlab.com/kwinft/disman/commit/7c7d95f8809fd4e347efe86e95a6b92635c2c314))
+* **lib:** set primary output when old one is disabled ([f64bcc8](https://gitlab.com/kwinft/disman/commit/f64bcc89c48432b174876b9a8f41935557e7a0a8))
+* **randr:** set primary monitor to the only output present ([e13a063](https://gitlab.com/kwinft/disman/commit/e13a063a56fdd42aa461f3b25a10fbab1a30ebb7))
+* **randr:** skip DoubleScan modes ([5eb6392](https://gitlab.com/kwinft/disman/commit/5eb6392ed5e5e6888fd7928a438eb1e86ea61fab))
+* only save primary value to config control file ([8599299](https://gitlab.com/kwinft/disman/commit/8599299542a51f5a663535559ee0f87405b60fe1))
+* replace new/delete with unique_ptr ([d0af96a](https://gitlab.com/kwinft/disman/commit/d0af96aaa1a50b0c2659c073a316604f585c8304))
+* **wayland:** capture variable by value ([6263594](https://gitlab.com/kwinft/disman/commit/62635943a0d64534cab981f9a88f6d9dcff9f31d))
+* write primary property to config control file ([cef520f](https://gitlab.com/kwinft/disman/commit/cef520fc3dfe2062da3232f06862c29583c7ea1f))
+* **wayland:** add return to transform getters ([5f6f2f2](https://gitlab.com/kwinft/disman/commit/5f6f2f2259cdf6b03f27309e619c5fbe93cf68fd))
+* **wayland:** check null mode in wlroots backend ([5eef262](https://gitlab.com/kwinft/disman/commit/5eef262ab01ed8da03d4bb2d38cf14a5b9f9905b))
+* **wayland:** omit sending any other data on disabling wlr heads ([819f768](https://gitlab.com/kwinft/disman/commit/819f76866affb114f34dacfe707038813f7f2ae4))
+* **wayland:** retry on cancelled wlroots config ([b97489b](https://gitlab.com/kwinft/disman/commit/b97489bc8aaa5a7ef1a208e780c59bdee542ac11))
+
 ### [0.520.1](https://gitlab.com/kwinft/disman/compare/disman@0.520.0...disman@0.520.1) (2020-12-09)
 
 
