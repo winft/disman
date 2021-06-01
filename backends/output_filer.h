@@ -100,6 +100,7 @@ public:
             auto const key = QStringLiteral("resolution");
 
             if (!mode_map.contains(key)) {
+                qCWarning(DISMAN_BACKEND) << "Output config does not contain resolution key.";
                 success = false;
                 return QSize();
             }
@@ -108,12 +109,16 @@ public:
 
             auto get_length = [&resolution_map, &success](QString axis) {
                 if (!resolution_map.contains(axis)) {
+                    qCWarning(DISMAN_BACKEND) << "Resolution entry does not contain axis:" << axis;
                     success = false;
                     return 0.;
                 }
                 bool ok;
                 auto const coord = resolution_map[axis].toDouble(&ok);
-                success &= ok;
+                if (!ok) {
+                    qCWarning(DISMAN_BACKEND) << "Could not read value of axis:" << axis;
+                    success = false;
+                }
                 return coord;
             };
 
@@ -127,6 +132,7 @@ public:
             auto const key = QStringLiteral("refresh");
 
             if (!mode_map.contains(key)) {
+                qCWarning(DISMAN_BACKEND) << "Mode entry does not contain refresh key.";
                 success = false;
                 return 0;
             }
