@@ -192,7 +192,7 @@ public:
         if (!m_info.contains(QStringLiteral("mode"))) {
             return;
         }
-        auto mode = get_mode(output, m_info, nullptr);
+        auto mode = get_mode(output, m_info[QStringLiteral("mode")], nullptr);
         if (!mode) {
             return;
         }
