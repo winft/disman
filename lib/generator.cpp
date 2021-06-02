@@ -272,7 +272,8 @@ void Generator::extend_impl(ConfigPtr const& config,
 
     auto outputs = config->outputs();
 
-    qCDebug(DISMAN) << "Generate config by extending to the right.";
+    qCDebug(DISMAN) << "Generate config by extending to the"
+                    << (direction == Extend_direction::left ? "left" : "right");
 
     if (outputs.empty()) {
         qCDebug(DISMAN) << "No displays found. Nothing to generate.";
