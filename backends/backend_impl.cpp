@@ -9,6 +9,9 @@
 #include "filer_controller.h"
 #include "generator.h"
 #include "logging.h"
+#include "output.h"
+
+#include <QRectF>
 
 namespace Disman
 {
@@ -79,6 +82,17 @@ bool BackendImpl::set_config_impl(Disman::ConfigPtr const& config)
     }
 
     m_filer_controller->write(config);
+
+    if (config->supported_features().testFlag(Config::Feature::OutputReplication)) {
+        for (auto const& [key, output] : config->outputs()) {
+            if (auto source_id = output->replication_source()) {
+                auto source = config->output(source_id);
+                output->set_position(source->position());
+                output->force_geometry(source->geometry());
+            }
+        }
+    }
+
     return set_config_system(config);
 }
 
