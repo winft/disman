@@ -313,6 +313,8 @@ public:
     GlobalData global_data() const;
     void set_global_data(GlobalData data);
 
+    std::string log() const;
+
 Q_SIGNALS:
     /**
      * An update to the output was applied. Changes to its properties could have occured.
