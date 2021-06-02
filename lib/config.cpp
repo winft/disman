@@ -27,6 +27,8 @@
 #include <QRect>
 #include <QStringList>
 
+#include <sstream>
+
 using namespace Disman;
 
 class Q_DECL_HIDDEN Config::Private : public QObject
@@ -449,7 +451,7 @@ void Config::apply(const ConfigPtr& other)
     set_cause(other->cause());
 }
 
-QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
+std::string Config::log() const
 {
     auto print_cause = [](Config::Cause cause) -> std::string {
         switch (cause) {
@@ -466,22 +468,33 @@ QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
         }
     };
 
+    std::stringstream ss;
+
+    ss << "  Disman::Config {";
+    ss << " cause: " << print_cause(cause());
+    if (auto primary = primary_output()) {
+        ss << ", primary: " << primary->id();
+    }
+    if (tablet_mode_available()) {
+        ss << " tablet-mode: " << (tablet_mode_engaged() ? "engaged" : "disengaged");
+    }
+    for (auto const& [key, output] : outputs()) {
+        auto log = std::istringstream(output->log());
+        std::string line;
+        while (std::getline(log, line)) {
+            ss << std::endl << "    " << line;
+        }
+    }
+    ss << std::endl << "  }";
+    return ss.str();
+}
+
+QDebug operator<<(QDebug dbg, const Disman::ConfigPtr& config)
+{
     if (config) {
-        dbg << "Disman::Config(";
-        dbg << "cause:" << print_cause(config->cause()).c_str();
-        if (auto primary = config->primary_output()) {
-            dbg << "primary:" << primary->id();
-        }
-        if (config->tablet_mode_available()) {
-            dbg << "tablet-mode:" << (config->tablet_mode_engaged() ? "engaged" : "disengaged");
-        }
-        const auto outputs = config->outputs();
-        for (auto const& [key, output] : outputs) {
-            dbg << Qt::endl << output;
-        }
-        dbg << ")";
+        dbg << Qt::endl << config->log().c_str();
     } else {
-        dbg << "Disman::Config(NULL)";
+        dbg << "Disman::Config {null}";
     }
     return dbg;
 }

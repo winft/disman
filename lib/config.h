@@ -228,6 +228,8 @@ public:
      */
     OutputPtr replication_source(OutputPtr const& output);
 
+    std::string log() const;
+
 Q_SIGNALS:
     void output_added(const Disman::OutputPtr& output);
     void output_removed(int outputId);

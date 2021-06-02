@@ -74,8 +74,8 @@ bool BackendImpl::set_config_impl(Disman::ConfigPtr const& config)
 {
     if (QLoggingCategory category("disman.backend"); category.isEnabled(QtDebugMsg)) {
         qCDebug(DISMAN_BACKEND) << "About to set config."
-                                << "\n  Previous config:" << this->config()
-                                << "\n  New config:" << config;
+                                << "\nPrevious config:" << this->config()
+                                << "\nNew config:" << config;
     }
 
     m_filer_controller->write(config);
