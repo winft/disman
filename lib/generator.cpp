@@ -374,13 +374,17 @@ void Generator::line_up(OutputPtr const& first,
 void Generator::replicate_impl(const ConfigPtr& config)
 {
     auto outputs = config->outputs();
-
     auto source = primary_impl(outputs, OutputMap());
-    source->d->apply_global();
 
-    // TODO: Do this only if config supports primary output and there is not a primary output that
-    //       independent of this replication.
-    config->set_primary_output(source);
+    if (config->supported_features().testFlag(Config::Feature::PrimaryDisplay)) {
+        if (auto primary = config->primary_output()) {
+            source = primary;
+        } else {
+            config->set_primary_output(source);
+        }
+    }
+
+    source->d->apply_global();
 
     qCDebug(DISMAN) << "Generate multi-output config by replicating" << source << "on"
                     << outputs.size() - 1 << "other outputs.";
