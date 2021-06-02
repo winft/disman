@@ -280,7 +280,13 @@ void Generator::extend_impl(ConfigPtr const& config,
         return;
     }
 
-    auto start_output = first ? first : primary_impl(outputs, OutputMap());
+    auto start_output = first;
+    if (!start_output && config->supported_features().testFlag(Config::Feature::PrimaryDisplay)) {
+        start_output = config->primary_output();
+    }
+    if (!start_output) {
+        start_output = primary_impl(outputs, OutputMap());
+    }
     if (!start_output) {
         qCDebug(DISMAN) << "No displays enabled. Nothing to generate.";
         return;
