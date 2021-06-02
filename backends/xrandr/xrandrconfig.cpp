@@ -463,6 +463,9 @@ QSize XRandRConfig::screenSize(const Disman::ConfigPtr& config) const
         if (!output->enabled()) {
             continue;
         }
+        if (output->replication_source()) {
+            continue;
+        }
 
         const ModePtr currentMode = output->auto_mode();
         if (!currentMode) {
