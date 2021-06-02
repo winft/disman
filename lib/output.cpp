@@ -577,55 +577,104 @@ void Output::set_global_data(GlobalData data)
     d->global.valid = data.resolution.isValid() && data.refresh > 0 && data.scale > 0;
 }
 
+std::string Output::log() const
+{
+    auto stream_size = [](QSizeF const& size) -> std::string {
+        std::stringstream ss;
+        ss << size.width() << "x" << size.height();
+        return ss.str();
+    };
+    auto stream_mode = [&stream_size](Disman::ModePtr const& mode) {
+        std::stringstream ss;
+        if (mode) {
+            ss << stream_size(mode->size()) << "@" << mode->refresh() << " (id " << mode->id()
+               << ")";
+        } else {
+            ss << "null";
+        }
+        return ss.str();
+    };
+    auto stream_rect = [&stream_size](QRectF const& rect) {
+        std::stringstream ss;
+        ss << "x,y: " << rect.x() << "," << rect.y() << " w/h:" << stream_size(rect.size());
+        return ss.str();
+    };
+    auto stream_geometry = [this, &stream_rect]() {
+        std::stringstream ss;
+        ss << stream_rect(geometry()) << " (scale: " << scale() << ")";
+        return ss.str();
+    };
+    auto stream_retention = [](Retention retention) -> std::string {
+        switch (retention) {
+        case Retention::Global:
+            return "global";
+        case Retention::Individual:
+            return "individual";
+        case Retention::Undefined:
+        default:
+            return "undefined";
+        }
+    };
+    auto stream_auto = [this]() -> std::string {
+        std::string ret;
+        auto comma{false};
+        auto print = [&](auto check, std::string const& name) {
+            if (!check) {
+                return;
+            }
+            if (comma) {
+                ret += ", ";
+            }
+            ret += name;
+            comma = true;
+        };
+        print(auto_resolution(), "resolution");
+        print(auto_refresh_rate(), "refresh");
+        print(auto_rotate(), "rotate");
+        if (auto_rotate() && auto_rotate_only_in_tablet_mode()) {
+            ret += " (only in tablet mode)";
+        }
+        return ret;
+    };
+    auto stream_physical_size = [this, &stream_size]() -> std::string {
+        std::stringstream ss;
+        ss << "physical size[mm]: " << stream_size(physical_size());
+        return ss.str();
+    };
+    auto stream_replication_source = [this]() -> std::string {
+        auto source = replication_source();
+        if (!source) {
+            return "";
+        }
+        std::stringstream ss;
+        ss << ", replicates: " << source;
+        return ss.str();
+    };
+
+    auto const gap = std::string("  ");
+    std::stringstream ss;
+
+    ss << "Output " << id() << ", " << description() << " (" << name() << ")" << std::endl
+       << gap << "mode: " << stream_mode(auto_mode()) << std::endl
+       << gap << stream_geometry() << std::endl
+       << gap << "auto: " << stream_auto() << std::endl
+       << gap << stream_physical_size() << std::endl
+       << gap << "enabled: " << (enabled() ? "yes" : "no")
+       << ", retention: " << stream_retention(retention()) << stream_replication_source()
+       << (follow_preferred_mode() ? ", hotplug-mode-update: QXL/SPICE" : "") << std::endl
+       << gap << "hash: " << hash() << std::endl
+       << "}";
+
+    return ss.str();
+}
 }
 
 QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output)
 {
     if (output) {
-        auto stream_mode = [](Disman::ModePtr const& mode) {
-            std::stringstream ss;
-            if (mode) {
-                ss << "id " << mode->id() << ", size " << mode->size().width() << "x"
-                   << mode->size().height() << "@" << mode->refresh();
-            } else {
-                ss << "null";
-            }
-            return ss.str();
-        };
-        auto stream_rect = [](QRectF const& rect) {
-            std::stringstream ss;
-            ss << "top-left(" << rect.x() << "," << rect.y() << ") size(" << rect.size().width()
-               << "x" << rect.size().height() << ")";
-            return ss.str();
-        };
-
-        std::stringstream ss;
-
-        ss << "{" << output->id() << " " << output->description() << " (" << output->name()
-           << ") "
-
-           // basic properties
-           << (output->enabled() ? " [enabled]" : "[disabled]")
-           << (output->retention() == Disman::Output::Retention::Global ? "[global retention]"
-                   : output->retention() == Disman::Output::Retention::Individual
-                   ? "[individual retention]"
-                   : "")
-           << (output->follow_preferred_mode() ? " [hotplug-mode-update (QXL/SPICE)]" : "")
-           << (output->auto_resolution() ? " [auto resolution]" : "")
-           << (output->auto_refresh_rate() ? " [auto refresh rate]" : "")
-           << (output->auto_rotate() ? " [auto rotate]" : "")
-           << (output->auto_rotate_only_in_tablet_mode() ? " [auto rotate only in tablet mode]"
-                                                         : "")
-
-           // geometry
-           << " | physical size[mm]: " << output->physical_size().width() << "x"
-           << output->physical_size().height() << " | mode: " << stream_mode(output->auto_mode())
-           << " | geometry: " << stream_rect(output->geometry()) << " | scale: " << output->scale()
-           << " | hash: " << output->hash() << "}";
-
-        dbg << QString::fromStdString(ss.str());
+        dbg << output->log().c_str();
     } else {
-        dbg << "{null}";
+        dbg << "Output {null}";
     }
     return dbg;
 }

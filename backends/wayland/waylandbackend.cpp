@@ -126,13 +126,6 @@ void WaylandBackend::update_config(ConfigPtr& config) const
 
 bool WaylandBackend::set_config_system(Disman::ConfigPtr const& config)
 {
-    for (auto const& [key, output] : config->outputs()) {
-        if (auto source_id = output->replication_source()) {
-            auto source = config->output(source_id);
-            output->set_position(source->position());
-            output->force_geometry(source->geometry());
-        }
-    }
     return m_interface->applyConfig(config);
 }
 

@@ -272,14 +272,21 @@ void Generator::extend_impl(ConfigPtr const& config,
 
     auto outputs = config->outputs();
 
-    qCDebug(DISMAN) << "Generate config by extending to the right.";
+    qCDebug(DISMAN) << "Generate config by extending to the"
+                    << (direction == Extend_direction::left ? "left" : "right");
 
     if (outputs.empty()) {
         qCDebug(DISMAN) << "No displays found. Nothing to generate.";
         return;
     }
 
-    auto start_output = first ? first : primary_impl(outputs, OutputMap());
+    auto start_output = first;
+    if (!start_output && config->supported_features().testFlag(Config::Feature::PrimaryDisplay)) {
+        start_output = config->primary_output();
+    }
+    if (!start_output) {
+        start_output = primary_impl(outputs, OutputMap());
+    }
     if (!start_output) {
         qCDebug(DISMAN) << "No displays enabled. Nothing to generate.";
         return;
@@ -352,6 +359,7 @@ void Generator::line_up(OutputPtr const& first,
     }
 
     for (auto& [key, output] : new_outputs) {
+        output->set_replication_source(0);
         if (output->id() == first->id()) {
             continue;
         }
@@ -374,13 +382,17 @@ void Generator::line_up(OutputPtr const& first,
 void Generator::replicate_impl(const ConfigPtr& config)
 {
     auto outputs = config->outputs();
-
     auto source = primary_impl(outputs, OutputMap());
-    source->d->apply_global();
 
-    // TODO: Do this only if config supports primary output and there is not a primary output that
-    //       independent of this replication.
-    config->set_primary_output(source);
+    if (config->supported_features().testFlag(Config::Feature::PrimaryDisplay)) {
+        if (auto primary = config->primary_output()) {
+            source = primary;
+        } else {
+            config->set_primary_output(source);
+        }
+    }
+
+    source->d->apply_global();
 
     qCDebug(DISMAN) << "Generate multi-output config by replicating" << source << "on"
                     << outputs.size() - 1 << "other outputs.";
