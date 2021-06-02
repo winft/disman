@@ -359,6 +359,7 @@ void Generator::line_up(OutputPtr const& first,
     }
 
     for (auto& [key, output] : new_outputs) {
+        output->set_replication_source(0);
         if (output->id() == first->id()) {
             continue;
         }
