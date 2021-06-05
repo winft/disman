@@ -270,6 +270,7 @@ ConfigPtr ConfigSerializer::deserialize_config(const QVariantMap& map)
     case Config::Cause::unknown:
     case Config::Cause::generated:
     case Config::Cause::file:
+    case Config::Cause::interactive:
         break;
     default:
         qCWarning(DISMAN) << "Deserialized config without valid cause value.";
