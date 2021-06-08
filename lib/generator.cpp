@@ -282,7 +282,9 @@ void Generator::extend_impl(ConfigPtr const& config,
 
     auto start_output = first;
     if (!start_output && config->supported_features().testFlag(Config::Feature::PrimaryDisplay)) {
-        start_output = config->primary_output();
+        if (auto primary = config->primary_output(); primary && primary->enabled()) {
+            start_output = primary;
+        }
     }
     if (!start_output) {
         start_output = primary_impl(outputs, OutputMap());
