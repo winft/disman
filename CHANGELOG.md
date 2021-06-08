@@ -1,5 +1,22 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.522.0](https://gitlab.com/kwinft/disman/compare/disman@0.522.0-beta.0...disman@0.522.0) (2021-06-08)
+
+
+### Bug Fixes
+
+* **lib:** check primary output being enabled before extending from it ([06d9251](https://gitlab.com/kwinft/disman/commit/06d92518e0f879feb91e02d815406119c383e05b))
+* **lib:** log extending direction correctly ([c0c67c7](https://gitlab.com/kwinft/disman/commit/c0c67c763ec0541a42176a1a2534344b97d29f34))
+* **lib:** set primary as source on replicate ([ec03b9e](https://gitlab.com/kwinft/disman/commit/ec03b9eddf74c7ee98dffd5fc7939acbb9821627))
+* **lib:** unset replication when lining up outputs ([ed408a8](https://gitlab.com/kwinft/disman/commit/ed408a8424bc5d6b766cd6cbcaf99d82562f16a1))
+* **lib:** use primary as start on extending ([5dd66f4](https://gitlab.com/kwinft/disman/commit/5dd66f4c79dc0314fdcc5a6e65515d1bb3c64f96))
+* **randr:** ignore replicating outputs for screen size ([20489fc](https://gitlab.com/kwinft/disman/commit/20489fc83d8cfea9f2fd3a9d1414abeaf820f4ad))
+* add debug output on mode read ([6670ae4](https://gitlab.com/kwinft/disman/commit/6670ae422bb4242b6b8a8670fa9af2aae7d27538))
+* always force geometry when replication is supported ([4397761](https://gitlab.com/kwinft/disman/commit/4397761dd50fb40147f3c01872422354a91af839))
+* call get_mode on mode entry ([e688d90](https://gitlab.com/kwinft/disman/commit/e688d90e6cf1c35e93541854d2d545218ed8e7b7))
+* deserialize interactive config cause ([db58f8a](https://gitlab.com/kwinft/disman/commit/db58f8ac82a6472ae7bc584aa464d29d03b40bd4))
+* improve config and output log formatting ([6aba797](https://gitlab.com/kwinft/disman/commit/6aba797d3e0722625e2ec9e3707f4533d69d6292))
+
 ## [0.522.0-beta.0](https://gitlab.com/kwinft/disman/compare/disman@0.521.0-beta.0...disman@0.522.0-beta.0) (2021-05-26)
 
 ## [0.521.0](https://gitlab.com/kwinft/disman/compare/disman@0.521.0-beta.0...disman@0.521.0) (2021-02-16)
