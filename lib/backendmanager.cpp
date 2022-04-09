@@ -178,7 +178,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
                 return "wayland";
             }
         }
-        if (!qgetenv("DISPLAY").isEmpty()) {
+        if (!qEnvironmentVariableIsEmpty("DISPLAY")) {
             return "randr";
         }
         return "qscreen";

@@ -55,7 +55,7 @@ void WaylandTestServer::start()
     using namespace KWayland::Server;
     delete m_display;
     m_display = new KWayland::Server::Display(this);
-    if (qgetenv("WAYLAND_DISPLAY").isEmpty()) {
+    if (qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY")) {
         m_display->setSocketName(s_socketName);
     } else {
         m_display->setSocketName(QString::fromLatin1(qgetenv("WAYLAND_DISPLAY")));

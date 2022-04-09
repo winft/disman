@@ -81,15 +81,15 @@ Doctor::Doctor(QCommandLineParser* parser, QObject* parent)
 void Doctor::showBackends() const
 {
     cout << "Environment: " << Qt::endl;
-    auto env_disman_backend = (qgetenv("DISMAN_BACKEND").isEmpty())
+    auto env_disman_backend = (qEnvironmentVariableIsEmpty("DISMAN_BACKEND"))
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
     cout << "  * DISMAN_BACKEND       : " << env_disman_backend << Qt::endl;
-    auto env_disman_backend_inprocess = (qgetenv("DISMAN_IN_PROCESS").isEmpty())
+    auto env_disman_backend_inprocess = (qEnvironmentVariableIsEmpty("DISMAN_IN_PROCESS"))
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_IN_PROCESS"));
     cout << "  * DISMAN_IN_PROCESS    : " << env_disman_backend_inprocess << Qt::endl;
-    auto env_disman_logging = (qgetenv("DISMAN_LOGGING").isEmpty())
+    auto env_disman_logging = (qEnvironmentVariableIsEmpty("DISMAN_LOGGING"))
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_LOGGING"));
     cout << "  * DISMAN_LOGGING       : " << env_disman_logging << Qt::endl;
