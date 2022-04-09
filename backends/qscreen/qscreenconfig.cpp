@@ -53,7 +53,6 @@ QScreenConfig::~QScreenConfig()
 
 int QScreenConfig::outputId(const QScreen* qscreen)
 {
-    QList<int> ids;
     for (auto& [key, output] : m_outputMap) {
         if (qscreen == output->qscreen()) {
             return output->id();

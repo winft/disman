@@ -129,7 +129,6 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     ModeMap modeList;
     std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
-    QString currentModeId = QStringLiteral("-1");
 
     auto current_head_mode = m_head->currentMode();
     ModePtr current_mode;
