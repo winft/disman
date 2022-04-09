@@ -394,13 +394,14 @@ void BackendManager::on_backend_request_done(QDBusPendingCallWatcher* watcher)
     mServiceWatcher.addWatchedService(mBackendService);
 
     // Immediatelly request config
-    connect(new GetConfigOperation, &GetConfigOperation::finished, [&](ConfigOperation* op) {
+    connect(new GetConfigOperation, &GetConfigOperation::finished, this, [&](ConfigOperation* op) {
         mConfig = qobject_cast<GetConfigOperation*>(op)->config();
         emit_backend_ready();
     });
     // And listen for its change.
     connect(mInterface,
             &org::kwinft::disman::backend::configChanged,
+            this,
             [&](const QVariantMap& newConfig) {
                 mConfig = Disman::ConfigSerializer::deserialize_config(newConfig);
             });

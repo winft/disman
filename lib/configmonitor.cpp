@@ -214,7 +214,7 @@ void ConfigMonitor::remove_config(const ConfigPtr& config)
 void ConfigMonitor::connect_in_process_backend(Disman::Backend* backend)
 {
     Q_ASSERT(BackendManager::instance()->method() == BackendManager::InProcess);
-    connect(backend, &Backend::config_changed, [=](Disman::ConfigPtr config) {
+    connect(backend, &Backend::config_changed, this, [=](Disman::ConfigPtr config) {
         if (!config) {
             return;
         }
