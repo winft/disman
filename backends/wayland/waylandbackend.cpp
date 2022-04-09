@@ -31,9 +31,7 @@
 #include <generator.h>
 #include <mode.h>
 
-#include <KPluginLoader>
 #include <KPluginMetaData>
-
 #include <QThread>
 
 using namespace Disman;
@@ -163,7 +161,7 @@ void WaylandBackend::queryInterfaces()
         m_pendingInterfaces.clear();
     });
 
-    auto availableInterfacePlugins = KPluginLoader::findPlugins(QStringLiteral("disman/wayland"));
+    auto availableInterfacePlugins = KPluginMetaData::findPlugins(QStringLiteral("disman/wayland"));
 
     for (auto plugin : availableInterfacePlugins) {
         queryInterface(&plugin);
@@ -185,7 +183,7 @@ void WaylandBackend::queryInterface(KPluginMetaData* plugin)
     }
 
     // TODO: qobject_cast not working here. Why?
-    auto* factory = dynamic_cast<WaylandFactory*>(plugin->instantiate());
+    auto factory = dynamic_cast<WaylandFactory*>(QPluginLoader(plugin->fileName()).instance());
     if (!factory) {
         return;
     }
