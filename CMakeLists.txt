@@ -4,17 +4,21 @@ project(Disman)
 set(PROJECT_VERSION "0.524.80")
 set(PROJECT_VERSION_MAJOR "0")
 
-set(QT_MIN_VERSION "5.14.0")
-set(KF5_MIN_VERSION "5.66.0")
+set(QT_MIN_VERSION "5.15.0")
+set(KF5_MIN_VERSION "5.91")
+set(KDE_COMPILERSETTINGS_LEVEL "5.84")
 
 find_package(ECM ${KF5_MIN_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
+
 include(KDEInstallDirs)
-include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 include(KDECMakeSettings)
+include(KDECompilerSettings NO_POLICY_SCOPE)
+
 include(ECMSetupVersion)
 include(ECMMarkAsTest)
 include(ECMQtDeclareLoggingCategory)
+
 include(FeatureSummary)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
