@@ -87,12 +87,3 @@ if(NOT WIN32)
   )
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/disman.pc DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig)
 endif(NOT WIN32)
-
-include(ECMGeneratePriFile)
-ecm_generate_pri_file(
-  BASE_NAME Disman
-  LIB_NAME Disman
-  DEPS "core"
-  FILENAME_VAR PRI_FILENAME
-)
-install(FILES ${PRI_FILENAME} DESTINATION ${ECM_MKSPECS_INSTALL_DIR})
