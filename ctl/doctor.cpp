@@ -75,7 +75,7 @@ Doctor::Doctor(QCommandLineParser* parser, QObject* parent)
         }
     }
     // We need to kick the event loop, otherwise .quit() hangs
-    QTimer::singleShot(0, qApp->quit);
+    QTimer::singleShot(0, qApp, &QCoreApplication::quit);
 }
 
 void Doctor::showBackends() const
