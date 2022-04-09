@@ -280,7 +280,7 @@ void Output::set_to_preferred_mode()
 
 ModePtr Output::commanded_mode() const
 {
-    for (auto [key, mode] : d->modeList) {
+    for (auto const& [key, mode] : d->modeList) {
         if (mode->size() == d->resolution && mode->refresh() == d->refresh_rate) {
             return mode;
         }

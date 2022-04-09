@@ -102,7 +102,7 @@ void Doctor::showBackends() const
     auto preferred = BackendManager::instance()->preferred_backend();
     cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << Qt::endl;
     cout << "Available Disman backends:" << Qt::endl;
-    for (auto const file_info : backends) {
+    for (auto const& file_info : qAsConst(backends)) {
         auto c = blue;
         if (preferred == file_info) {
             c = green;
@@ -115,7 +115,8 @@ void Doctor::showBackends() const
 
 void Doctor::parsePositionalArgs()
 {
-    for (auto const& op : m_parser->positionalArguments()) {
+    auto const& args = m_parser->positionalArguments();
+    for (auto const& op : args) {
         auto ops = op.split(QLatin1Char('.'));
         if (ops.count() > 2) {
             bool ok;

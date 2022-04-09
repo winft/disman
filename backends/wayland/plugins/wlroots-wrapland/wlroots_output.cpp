@@ -135,7 +135,8 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     ModePtr current_mode;
 
     int modeCounter = 0;
-    for (auto wlMode : m_head->modes()) {
+    auto const modes = m_head->modes();
+    for (auto const& wlMode : qAsConst(modes)) {
         auto const modeId = std::to_string(++modeCounter);
 
         ModePtr mode(new Mode());

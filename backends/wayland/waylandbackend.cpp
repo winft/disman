@@ -49,7 +49,7 @@ WaylandBackend::WaylandBackend()
 
 WaylandBackend::~WaylandBackend()
 {
-    for (auto pending : m_pendingInterfaces) {
+    for (auto& pending : m_pendingInterfaces) {
         rejectInterface(pending);
     }
     m_pendingInterfaces.clear();
@@ -151,7 +151,7 @@ void WaylandBackend::setScreenOutputs()
 void WaylandBackend::queryInterfaces()
 {
     QTimer::singleShot(3000, this, [this] {
-        for (auto pending : m_pendingInterfaces) {
+        for (auto& pending : m_pendingInterfaces) {
             qCWarning(DISMAN_WAYLAND) << pending.name << "backend could not be aquired in time.";
             rejectInterface(pending);
         }
@@ -177,7 +177,7 @@ void WaylandBackend::queryInterface(KPluginMetaData* plugin)
 
     pending.name = plugin->name();
 
-    for (auto other : m_pendingInterfaces) {
+    for (auto const& other : m_pendingInterfaces) {
         if (pending.name == other.name) {
             // Names must be unique.
             return;
@@ -207,7 +207,7 @@ void WaylandBackend::queryInterface(KPluginMetaData* plugin)
             return;
         }
 
-        for (auto other : m_pendingInterfaces) {
+        for (auto& other : m_pendingInterfaces) {
             if (other.interface != pending.interface) {
                 rejectInterface(other);
             }

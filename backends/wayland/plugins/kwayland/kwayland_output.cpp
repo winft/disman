@@ -105,7 +105,8 @@ void KWaylandOutput::updateDismanOutput(OutputPtr& output)
     m_modeIdMap.clear();
     ModePtr current_mode;
 
-    for (const Wl::OutputDevice::Mode& wlMode : m_device->modes()) {
+    auto const modes = m_device->modes();
+    for (auto const& wlMode : qAsConst(modes)) {
         ModePtr mode(new Mode());
         auto const name = modeName(wlMode).toStdString();
 

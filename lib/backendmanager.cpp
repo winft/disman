@@ -166,7 +166,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
                 }
                 auto const locations
                     = QStandardPaths::standardLocations(QStandardPaths::RuntimeLocation);
-                for (auto const dir : locations) {
+                for (auto const& dir : qAsConst(locations)) {
                     if (QFileInfo(QDir(dir), dsp_str).exists()) {
                         return true;
                     }
@@ -187,7 +187,8 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
     qCDebug(DISMAN) << "Selection for preferred backend:" << select.c_str();
 
     QFileInfo fallback;
-    for (auto const& file_info : list_backends()) {
+    auto const& backends = list_backends();
+    for (auto const& file_info : qAsConst(backends)) {
         if (file_info.baseName().toStdString() == select) {
             return file_info;
         }
