@@ -59,16 +59,13 @@ install(
   DESTINATION ${INCLUDE_INSTALL_DIR}/disman/wayland
 )
 
-if(NOT WIN32)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/disman-wayland.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/disman-wayland.pc
-    @ONLY
-  )
-  install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/disman-wayland.pc
-    DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig
-  )
-endif(NOT WIN32)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/disman-wayland.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/disman-wayland.pc @ONLY
+)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/disman-wayland.pc
+  DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig
+)
 
 ecm_setup_version(${PROJECT_VERSION}
   VARIABLE_PREFIX DismanWayland
