@@ -154,8 +154,8 @@ void WaylandTestServer::configurationChangeRequested(
             outputdevice->setGlobalPosition(c->position());
         }
         if (c->scaleChanged()) {
-            qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Setting scale:" << c->scale();
-            outputdevice->setScale(c->scale());
+            qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Setting scale:" << c->scaleF();
+            outputdevice->setScaleF(c->scaleF());
         }
     }
 
