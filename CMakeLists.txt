@@ -27,6 +27,7 @@ include(GenerateExportHeader)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
   Core
@@ -35,25 +36,22 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
   Test
 )
 
-# Wayland backend plugin KWayland
 find_package(KF5Wayland ${KF5_MIN_VERSION} CONFIG)
 set_package_properties(KF5Wayland PROPERTIES
   TYPE OPTIONAL
-  PURPOSE "Required for building Disman's KWayland backend"
+  PURPOSE "Required for KWin/KWayland backend"
 )
 
-# Wayland backend plugin KWinFT and wlroots
 find_package(Wrapland ${PROJECT_VERSION} CONFIG)
 set_package_properties(Wrapland PROPERTIES
   TYPE OPTIONAL
-  PURPOSE "Required for building Disman's Wrapland-powered backends"
+  PURPOSE "Required for KWinFT and wlroots backends"
 )
 
-# RandR backend
 find_package(XCB COMPONENTS XCB RANDR)
 set_package_properties(XCB PROPERTIES
   TYPE OPTIONAL
-  PURPOSE "Required for building RandR backend."
+  PURPOSE "Required for X11/RandR backend"
 )
 
 ecm_setup_version(${PROJECT_VERSION}
@@ -62,8 +60,6 @@ ecm_setup_version(${PROJECT_VERSION}
   PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
-
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 add_subdirectory(lib)
 add_subdirectory(service)
