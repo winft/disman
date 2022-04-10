@@ -6,5 +6,5 @@ Name: Disman
 Description: Qt Based library to manage screens with various backends
 Version: @DISMAN_VERSION_STRING@
 
-Libs: -L${libdir} -lDisman
+Libs: -L${libdir} -ldisman
 Cflags: -I${includedir}

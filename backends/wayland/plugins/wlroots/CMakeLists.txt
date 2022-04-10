@@ -18,8 +18,9 @@ set_target_properties(disman-wlroots PROPERTIES
 
 target_compile_features(disman-wlroots PRIVATE cxx_std_17)
 target_link_libraries(disman-wlroots
+  PRIVATE
+    disman::wllib
     Qt5::Core
-    Disman::Wayland
     WraplandClient
 )
 

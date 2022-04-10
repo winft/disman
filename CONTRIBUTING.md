@@ -34,10 +34,10 @@ By this the service provides a single shared backend connection
 for all programs that make use of Disman.
 
 To view the log of the service you must find the location of the service binary file.
-This is normally found at some path like `/usr/lib/libexec/disman_backend_launcher` and then you
+This is normally found at some path like `/usr/lib/libexec/disman-launcher` and then you
 can simply kill and restart the service with the command:
 
-    killall -9 disman_backend_launcher ; /usr/lib/libexec/disman_backend_launcher
+    killall -9 disman-launcher ; /usr/lib/libexec/disman-launcher
 
 Note that afterwards you need to restart all programs that made use of the old
 instance of the service to be able to connect to the new one.

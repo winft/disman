@@ -19,13 +19,14 @@ ecm_qt_declare_logging_category(xrandr_SRCS
   CATEGORY_NAME disman.backend.xrandr
 )
 
-add_library(randr MODULE ${xrandr_SRCS})
+add_library(disman-randr MODULE ${xrandr_SRCS})
+set_target_properties(disman-randr PROPERTIES
+  OUTPUT_NAME randr
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman/"
+)
+target_compile_features(disman-randr PRIVATE cxx_std_17)
 
-set_target_properties(randr PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
-set_target_properties(randr PROPERTIES PREFIX "")
-target_compile_features(randr PRIVATE cxx_std_17)
-
-target_link_libraries(randr
+target_link_libraries(disman-randr
   PRIVATE
     disman::backend
     Qt5::Core
@@ -34,4 +35,4 @@ target_link_libraries(randr
     ${XCB_LIBRARIES}
 )
 
-install(TARGETS randr DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)
+install(TARGETS disman-randr DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

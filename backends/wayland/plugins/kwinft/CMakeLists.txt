@@ -10,21 +10,21 @@ ecm_qt_declare_logging_category(
     CATEGORY_NAME disman.wayland.kwinft
 )
 
-add_library(kwinft MODULE ${kwinft_SRCS})
-
-set_target_properties(kwinft
-    PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/bin/disman/wayland/"
+add_library(disman-kwinft MODULE ${kwinft_SRCS})
+set_target_properties(disman-kwinft PROPERTIES
+  OUTPUT_NAME kwinft
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman/wayland/"
 )
-target_compile_features(kwinft PRIVATE cxx_std_17)
+target_compile_features(disman-kwinft PRIVATE cxx_std_17)
 
-target_link_libraries(kwinft
+target_link_libraries(disman-kwinft
+  PRIVATE
+    disman::wllib
     Qt5::Core
-    Disman::Wayland
     WraplandClient
 )
 
 install(
-    TARGETS kwinft
+    TARGETS disman-kwinft
     DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
 )

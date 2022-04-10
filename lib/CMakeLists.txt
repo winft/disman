@@ -24,16 +24,18 @@ ecm_qt_declare_logging_category(disman_SRCS
   CATEGORY_NAME disman
 )
 
-add_library(Disman SHARED ${disman_SRCS})
-add_library(Disman::Disman ALIAS Disman)
+add_library(disman-lib SHARED ${disman_SRCS})
+add_library(disman::lib ALIAS disman-lib)
 
-generate_export_header(Disman)
-target_compile_features(Disman
+generate_export_header(disman-lib
+  BASE_NAME disman
+)
+target_compile_features(disman-lib
     PUBLIC cxx_std_11
     PRIVATE cxx_std_17
 )
 
-target_link_libraries(Disman
+target_link_libraries(disman-lib
   PUBLIC
     Qt5::Core
     Qt5::Gui
@@ -41,21 +43,22 @@ target_link_libraries(Disman
     Qt5::DBus
 )
 
-set_target_properties(Disman PROPERTIES
+set_target_properties(disman-lib PROPERTIES
+  OUTPUT_NAME disman
+  EXPORT_NAME lib
   VERSION "${PROJECT_VERSION}"
   SOVERSION "${PROJECT_VERSION_MAJOR}"
-  EXPORT_NAME Disman
 )
 
-target_include_directories(Disman
+target_include_directories(disman-lib
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
     $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
 )
 
 install(
-  TARGETS Disman
-  EXPORT DismanTargets
+  TARGETS disman-lib
+  EXPORT disman-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
@@ -84,32 +87,32 @@ install(
 ecm_setup_version(${PROJECT_VERSION}
   VARIABLE_PREFIX Disman
   VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
-  PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
+  PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/disman-config-version.cmake"
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/disman.pc.in ${CMAKE_CURRENT_BINARY_DIR}/disman.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/disman.pc DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig)
 
-set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/Disman")
+set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/disman")
 
 configure_package_config_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/DismanConfig.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake" INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
+  "${CMAKE_CURRENT_SOURCE_DIR}/disman-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/disman-config.cmake" INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
 )
 
 install(
   FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/disman-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/disman-config-version.cmake"
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 
 install(
-  EXPORT DismanTargets
-  FILE DismanTargets.cmake
-  NAMESPACE Disman::
+  EXPORT disman-targets
+  FILE disman-targets.cmake
+  NAMESPACE disman::
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )

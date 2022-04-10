@@ -19,86 +19,89 @@ qt5_add_dbus_interface(wayland_SRCS
 )
 
 set(wayland_LIBS
+  disman::lib
   Qt5::Core
   Qt5::DBus
-  Disman::Disman
   KF5::CoreAddons
 )
 
 ####################################################################################################
 # Library
 ####################################################################################################
-add_library(DismanWayland SHARED ${wayland_SRCS})
-add_library(Disman::Wayland ALIAS DismanWayland)
+add_library(disman-wllib SHARED ${wayland_SRCS})
+add_library(disman::wllib ALIAS disman-wllib)
 
-generate_export_header(DismanWayland BASE_NAME disman_wayland)
+generate_export_header(disman-wllib
+  BASE_NAME dismanwl
+)
 
-target_link_libraries(DismanWayland
+target_link_libraries(disman-wllib
   PRIVATE disman::backend
   PUBLIC ${wayland_LIBS}
 )
 
-set_target_properties(DismanWayland PROPERTIES
+set_target_properties(disman-wllib PROPERTIES
+  OUTPUT_NAME dismanwl
+  EXPORT_NAME wllib
   VERSION "${PROJECT_VERSION}"
   SOVERSION "${PROJECT_VERSION_MAJOR}"
-  EXPORT_NAME Wayland
 )
-target_compile_features(DismanWayland PRIVATE cxx_std_17)
+target_compile_features(disman-wllib PRIVATE cxx_std_17)
 
 install(
-  TARGETS DismanWayland
-  EXPORT DismanWaylandTargets
+  TARGETS disman-wllib
+  EXPORT dismanwl-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 install(
   FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/disman_wayland_export.h
+    ${CMAKE_CURRENT_BINARY_DIR}/dismanwl_export.h
     wayland_interface.h
     waylandoutput.h
   DESTINATION ${INCLUDE_INSTALL_DIR}/disman/wayland
 )
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/disman-wayland.pc.in
-  ${CMAKE_CURRENT_BINARY_DIR}/disman-wayland.pc @ONLY
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/dismanwl.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/dismanwl.pc @ONLY
 )
 install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/disman-wayland.pc
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/dismanwl.pc
   DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig
 )
 
 ecm_setup_version(${PROJECT_VERSION}
-  VARIABLE_PREFIX DismanWayland
-  VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_wayland_version.h"
-  PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanWaylandConfigVersion.cmake"
+  VARIABLE_PREFIX dismanwl
+  VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/dismanwl_version.h"
+  PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/dismanwl-config-version.cmake"
 )
 
-set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/DismanWayland")
+set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/dismanwl")
 
 configure_package_config_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/DismanWaylandConfig.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/DismanWaylandConfig.cmake"
+  "${CMAKE_CURRENT_SOURCE_DIR}/dismanwl-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/dismanwl-config.cmake"
   INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
 )
 
 install(
   FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/DismanWaylandConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/DismanWaylandConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/dismanwl-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/dismanwl-config-version.cmake"
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 
 install(
-  EXPORT DismanWaylandTargets
-  FILE DismanWaylandTargets.cmake
-  NAMESPACE Disman::
+  EXPORT dismanwl-targets
+  FILE dismanwl-targets.cmake
+  NAMESPACE disman::
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
   COMPONENT Devel
 )
 
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/disman_wayland_version.h"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/dismanwl_version.h"
   DESTINATION "${INCLUDE_INSTALL_DIR}"
   COMPONENT Devel
 )
@@ -109,19 +112,21 @@ add_subdirectory(plugins)
 ####################################################################################################
 # Wayland Plugin
 ####################################################################################################
-add_library(wayland MODULE ${wayland_SRCS})
+add_library(disman-wlplugin MODULE ${wayland_SRCS})
 
-set_target_properties(wayland PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
-set_target_properties(wayland PROPERTIES PREFIX "")
-target_compile_features(wayland PRIVATE cxx_std_17)
+set_target_properties(disman-wlplugin PROPERTIES
+  OUTPUT_NAME wayland
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman/"
+)
+target_compile_features(disman-wlplugin PRIVATE cxx_std_17)
 
-target_link_libraries(wayland
+target_link_libraries(disman-wlplugin
   PRIVATE
     disman::backend
     ${wayland_LIBS}
 )
 
 install(
-  TARGETS wayland
+  TARGETS disman-wlplugin
   DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/
 )

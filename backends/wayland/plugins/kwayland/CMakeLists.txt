@@ -11,21 +11,21 @@ ecm_qt_declare_logging_category(
     CATEGORY_NAME disman.wayland.kwayland
 )
 
-add_library(kwayland MODULE ${kwayland_SRCS})
-
-set_target_properties(kwayland
-    PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/bin/disman/wayland/"
+add_library(disman-kwayland MODULE ${kwayland_SRCS})
+set_target_properties(disman-kwayland PROPERTIES
+  OUTPUT_NAME kwayland
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman/wayland/"
 )
-target_compile_features(kwayland PRIVATE cxx_std_17)
+target_compile_features(disman-kwayland PRIVATE cxx_std_17)
 
-target_link_libraries(kwayland
+target_link_libraries(disman-kwayland
+  PRIVATE
+    disman::wllib
     Qt5::Core
-    Disman::Wayland
     KF5::WaylandClient
 )
 
 install(
-    TARGETS kwayland
+    TARGETS disman-kwayland
     DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
 )

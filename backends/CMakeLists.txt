@@ -20,7 +20,7 @@ add_library(disman::backend ALIAS backend)
 
 target_link_libraries(backend
   PRIVATE Qt5::DBus
-  PUBLIC Disman::Disman
+  PUBLIC disman::lib
 )
 
 target_compile_features(backend PUBLIC cxx_std_17)

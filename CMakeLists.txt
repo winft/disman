@@ -63,6 +63,6 @@ if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
 
-install(FILES Disman.categories DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
+install(FILES disman.categories DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

@@ -16,9 +16,10 @@ qt5_add_dbus_adaptor(fake_SRCS
 )
 
 add_library(fake MODULE ${fake_SRCS})
-
-set_target_properties(fake PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman")
-set_target_properties(fake PROPERTIES PREFIX "")
+set_target_properties(fake PROPERTIES
+  PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/disman/"
+)
 target_compile_features(fake PRIVATE cxx_std_17)
 
 target_link_libraries(fake
