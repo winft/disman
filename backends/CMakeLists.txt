@@ -15,17 +15,17 @@ qt5_add_dbus_interface(backend_SRCS
   freedesktop_interface
 )
 
-add_library(DismanBackend OBJECT ${backend_SRCS})
-add_library(Disman::Backend ALIAS DismanBackend)
+add_library(backend OBJECT ${backend_SRCS})
+add_library(disman::backend ALIAS backend)
 
-target_link_libraries(DismanBackend
+target_link_libraries(backend
   PRIVATE Qt5::DBus
   PUBLIC Disman::Disman
 )
 
-target_compile_features(DismanBackend PUBLIC cxx_std_17)
+target_compile_features(backend PUBLIC cxx_std_17)
 
-target_include_directories(DismanBackend
+target_include_directories(backend
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 

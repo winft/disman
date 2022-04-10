@@ -34,7 +34,7 @@ add_library(Disman::Wayland ALIAS DismanWayland)
 generate_export_header(DismanWayland BASE_NAME disman_wayland)
 
 target_link_libraries(DismanWayland
-  PRIVATE Disman::Backend
+  PRIVATE disman::backend
   PUBLIC ${wayland_LIBS}
 )
 
@@ -116,8 +116,9 @@ set_target_properties(wayland PROPERTIES PREFIX "")
 target_compile_features(wayland PRIVATE cxx_std_17)
 
 target_link_libraries(wayland
-  PRIVATE Disman::Backend
-  PUBLIC ${wayland_LIBS}
+  PRIVATE
+    disman::backend
+    ${wayland_LIBS}
 )
 
 install(

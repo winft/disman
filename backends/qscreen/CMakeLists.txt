@@ -19,7 +19,7 @@ target_compile_features(qscreen PRIVATE cxx_std_17)
 
 target_link_libraries(qscreen
   PRIVATE
-    Disman::Backend
+    disman::backend
     Qt5::Core
     Qt5::Gui
 )
