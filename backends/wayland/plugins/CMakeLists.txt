@@ -4,5 +4,5 @@ endif()
 
 if(Wrapland_FOUND)
   add_subdirectory(kwinft)
-  add_subdirectory(wlroots-wrapland)
+  add_subdirectory(wlroots)
 endif()
