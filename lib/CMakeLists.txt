@@ -43,7 +43,7 @@ target_link_libraries(Disman
 
 set_target_properties(Disman PROPERTIES
   VERSION "${PROJECT_VERSION}"
-  SOVERSION "${Disman_SOVERSION}"
+  SOVERSION "${PROJECT_VERSION_MAJOR}"
   EXPORT_NAME Disman
 )
 
@@ -81,5 +81,41 @@ install(
   COMPONENT Devel
 )
 
+ecm_setup_version(${PROJECT_VERSION}
+  VARIABLE_PREFIX Disman
+  VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
+  PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/disman.pc.in ${CMAKE_CURRENT_BINARY_DIR}/disman.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/disman.pc DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig)
+
+set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/Disman")
+
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/DismanConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake" INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
+)
+
+install(
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
+  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
+  COMPONENT Devel
+)
+
+install(
+  EXPORT DismanTargets
+  FILE DismanTargets.cmake
+  NAMESPACE Disman::
+  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
+  COMPONENT Devel
+)
+
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
+  DESTINATION "${INCLUDE_INSTALL_DIR}"
+  COMPONENT Devel
+)

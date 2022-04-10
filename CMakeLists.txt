@@ -54,13 +54,6 @@ set_package_properties(XCB PROPERTIES
   PURPOSE "Required for X11/RandR backend"
 )
 
-ecm_setup_version(${PROJECT_VERSION}
-  VARIABLE_PREFIX Disman
-  VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
-  PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
-  SOVERSION ${PROJECT_VERSION_MAJOR}
-)
-
 add_subdirectory(lib)
 add_subdirectory(service)
 add_subdirectory(ctl)
@@ -70,34 +63,6 @@ if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
 
-set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/Disman")
-
-configure_package_config_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/DismanConfig.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake" INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
-)
-
-install(
-  FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/DismanConfigVersion.cmake"
-  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-  COMPONENT Devel
-)
-
-install(
-  EXPORT DismanTargets
-  FILE DismanTargets.cmake
-  NAMESPACE Disman::
-  DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-  COMPONENT Devel
-)
-
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
-  DESTINATION "${INCLUDE_INSTALL_DIR}"
-  COMPONENT Devel
-)
 install(FILES Disman.categories DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
