@@ -63,6 +63,14 @@ if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
 
+add_custom_target(disman DEPENDS
+  disman::lib
+  disman::wllib
+  dismanctl
+  disman-launcher
+  disman-wlplugin
+)
+
 install(FILES disman.categories DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

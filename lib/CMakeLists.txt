@@ -60,6 +60,7 @@ install(
   TARGETS disman-lib
   EXPORT disman-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  COMPONENT disman
 )
 
 set(disman_HEADERS
@@ -81,7 +82,7 @@ set(disman_HEADERS
 install(
   FILES ${disman_HEADERS}
   DESTINATION ${INCLUDE_INSTALL_DIR}/disman
-  COMPONENT Devel
+  COMPONENT disman
 )
 
 ecm_setup_version(${PROJECT_VERSION}
@@ -92,7 +93,11 @@ ecm_setup_version(${PROJECT_VERSION}
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/disman.pc.in ${CMAKE_CURRENT_BINARY_DIR}/disman.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/disman.pc DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/disman.pc
+  DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig
+  COMPONENT disman
+)
 
 set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/disman")
 
@@ -106,7 +111,7 @@ install(
     "${CMAKE_CURRENT_BINARY_DIR}/disman-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/disman-config-version.cmake"
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-  COMPONENT Devel
+  COMPONENT disman
 )
 
 install(
@@ -114,11 +119,11 @@ install(
   FILE disman-targets.cmake
   NAMESPACE disman::
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-  COMPONENT Devel
+  COMPONENT disman
 )
 
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
   DESTINATION "${INCLUDE_INSTALL_DIR}"
-  COMPONENT Devel
+  COMPONENT disman
 )

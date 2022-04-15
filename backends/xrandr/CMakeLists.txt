@@ -35,4 +35,8 @@ target_link_libraries(disman-randr
     ${XCB_LIBRARIES}
 )
 
-install(TARGETS disman-randr DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)
+install(
+  TARGETS disman-randr
+  DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/
+  COMPONENT disman-randr
+)

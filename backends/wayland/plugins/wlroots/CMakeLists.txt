@@ -25,6 +25,7 @@ target_link_libraries(disman-wlroots
 )
 
 install(
-    TARGETS disman-wlroots
-    DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
+  TARGETS disman-wlroots
+  DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
+  COMPONENT disman-wlroots
 )

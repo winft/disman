@@ -26,6 +26,7 @@ target_link_libraries(disman-kwayland
 )
 
 install(
-    TARGETS disman-kwayland
-    DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
+  TARGETS disman-kwayland
+  DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
+  COMPONENT disman-kwayland
 )

@@ -25,6 +25,7 @@ target_link_libraries(disman-kwinft
 )
 
 install(
-    TARGETS disman-kwinft
-    DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
+  TARGETS disman-kwinft
+  DESTINATION ${PLUGIN_INSTALL_DIR}/disman/wayland/
+  COMPONENT disman-kwinft
 )

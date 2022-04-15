@@ -9,4 +9,5 @@ target_link_libraries(dismanctl
 install(
   TARGETS dismanctl
   DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT disman
 )

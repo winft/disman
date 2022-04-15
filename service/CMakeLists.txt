@@ -35,7 +35,11 @@ target_link_libraries(disman-launcher
   Qt5::DBus
 )
 
-install(TARGETS disman-launcher DESTINATION ${CMAKE_INSTALL_FULL_LIBEXECDIR})
+install(
+  TARGETS disman-launcher
+  DESTINATION ${CMAKE_INSTALL_FULL_LIBEXECDIR}
+  COMPONENT disman
+)
 
 configure_file(org.kwinft.disman.service.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/org.kwinft.disman.service
@@ -45,4 +49,5 @@ configure_file(org.kwinft.disman.service.cmake
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/org.kwinft.disman.service
   DESTINATION ${KDE_INSTALL_DBUSSERVICEDIR}
+  COMPONENT disman
 )

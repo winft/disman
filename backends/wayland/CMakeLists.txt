@@ -52,6 +52,7 @@ install(
   TARGETS disman-wllib
   EXPORT dismanwl-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  COMPONENT disman
 )
 
 install(
@@ -60,6 +61,7 @@ install(
     wayland_interface.h
     waylandoutput.h
   DESTINATION ${INCLUDE_INSTALL_DIR}/disman/wayland
+  COMPONENT disman
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/dismanwl.pc.in
@@ -68,6 +70,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/dismanwl.pc.in
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/dismanwl.pc
   DESTINATION ${KDE_INSTALL_LIBDIR}/pkgconfig
+  COMPONENT disman
 )
 
 ecm_setup_version(${PROJECT_VERSION}
@@ -89,7 +92,7 @@ install(
     "${CMAKE_CURRENT_BINARY_DIR}/dismanwl-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/dismanwl-config-version.cmake"
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-  COMPONENT Devel
+  COMPONENT disman
 )
 
 install(
@@ -97,13 +100,13 @@ install(
   FILE dismanwl-targets.cmake
   NAMESPACE disman::
   DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
-  COMPONENT Devel
+  COMPONENT disman
 )
 
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/dismanwl_version.h"
   DESTINATION "${INCLUDE_INSTALL_DIR}"
-  COMPONENT Devel
+  COMPONENT disman
 )
 
 # Standard plugins
@@ -129,4 +132,5 @@ target_link_libraries(disman-wlplugin
 install(
   TARGETS disman-wlplugin
   DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/
+  COMPONENT disman
 )
