@@ -20,10 +20,8 @@ target_compile_features(qscreen PRIVATE cxx_std_17)
 target_link_libraries(qscreen
   PRIVATE
     Disman::Backend
-  PUBLIC
     Qt5::Core
     Qt5::Gui
-    Disman::Disman
 )
 
 install(TARGETS qscreen DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

@@ -28,12 +28,10 @@ target_compile_features(randr PRIVATE cxx_std_17)
 target_link_libraries(randr
   PRIVATE
     Disman::Backend
-  PUBLIC
     Qt5::Core
     Qt5::Gui
     Qt5::X11Extras
     ${XCB_LIBRARIES}
-    Disman::Disman
 )
 
 install(TARGETS randr DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

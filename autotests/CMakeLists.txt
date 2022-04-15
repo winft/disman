@@ -13,7 +13,6 @@ macro(DISMAN_ADD_TEST)
           Qt5::Gui
           Qt5::Test
           Qt5::DBus
-          Disman::Disman
           Disman::Backend
           ${DISMAN_WAYLAND_LIBS}
         )
@@ -36,7 +35,6 @@ macro(DISMAN_ADD_TEST2)
           Qt5::Gui
           Qt5::Test
           Qt5::DBus
-          Disman::Disman
           Disman::Backend
           ${DISMAN_WAYLAND_LIBS}
         )

@@ -24,10 +24,8 @@ target_compile_features(fake PRIVATE cxx_std_17)
 target_link_libraries(fake
   PRIVATE
     Disman::Backend
-  PUBLIC
     Qt5::Core
     Qt5::DBus
-    Disman::Disman
 )
 
 install(TARGETS fake DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)
