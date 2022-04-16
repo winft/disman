@@ -20,6 +20,7 @@ Disman can also be compiled from source with following dependencies:
 * CMake
 * Extra CMake Modules
 * Qt
+* KCoreAddons
 * XCB - optional for the X11 backend plugin
 * Wrapland - optional for the KWinFT and wlroots backend plugins
 * KWayland - optional for the KDE output-management backend plugin

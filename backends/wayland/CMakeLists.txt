@@ -1,5 +1,3 @@
-find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS CoreAddons)
-
 set(wayland_SRCS
   waylandbackend.cpp
   wayland_interface.cpp

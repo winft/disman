@@ -36,7 +36,14 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
   Test
 )
 
-find_package(KF5Wayland ${KF5_MIN_VERSION} CONFIG)
+find_package(KF5 ${KF5_MIN_VERSION} COMPONENTS
+  CoreAddons
+  Wayland
+)
+set_package_properties(KF5CoreAddons PROPERTIES
+  TYPE REQUIRED
+  PURPOSE "For loading Wayland backend plugins"
+)
 set_package_properties(KF5Wayland PROPERTIES
   TYPE OPTIONAL
   PURPOSE "Required for KWin/KWayland backend"
