@@ -25,7 +25,6 @@ target_compile_features(fake PRIVATE cxx_std_17)
 target_link_libraries(fake
   PRIVATE
     disman::backend
-    Qt5::Core
     Qt5::DBus
 )
 

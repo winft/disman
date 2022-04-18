@@ -21,7 +21,6 @@ target_compile_features(disman-kwayland PRIVATE cxx_std_17)
 target_link_libraries(disman-kwayland
   PRIVATE
     disman::wllib
-    Qt5::Core
     KF5::WaylandClient
 )
 

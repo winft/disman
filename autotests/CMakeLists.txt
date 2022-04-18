@@ -10,8 +10,6 @@ macro(DISMAN_ADD_TEST)
         target_compile_features(${_testname} PRIVATE cxx_std_17)
         target_link_libraries(${_testname}
           disman::backend
-          Qt5::Core
-          Qt5::Gui
           Qt5::Test
           Qt5::DBus
           ${DISMAN_WAYLAND_LIBS}
@@ -32,8 +30,6 @@ macro(DISMAN_ADD_TEST2)
         target_compile_features(test-${_testname} PRIVATE cxx_std_17)
         target_link_libraries(test-${_testname}
           disman::backend
-          Qt5::Core
-          Qt5::Gui
           Qt5::Test
           Qt5::DBus
           ${DISMAN_WAYLAND_LIBS}

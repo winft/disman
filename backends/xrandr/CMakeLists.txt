@@ -25,10 +25,8 @@ target_compile_features(disman-randr PRIVATE cxx_std_17)
 target_link_libraries(disman-randr
   PRIVATE
     disman::backend
-    Qt5::Core
-    Qt5::Gui
     Qt5::X11Extras
-    ${XCB_LIBRARIES}
+    XCB::RANDR
 )
 
 install(

@@ -20,7 +20,6 @@ target_compile_features(disman-kwinft PRIVATE cxx_std_17)
 target_link_libraries(disman-kwinft
   PRIVATE
     disman::wllib
-    Qt5::Core
     WraplandClient
 )
 

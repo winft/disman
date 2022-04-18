@@ -18,8 +18,6 @@ qt5_add_dbus_interface(wayland_SRCS
 
 set(wayland_LIBS
   disman::lib
-  Qt5::Core
-  Qt5::DBus
   KF5::CoreAddons
 )
 
