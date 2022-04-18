@@ -47,7 +47,7 @@ public:
         , m_suffix{suffix}
     {
         m_dir_path = QString(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
-                             % QStringLiteral("/disman/control/"))
+                             + QStringLiteral("/disman/control/"))
                          .toStdString();
         m_read_success = read_file();
 

@@ -75,21 +75,21 @@ Doctor::Doctor(QCommandLineParser* parser, QObject* parent)
         }
     }
     // We need to kick the event loop, otherwise .quit() hangs
-    QTimer::singleShot(0, qApp->quit);
+    QTimer::singleShot(0, qApp, &QCoreApplication::quit);
 }
 
 void Doctor::showBackends() const
 {
     cout << "Environment: " << Qt::endl;
-    auto env_disman_backend = (qgetenv("DISMAN_BACKEND").isEmpty())
+    auto env_disman_backend = (qEnvironmentVariableIsEmpty("DISMAN_BACKEND"))
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_BACKEND"));
     cout << "  * DISMAN_BACKEND       : " << env_disman_backend << Qt::endl;
-    auto env_disman_backend_inprocess = (qgetenv("DISMAN_IN_PROCESS").isEmpty())
+    auto env_disman_backend_inprocess = (qEnvironmentVariableIsEmpty("DISMAN_IN_PROCESS"))
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_IN_PROCESS"));
     cout << "  * DISMAN_IN_PROCESS    : " << env_disman_backend_inprocess << Qt::endl;
-    auto env_disman_logging = (qgetenv("DISMAN_LOGGING").isEmpty())
+    auto env_disman_logging = (qEnvironmentVariableIsEmpty("DISMAN_LOGGING"))
         ? QStringLiteral("[not set]")
         : QString::fromUtf8(qgetenv("DISMAN_LOGGING"));
     cout << "  * DISMAN_LOGGING       : " << env_disman_logging << Qt::endl;
@@ -102,7 +102,7 @@ void Doctor::showBackends() const
     auto preferred = BackendManager::instance()->preferred_backend();
     cout << "Preferred Disman backend : " << green << preferred.fileName() << cr << Qt::endl;
     cout << "Available Disman backends:" << Qt::endl;
-    for (auto const file_info : backends) {
+    for (auto const& file_info : qAsConst(backends)) {
         auto c = blue;
         if (preferred == file_info) {
             c = green;
@@ -115,7 +115,8 @@ void Doctor::showBackends() const
 
 void Doctor::parsePositionalArgs()
 {
-    for (auto const& op : m_parser->positionalArguments()) {
+    auto const& args = m_parser->positionalArguments();
+    for (auto const& op : args) {
         auto ops = op.split(QLatin1Char('.'));
         if (ops.count() > 2) {
             bool ok;

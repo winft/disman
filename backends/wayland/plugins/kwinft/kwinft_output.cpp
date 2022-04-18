@@ -108,7 +108,8 @@ void KwinftOutput::updateDismanOutput(OutputPtr& output)
     std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
 
-    for (const Wl::OutputDeviceV1::Mode& wlMode : m_device->modes()) {
+    auto const modes = m_device->modes();
+    for (auto const& wlMode : qAsConst(modes)) {
         ModePtr mode(new Mode());
         auto const name = modeName(wlMode).toStdString();
 

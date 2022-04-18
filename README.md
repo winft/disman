@@ -12,21 +12,79 @@ Additionally the command line utility *dismanctl* is provided
 to query and modify display settings directly from the command line.
 
 ## Installation
+### Packages
 Your distribution might provide Disman already as a package:
 * Arch(AUR): [disman-kwinft][aur-package]
 * Manjaro: `sudo pacman -S disman`
 
+### From Source
+#### Dependencies
 Disman can also be compiled from source with following dependencies:
 * CMake
 * Extra CMake Modules
 * Qt
+* KCoreAddons
 * XCB - optional for the X11 backend plugin
 * Wrapland - optional for the KWinFT and wlroots backend plugins
 * KWayland - optional for the KDE output-management backend plugin
 
-Configure, build and install Disman like any other CMake based project.
-You can install it to your normal system directory.
-This ensures the D-Bus service file will be picked up correctly.
+#### Target Selection
+Disman can be installed like any other CMake based projects through
+
+```sh
+cmake -B build-dir -S source-dir
+cmake --build build-dir
+cmake --install build-dir
+```
+
+This builds and installs *all* of Disman's CMake targets,
+what then als relies on all optional dependencies being available.
+But as Disman comes with multiple targets
+that can be built and installed independently
+we can also build and install only the targets we really need.
+
+It is recommended to make at least use of the group target *disman* though.
+It combines the basic
+libraries, plugins, control utility and service
+what usually always is used in some way or another.
+On the other side for example the target *disman-kwinft*
+only builds the backend plugin
+necessary to communicate with a
+[KWinFT](https://gitlab.com/kwinft/kwinft)
+Wayland server.
+
+A typical build and install workflow would look like the following for that plugin:
+
+```sh
+cmake -B build-dir -S source-dir
+cmake --build build-dir --target disman disman-kwinft
+cmake --install build-dir --component disman
+cmake --install build-dir --component disman-kwinft
+```
+
+**In an overview the following targets are available:**
+
+| Target/Component | Description                                         |
+|------------------|-----------------------------------------------------|
+| disman           | Group target bundling core functionality            |
+| disman-lib       | Main library being used by frontends and backends   |
+| dismanctl        | Command line utility to interact with Disman        |
+| disman-launcher  | Service that starts a backend on D-Bus requests     |
+| disman-wllib     | Library being used by Wayland backends              |
+| disman-wlplugin  | Plugin-loader for Wayland backends                  |
+| disman-randr     | Plugin for X11/RandR                                |
+| disman-kwayland  | Plugin for KWin's Wayland session                   |
+| disman-kwinft    | Plugin for KWinFT's Wayland session                 |
+| disman-wlroots   | Plugin for wlroots compositors (Sway, Wayfire,...)  |
+
+#### Packaging
+Distro packagers should create multiple packages from these targets
+such that these packages depend on each other naturally
+and come with minimal dependencies.
+
+It is recommended to at least provide a "disman" package
+with the disman group target
+and separate disman-randr, disman-kwayland, etc. packages for the backend plugins.
 
 ## Usage
 ### Independent

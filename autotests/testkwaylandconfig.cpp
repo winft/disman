@@ -23,6 +23,7 @@
 #include "backendmanager_p.h"
 #include "config.h"
 #include "configmonitor.h"
+#include "generator.h"
 #include "getconfigoperation.h"
 #include "mode.h"
 #include "output.h"
@@ -283,7 +284,8 @@ void TestKWaylandConfig::testApplyOnPending()
 
     auto output = config->outputs()[1]; // is this id stable enough?
 
-    QCOMPARE(output->scale(), 1.0);
+    // Scale value in the beginning is the best scale.
+    QVERIFY(std::abs(output->scale() - Disman::Generator(config).best_scale(output)) < 0.01);
     output->set_scale(2);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);

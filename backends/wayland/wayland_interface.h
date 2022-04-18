@@ -18,8 +18,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma once
 
 #include <config.h>
-
-#include "disman_wayland_export.h"
+#include <dismanwl_export.h>
 
 #include <QEventLoop>
 #include <QObject>
@@ -33,7 +32,7 @@ class Output;
 class WaylandOutput;
 class WaylandScreen;
 
-class DISMAN_WAYLAND_EXPORT WaylandInterface : public QObject
+class DISMANWL_EXPORT WaylandInterface : public QObject
 {
     Q_OBJECT
 

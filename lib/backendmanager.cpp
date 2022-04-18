@@ -166,7 +166,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
                 }
                 auto const locations
                     = QStandardPaths::standardLocations(QStandardPaths::RuntimeLocation);
-                for (auto const dir : locations) {
+                for (auto const& dir : qAsConst(locations)) {
                     if (QFileInfo(QDir(dir), dsp_str).exists()) {
                         return true;
                     }
@@ -178,7 +178,7 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
                 return "wayland";
             }
         }
-        if (!qgetenv("DISPLAY").isEmpty()) {
+        if (!qEnvironmentVariableIsEmpty("DISPLAY")) {
             return "randr";
         }
         return "qscreen";
@@ -187,7 +187,8 @@ QFileInfo BackendManager::preferred_backend(std::string const& pre_select)
     qCDebug(DISMAN) << "Selection for preferred backend:" << select.c_str();
 
     QFileInfo fallback;
-    for (auto const& file_info : list_backends()) {
+    auto const& backends = list_backends();
+    for (auto const& file_info : qAsConst(backends)) {
         if (file_info.baseName().toStdString() == select) {
             return file_info;
         }
@@ -393,13 +394,14 @@ void BackendManager::on_backend_request_done(QDBusPendingCallWatcher* watcher)
     mServiceWatcher.addWatchedService(mBackendService);
 
     // Immediatelly request config
-    connect(new GetConfigOperation, &GetConfigOperation::finished, [&](ConfigOperation* op) {
+    connect(new GetConfigOperation, &GetConfigOperation::finished, this, [&](ConfigOperation* op) {
         mConfig = qobject_cast<GetConfigOperation*>(op)->config();
         emit_backend_ready();
     });
     // And listen for its change.
     connect(mInterface,
             &org::kwinft::disman::backend::configChanged,
+            this,
             [&](const QVariantMap& newConfig) {
                 mConfig = Disman::ConfigSerializer::deserialize_config(newConfig);
             });

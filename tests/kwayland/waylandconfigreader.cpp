@@ -53,7 +53,6 @@ void WaylandConfigReader::outputsFromConfig(
             // qDebug() << "disconnected Output" << output["name"].toString();
         }
     }
-    auto outpus = WaylandConfigReader::createOutputs(display, outputs);
     s_outputIds.clear();
 }
 

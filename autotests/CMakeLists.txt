@@ -9,12 +9,9 @@ macro(DISMAN_ADD_TEST)
         add_executable(${_testname} ${test_SRCS})
         target_compile_features(${_testname} PRIVATE cxx_std_17)
         target_link_libraries(${_testname}
-          Qt5::Core
-          Qt5::Gui
+          disman::backend
           Qt5::Test
           Qt5::DBus
-          Disman::Disman
-          Disman::Backend
           ${DISMAN_WAYLAND_LIBS}
         )
         add_test(NAME disman-${_testname}
@@ -32,12 +29,9 @@ macro(DISMAN_ADD_TEST2)
         add_executable(test-${_testname} ${test_SRCS})
         target_compile_features(test-${_testname} PRIVATE cxx_std_17)
         target_link_libraries(test-${_testname}
-          Qt5::Core
-          Qt5::Gui
+          disman::backend
           Qt5::Test
           Qt5::DBus
-          Disman::Disman
-          Disman::Backend
           ${DISMAN_WAYLAND_LIBS}
         )
         add_test(NAME disman-test-${_testname}
