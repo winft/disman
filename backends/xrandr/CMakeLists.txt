@@ -1,7 +1,3 @@
-find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
-  X11Extras
-)
-
 set(xrandr_SRCS
   xrandr.cpp
   xrandrconfig.cpp

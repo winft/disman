@@ -30,10 +30,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
-  Core
-  DBus
-  Gui
-  Test
+  COMPONENTS
+    Core
+    DBus
+    Gui
+    Test
+  OPTIONAL_COMPONENTS
+    X11Extras
+)
+set_package_properties(Qt5X11Extras PROPERTIES
+  PURPOSE "Required for X11/RandR backend"
 )
 
 find_package(KF5 ${KF5_MIN_VERSION} COMPONENTS
