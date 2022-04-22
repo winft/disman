@@ -105,7 +105,7 @@ QJsonObject ConfigSerializer::serialize_output(const OutputPtr& output)
     obj[QLatin1String("refresh")] = mode->refresh();
 
     QStringList mode_q_strings;
-    for (auto mode_string : output->preferred_modes()) {
+    for (auto const& mode_string : output->preferred_modes()) {
         mode_q_strings.push_back(QString::fromStdString(mode_string));
     }
     obj[QLatin1String("preferred_modes")] = serialize_list(mode_q_strings);
@@ -393,7 +393,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         else if (key == QLatin1String("preferred_modes")) {
             auto q_strings = deserialize_list<QString>(value.value<QDBusArgument>());
             std::vector<std::string> strings;
-            for (auto qs : q_strings) {
+            for (auto const& qs : q_strings) {
                 strings.push_back(qs.toStdString());
             }
             output->set_preferred_modes(strings);

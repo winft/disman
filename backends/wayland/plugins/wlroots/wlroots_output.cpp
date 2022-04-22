@@ -129,13 +129,13 @@ void WlrootsOutput::updateDismanOutput(OutputPtr& output)
     ModeMap modeList;
     std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
-    QString currentModeId = QStringLiteral("-1");
 
     auto current_head_mode = m_head->currentMode();
     ModePtr current_mode;
 
     int modeCounter = 0;
-    for (auto wlMode : m_head->modes()) {
+    auto const modes = m_head->modes();
+    for (auto const& wlMode : qAsConst(modes)) {
         auto const modeId = std::to_string(++modeCounter);
 
         ModePtr mode(new Mode());

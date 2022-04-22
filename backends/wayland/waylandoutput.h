@@ -18,9 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #pragma once
 
+#include <dismanwl_export.h>
 #include <output.h>
-
-#include "disman_wayland_export.h"
 
 #include <QString>
 
@@ -28,7 +27,7 @@ namespace Disman
 {
 class WaylandInterface;
 
-class DISMAN_WAYLAND_EXPORT WaylandOutput : public QObject
+class DISMANWL_EXPORT WaylandOutput : public QObject
 {
     Q_OBJECT
 

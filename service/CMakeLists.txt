@@ -25,18 +25,21 @@ qt5_add_dbus_adaptor(backendlauncher_SRCS
   BackendLoaderAdaptor
 )
 
-add_executable(disman_backend_launcher ${backendlauncher_SRCS})
+add_executable(disman-launcher ${backendlauncher_SRCS})
+target_compile_features(disman-launcher PRIVATE cxx_std_17)
 
-target_compile_features(disman_backend_launcher PRIVATE cxx_std_17)
-
-target_link_libraries(disman_backend_launcher
-  Disman::Disman
+target_link_libraries(disman-launcher
+  disman::lib
   Qt5::Core
   Qt5::Gui
   Qt5::DBus
 )
 
-install(TARGETS disman_backend_launcher DESTINATION ${CMAKE_INSTALL_FULL_LIBEXECDIR})
+install(
+  TARGETS disman-launcher
+  DESTINATION ${CMAKE_INSTALL_FULL_LIBEXECDIR}
+  COMPONENT disman
+)
 
 configure_file(org.kwinft.disman.service.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/org.kwinft.disman.service
@@ -46,4 +49,5 @@ configure_file(org.kwinft.disman.service.cmake
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/org.kwinft.disman.service
   DESTINATION ${KDE_INSTALL_DBUSSERVICEDIR}
+  COMPONENT disman
 )
