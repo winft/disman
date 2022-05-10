@@ -40,9 +40,6 @@ class DISMAN_EXPORT Output : public QObject
     Q_OBJECT
 
 public:
-    Q_ENUMS(Rotation)
-    Q_ENUMS(Type)
-
     enum Type {
         Unknown,
         VGA,
@@ -60,6 +57,7 @@ public:
         TVC4,
         DisplayPort,
     };
+    Q_ENUM(Type)
 
     enum Rotation {
         None = 1,
@@ -67,6 +65,7 @@ public:
         Inverted = 4,
         Right = 8,
     };
+    Q_ENUM(Rotation)
 
     enum class Retention {
         Undefined = -1,
@@ -337,7 +336,5 @@ private:
 DISMAN_EXPORT QDebug operator<<(QDebug dbg, const Disman::OutputPtr& output);
 
 Q_DECLARE_METATYPE(Disman::OutputMap)
-Q_DECLARE_METATYPE(Disman::Output::Rotation)
-Q_DECLARE_METATYPE(Disman::Output::Type)
 
 #endif
