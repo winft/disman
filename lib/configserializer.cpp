@@ -333,6 +333,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
 {
     OutputPtr output(new Output);
     Output::GlobalData global_data;
+    auto const session_type = qgetenv("XDG_SESSION_TYPE");
 
     arg.beginMap();
     while (!arg.atEnd()) {
@@ -355,7 +356,18 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("scale")) {
             output->set_scale(value.toDouble());
         } else if (key == QLatin1String("rotation")) {
-            output->set_rotation(static_cast<Output::Rotation>(value.toInt()));
+            if (session_type == "x11") {
+                if (static_cast<Output::Rotation>(value.toInt()) == Output::Rotation::Left) {
+                    output->set_rotation(Output::Rotation::Right);
+                } else if (static_cast<Output::Rotation>(value.toInt())
+                           == Output::Rotation::Right) {
+                    output->set_rotation(Output::Rotation::Left);
+                } else {
+                    output->set_rotation(static_cast<Output::Rotation>(value.toInt()));
+                }
+            } else {
+                output->set_rotation(static_cast<Output::Rotation>(value.toInt()));
+            }
         } else if (key == QLatin1String("resolution")) {
             output->set_resolution(deserialize_size(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("refresh")) {
@@ -377,7 +389,18 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("global.refresh")) {
             global_data.refresh = value.toInt();
         } else if (key == QLatin1String("global.rotation")) {
-            global_data.rotation = static_cast<Output::Rotation>(value.toInt());
+            if (session_type == "x11") {
+                if (static_cast<Output::Rotation>(value.toInt()) == Output::Rotation::Left) {
+                    global_data.rotation = Output::Rotation::Right;
+                } else if (static_cast<Output::Rotation>(value.toInt())
+                           == Output::Rotation::Right) {
+                    global_data.rotation = Output::Rotation::Left;
+                } else {
+                    global_data.rotation = static_cast<Output::Rotation>(value.toInt());
+                }
+            } else {
+                global_data.rotation = static_cast<Output::Rotation>(value.toInt());
+            }
         } else if (key == QLatin1String("global.scale")) {
             global_data.scale = value.toDouble();
         } else if (key == QLatin1String("global.auto_resolution")) {
