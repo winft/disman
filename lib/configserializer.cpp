@@ -134,7 +134,7 @@ QJsonObject ConfigSerializer::serialize_output(const OutputPtr& output)
         obj[QLatin1String("global.resolution")] = serialize_size(data.resolution);
         obj[QLatin1String("global.refresh")] = data.refresh;
 
-        obj[QLatin1String("global.rotation")] = data.rotation;
+        obj[QLatin1String("global.rotation")] = static_cast<int>(data.rotation);
         obj[QLatin1String("global.scale")] = data.scale;
 
         obj[QLatin1String("global.auto_resolution")] = data.auto_resolution;
@@ -333,7 +333,20 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
 {
     OutputPtr output(new Output);
     Output::GlobalData global_data;
-    auto const session_type = qgetenv("XDG_SESSION_TYPE");
+    auto reverse_left_right = [](const auto& x, const auto& value) {
+        if (x) {
+            switch (value) {
+            case 2:
+                return Output::Rotation::Right;
+            case 8:
+                return Output::Rotation::Left;
+            default:
+                return static_cast<Output::Rotation>(value);
+            }
+        } else {
+            return static_cast<Output::Rotation>(value);
+        }
+    };
 
     arg.beginMap();
     while (!arg.atEnd()) {
@@ -356,18 +369,8 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("scale")) {
             output->set_scale(value.toDouble());
         } else if (key == QLatin1String("rotation")) {
-            if (session_type == "x11") {
-                if (static_cast<Output::Rotation>(value.toInt()) == Output::Rotation::Left) {
-                    output->set_rotation(Output::Rotation::Right);
-                } else if (static_cast<Output::Rotation>(value.toInt())
-                           == Output::Rotation::Right) {
-                    output->set_rotation(Output::Rotation::Left);
-                } else {
-                    output->set_rotation(static_cast<Output::Rotation>(value.toInt()));
-                }
-            } else {
-                output->set_rotation(static_cast<Output::Rotation>(value.toInt()));
-            }
+            output->set_rotation(
+                reverse_left_right(qgetenv("XDG_SESSION_TYPE") == "x11", value.toInt()));
         } else if (key == QLatin1String("resolution")) {
             output->set_resolution(deserialize_size(value.value<QDBusArgument>()));
         } else if (key == QLatin1String("refresh")) {
@@ -389,18 +392,8 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
         } else if (key == QLatin1String("global.refresh")) {
             global_data.refresh = value.toInt();
         } else if (key == QLatin1String("global.rotation")) {
-            if (session_type == "x11") {
-                if (static_cast<Output::Rotation>(value.toInt()) == Output::Rotation::Left) {
-                    global_data.rotation = Output::Rotation::Right;
-                } else if (static_cast<Output::Rotation>(value.toInt())
-                           == Output::Rotation::Right) {
-                    global_data.rotation = Output::Rotation::Left;
-                } else {
-                    global_data.rotation = static_cast<Output::Rotation>(value.toInt());
-                }
-            } else {
-                global_data.rotation = static_cast<Output::Rotation>(value.toInt());
-            }
+            global_data.rotation
+                = reverse_left_right(qgetenv("XDG_SESSION_TYPE") == "x11", value.toInt());
         } else if (key == QLatin1String("global.scale")) {
             global_data.scale = value.toDouble();
         } else if (key == QLatin1String("global.auto_resolution")) {
