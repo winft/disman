@@ -1,5 +1,35 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.525.0-beta.0](https://gitlab.com/kwinft/disman/compare/disman@0.524.0-beta.0...disman@0.525.0-beta.0) (2022-06-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* target and library names change
+
+### Bug Fixes
+
+* loop without copies and detachements ([b4441c9](https://gitlab.com/kwinft/disman/commit/b4441c90ead2e6ed0e789f3bb7f55ee0de071ed2))
+* pass qApp as QTimer receiver object ([9ad07c0](https://gitlab.com/kwinft/disman/commit/9ad07c0be06759400a9174296866242385d5320a))
+* pass this as receiver to connect statement ([2843665](https://gitlab.com/kwinft/disman/commit/28436650f0b6761c4f70c788c6ea0dc507289931))
+* remove unused variables ([db4dc1a](https://gitlab.com/kwinft/disman/commit/db4dc1a0c5a5e11a863853725350cc0721963c52))
+* replace deprecated plugin loader functions ([b2ec244](https://gitlab.com/kwinft/disman/commit/b2ec244ce492f76143805c00973fbd63a2c7e3ef))
+
+
+### Refactors
+
+* concatenate QStrings with plus ([033fb11](https://gitlab.com/kwinft/disman/commit/033fb1139b90e813bb2fe15ef004e7faf526ddc2))
+
+
+### Performance
+
+* check env var empty without allocation ([616e012](https://gitlab.com/kwinft/disman/commit/616e012092286ff7cc42715114192b9cc0085bf6))
+
+
+### Build
+
+* give targets unique kebab-case names ([60ae031](https://gitlab.com/kwinft/disman/commit/60ae031248f4891c86dc30fa6d9f154d322f7978))
+
 ## [0.524.0](https://gitlab.com/kwinft/disman/compare/disman@0.524.0-beta.0...disman@0.524.0) (2022-02-08)
 
 ## [0.524.0-beta.0](https://gitlab.com/kwinft/disman/compare/disman@0.523.0-beta.0...disman@0.524.0-beta.0) (2022-02-03)
