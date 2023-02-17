@@ -1,5 +1,7 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.527.0](https://gitlab.com/kwinft/disman/compare/disman@0.527.0-beta.0...disman@0.527.0) (2023-02-17)
+
 ## [0.527.0-beta.0](https://gitlab.com/kwinft/disman/compare/disman@0.526.0-beta.0...disman@0.527.0-beta.0) (2023-02-16)
 
 ## [0.526.0](https://gitlab.com/kwinft/disman/compare/disman@0.526.0-beta.0...disman@0.526.0) (2022-10-11)
