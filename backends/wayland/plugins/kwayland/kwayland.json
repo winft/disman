@@ -1,7 +1,0 @@
-{
-    "KPlugin": {
-        "Description": "Wayland backend using KWayland library's output management interface.",
-        "Id": "LibkscreenWaylandPluginKWayland",
-        "Name": "kwayland"
-    }
-}
