@@ -31,7 +31,6 @@
 #include <generator.h>
 #include <mode.h>
 
-#include <KPluginMetaData>
 #include <QThread>
 
 using namespace Disman;
@@ -42,16 +41,11 @@ WaylandBackend::WaylandBackend()
 {
     qCDebug(DISMAN_WAYLAND) << "Loading Wayland backend.";
     initKWinTabletMode();
-    queryInterfaces();
+    queryInterface();
 }
 
 WaylandBackend::~WaylandBackend()
 {
-    for (auto& pending : m_pendingInterfaces) {
-        rejectInterface(pending);
-    }
-    m_pendingInterfaces.clear();
-
     if (m_thread) {
         m_thread->quit();
         m_thread->wait();
@@ -146,103 +140,40 @@ void WaylandBackend::setScreenOutputs()
     m_screen->setOutputs(outputs);
 }
 
-void WaylandBackend::queryInterfaces()
+void WaylandBackend::queryInterface()
 {
     QTimer::singleShot(3000, this, [this] {
-        for (auto& pending : m_pendingInterfaces) {
-            qCWarning(DISMAN_WAYLAND) << pending.name << "backend could not be aquired in time.";
-            rejectInterface(pending);
-        }
         if (m_syncLoop.isRunning()) {
             qCWarning(DISMAN_WAYLAND) << "Connection to Wayland server timed out. Does the "
                                          "compositor support output management?";
             m_syncLoop.quit();
         }
-        m_pendingInterfaces.clear();
     });
 
-    auto availableInterfacePlugins = KPluginMetaData::findPlugins(QStringLiteral("disman/wayland"));
-
-    for (auto plugin : availableInterfacePlugins) {
-        queryInterface(&plugin);
-    }
-    m_syncLoop.exec();
-}
-
-void WaylandBackend::queryInterface(KPluginMetaData* plugin)
-{
-    PendingInterface pending;
-
-    pending.name = plugin->name();
-
-    for (auto const& other : m_pendingInterfaces) {
-        if (pending.name == other.name) {
-            // Names must be unique.
-            return;
-        }
-    }
-
-    // TODO: qobject_cast not working here. Why?
-    auto factory = dynamic_cast<WaylandFactory*>(QPluginLoader(plugin->fileName()).instance());
-    if (!factory) {
-        return;
-    }
-    pending.interface = factory->createInterface();
-    pending.thread = new QThread();
-
-    m_pendingInterfaces.push_back(pending);
-    connect(pending.interface, &WaylandInterface::connectionFailed, this, [this, pending] {
-        qCWarning(DISMAN_WAYLAND) << "Backend" << pending.name << "failed.";
-        rejectInterface(pending);
-        m_pendingInterfaces.erase(
-            std::remove(m_pendingInterfaces.begin(), m_pendingInterfaces.end(), pending),
-            m_pendingInterfaces.end());
-    });
-
-    connect(pending.interface, &WaylandInterface::initialized, this, [this, pending] {
-        if (m_interface) {
-            // Too late. Already have an interface initialized.
-            return;
-        }
-
-        for (auto& other : m_pendingInterfaces) {
-            if (other.interface != pending.interface) {
-                rejectInterface(other);
-            }
-        }
-        m_pendingInterfaces.clear();
-
-        takeInterface(pending);
-    });
-
-    pending.interface->initConnection(pending.thread);
-}
-
-void WaylandBackend::takeInterface(const PendingInterface& pending)
-{
-    m_interface = pending.interface;
-    m_thread = pending.thread;
-    connect(m_interface, &WaylandInterface::config_changed, this, [this] {
-        if (handle_config_change()) {
-            // When windowing system and us have been synced up quit the sync loop.
-            // That returns the current config.
+    m_thread = new QThread;
+    m_interface = std::make_unique<WaylandInterface>(m_thread);
+    connect(m_interface.get(), &WaylandInterface::connectionFailed, this, [this] {
+        qCWarning(DISMAN_WAYLAND) << "Backend connection failed.";
+        if (m_syncLoop.isRunning()) {
             m_syncLoop.quit();
         }
     });
 
-    setScreenOutputs();
-    connect(
-        m_interface, &WaylandInterface::outputsChanged, this, &WaylandBackend::setScreenOutputs);
+    connect(m_interface.get(), &WaylandInterface::initialized, this, [this] {
+        connect(m_interface.get(), &WaylandInterface::config_changed, this, [this] {
+            if (handle_config_change()) {
+                // When windowing system and us have been synced up quit the sync loop.
+                // That returns the current config.
+                m_syncLoop.quit();
+            }
+        });
 
-    qCDebug(DISMAN_WAYLAND) << "Backend" << pending.name << "initialized.";
-}
+        setScreenOutputs();
+        connect(m_interface.get(),
+                &WaylandInterface::outputsChanged,
+                this,
+                &WaylandBackend::setScreenOutputs);
+    });
 
-void WaylandBackend::rejectInterface(const PendingInterface& pending)
-{
-    pending.thread->quit();
-    pending.thread->wait();
-    delete pending.thread;
-    delete pending.interface;
-
-    qCDebug(DISMAN_WAYLAND) << "Backend" << pending.name << "rejected.";
+    m_syncLoop.exec();
 }

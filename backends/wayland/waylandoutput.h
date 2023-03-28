@@ -18,29 +18,35 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 **************************************************************************/
 #pragma once
 
-#include <dismanwl_export.h>
 #include <output.h>
 
 #include <QString>
+#include <Wrapland/Client/registry.h>
+#include <Wrapland/Client/wlr_output_manager_v1.h>
 
 namespace Disman
 {
+
 class WaylandInterface;
 
-class DISMANWL_EXPORT WaylandOutput : public QObject
+class WaylandOutput : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit WaylandOutput(quint32 id, QObject* parent = nullptr);
+    WaylandOutput(quint32 id, Wrapland::Client::WlrOutputHeadV1* head, WaylandInterface* iface);
     ~WaylandOutput() override = default;
 
     Disman::OutputPtr toDismanOutput();
-    virtual void updateDismanOutput(Disman::OutputPtr& output) = 0;
+    void updateDismanOutput(Disman::OutputPtr& output);
 
-    virtual quint32 id() const;
-    virtual bool enabled() const = 0;
-    virtual QRectF geometry() const = 0;
+    quint32 id() const;
+    bool enabled() const;
+    QRectF geometry() const;
+
+    Wrapland::Client::WlrOutputHeadV1* outputHead() const;
+
+    bool setWlConfig(Wrapland::Client::WlrOutputConfigurationV1* wlConfig,
+                     const Disman::OutputPtr& output);
 
     Disman::Output::Type guessType(const QString& type, const QString& name) const;
 
@@ -50,7 +56,15 @@ Q_SIGNALS:
     void removed();
 
 private:
+    void showOutput();
+    QString hash() const;
+
     quint32 m_id;
+    Wrapland::Client::WlrOutputHeadV1* m_head;
+    Wrapland::Client::Registry* m_registry;
+
+    // left-hand-side: Disman::Mode, right-hand-side: Wrapland's WlrOutputModeV1
+    std::map<std::string, Wrapland::Client::WlrOutputModeV1*> m_modeIdMap;
 };
 
 }

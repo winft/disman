@@ -27,10 +27,11 @@
 #include <memory>
 #include <vector>
 
-class KPluginMetaData;
+class QThread;
 
 namespace Disman
 {
+
 class WaylandInterface;
 class WaylandOutput;
 class WaylandScreen;
@@ -54,34 +55,19 @@ public:
     std::map<int, WaylandOutput*> outputMap() const;
 
 private:
-    struct PendingInterface {
-        bool operator==(const PendingInterface& other)
-        {
-            return name == other.name;
-        }
-        QString name;
-        WaylandInterface* interface;
-        QThread* thread;
-    };
-
     void initKWinTabletMode();
     void setScreenOutputs();
 
-    void queryInterfaces();
-    void queryInterface(KPluginMetaData* plugin);
-    void takeInterface(const PendingInterface& pending);
-    void rejectInterface(const PendingInterface& pending);
+    void queryInterface();
 
     std::unique_ptr<WaylandScreen> m_screen;
-    QPointer<WaylandInterface> m_interface;
+    std::unique_ptr<WaylandInterface> m_interface;
     QThread* m_thread{nullptr};
 
     bool m_tabletModeAvailable{false};
     bool m_tabletModeEngaged{false};
 
     QEventLoop m_syncLoop;
-
-    std::vector<PendingInterface> m_pendingInterfaces;
 };
 
 }
