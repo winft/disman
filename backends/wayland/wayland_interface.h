@@ -98,7 +98,6 @@ private:
     // Wrapland names
     int m_lastOutputId = -1;
 
-    bool m_registryInitialized{false};
     bool m_blockSignals{true};
     Disman::ConfigPtr m_dismanPendingConfig{nullptr};
 

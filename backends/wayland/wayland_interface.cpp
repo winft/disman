@@ -72,8 +72,7 @@ Wrapland::Client::WlrOutputManagerV1* WaylandInterface::outputManager() const
 
 bool WaylandInterface::isInitialized() const
 {
-    return m_registryInitialized && m_outputManager != nullptr && !m_blockSignals
-        && m_initializingOutputs.isEmpty();
+    return m_outputManager != nullptr && !m_blockSignals && m_initializingOutputs.isEmpty();
 }
 
 void WaylandInterface::blockSignals()
@@ -137,11 +136,6 @@ void WaylandInterface::setupRegistry()
                 });
                 m_outputManager->setEventQueue(m_queue);
             });
-
-    connect(m_registry, &Wrapland::Client::Registry::interfacesAnnounced, this, [this] {
-        m_registryInitialized = true;
-        checkInitialized();
-    });
 
     m_registry->setEventQueue(m_queue);
     m_registry->create(m_connection);
