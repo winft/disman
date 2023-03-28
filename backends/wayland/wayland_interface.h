@@ -73,7 +73,7 @@ private:
     void initOutput(WaylandOutput* output);
 
     void insertOutput(WaylandOutput* output);
-    void addOutput(WaylandOutput* output);
+    void add_output(Wrapland::Client::WlrOutputHeadV1* head);
     void removeOutput(WaylandOutput* output);
     void handleDisconnect();
 
@@ -81,7 +81,6 @@ private:
     void unblockSignals();
 
     void setupRegistry();
-    void addHead(Wrapland::Client::WlrOutputHeadV1* head);
 
     bool apply_config_impl(const Disman::ConfigPtr& newConfig, bool force);
     void tryPendingConfig();

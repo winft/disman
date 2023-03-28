@@ -123,7 +123,7 @@ void WaylandInterface::setupRegistry()
                 connect(m_outputManager,
                         &Wrapland::Client::WlrOutputManagerV1::head,
                         this,
-                        &WaylandInterface::addHead);
+                        &WaylandInterface::add_output);
 
                 connect(m_outputManager, &Wrapland::Client::WlrOutputManagerV1::done, this, [this] {
                     // We only need to process this once in the beginning.
@@ -142,24 +142,19 @@ void WaylandInterface::setupRegistry()
     m_registry->setup();
 }
 
-void WaylandInterface::addHead(Wrapland::Client::WlrOutputHeadV1* head)
+void WaylandInterface::add_output(Wrapland::Client::WlrOutputHeadV1* head)
 {
     auto output = new WaylandOutput(++m_outputId, head, this);
-    addOutput(output);
+    m_initializingOutputs << output;
+
+    connect(output, &WaylandOutput::removed, this, [this, output]() { removeOutput(output); });
+    connect(output, &WaylandOutput::dataReceived, this, [this, output]() { initOutput(output); });
 }
 
 void WaylandInterface::insertOutput(WaylandOutput* output)
 {
     auto out = static_cast<WaylandOutput*>(output);
     m_outputMap.insert({out->id(), out});
-}
-
-void WaylandInterface::addOutput(WaylandOutput* output)
-{
-    m_initializingOutputs << output;
-
-    connect(output, &WaylandOutput::removed, this, [this, output]() { removeOutput(output); });
-    connect(output, &WaylandOutput::dataReceived, this, [this, output]() { initOutput(output); });
 }
 
 void WaylandInterface::initOutput(WaylandOutput* output)
