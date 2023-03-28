@@ -72,7 +72,7 @@ Wrapland::Client::WlrOutputManagerV1* WaylandInterface::outputManager() const
 
 bool WaylandInterface::isInitialized() const
 {
-    return m_outputManager != nullptr && !m_blockSignals && m_initializingOutputs.isEmpty();
+    return m_outputManager && m_initializingOutputs.isEmpty();
 }
 
 void WaylandInterface::blockSignals()
