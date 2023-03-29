@@ -47,15 +47,12 @@ class WaylandInterface : public QObject
 public:
     explicit WaylandInterface(QThread* thread);
 
-    void initConnection(QThread* thread);
-    bool isInitialized() const;
-
     std::map<int, WaylandOutput*> outputMap() const;
 
     bool applyConfig(const Disman::ConfigPtr& newConfig);
     void updateConfig(Disman::ConfigPtr& config);
 
-    Wrapland::Client::WlrOutputManagerV1* outputManager() const;
+    bool is_initialized{false};
 
 Q_SIGNALS:
     void config_changed();
@@ -64,21 +61,11 @@ Q_SIGNALS:
     void outputsChanged();
 
 private:
-    void checkInitialized();
+    void handle_wlr_manager_done();
 
-    /**
-     * Finalize: when the output is is initialized, we put it in the known outputs map,
-     * remove it from the list of initializing outputs, and emit config_changed().
-     */
-    void initOutput(WaylandOutput* output);
-
-    void insertOutput(WaylandOutput* output);
     void add_output(Wrapland::Client::WlrOutputHeadV1* head);
     void removeOutput(WaylandOutput* output);
     void handleDisconnect();
-
-    void blockSignals();
-    void unblockSignals();
 
     void setupRegistry();
 
@@ -97,13 +84,14 @@ private:
     // Wrapland names
     int m_lastOutputId = -1;
 
-    bool m_blockSignals{true};
+    struct {
+        bool pending{true};
+        bool outputs{false};
+    } update;
+
     Disman::ConfigPtr m_dismanPendingConfig{nullptr};
 
     int m_outputId = 0;
-
-    // Compositor side names
-    QList<WaylandOutput*> m_initializingOutputs;
 
     Disman::ConfigPtr m_dismanConfig;
     WaylandScreen* m_screen;

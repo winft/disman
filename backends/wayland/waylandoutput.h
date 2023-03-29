@@ -33,7 +33,7 @@ class WaylandOutput : public QObject
 {
     Q_OBJECT
 public:
-    WaylandOutput(uint32_t id, Wrapland::Client::WlrOutputHeadV1& head, WaylandInterface* iface);
+    WaylandOutput(uint32_t id, Wrapland::Client::WlrOutputHeadV1& head);
     ~WaylandOutput() override = default;
 
     Disman::OutputPtr toDismanOutput();
@@ -50,8 +50,6 @@ public:
     Wrapland::Client::WlrOutputHeadV1& head;
 
 Q_SIGNALS:
-    void dataReceived();
-    void changed();
     void removed();
 
 private:

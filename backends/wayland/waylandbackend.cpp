@@ -75,7 +75,7 @@ void WaylandBackend::initKWinTabletMode()
                     return;
                 }
                 m_tabletModeEngaged = tabletMode;
-                if (m_interface && m_interface->isInitialized()) {
+                if (m_interface && m_interface->is_initialized) {
                     Q_EMIT config_changed(config());
                 }
             });
@@ -87,7 +87,7 @@ void WaylandBackend::initKWinTabletMode()
                     return;
                 }
                 m_tabletModeAvailable = available;
-                if (m_interface && m_interface->isInitialized()) {
+                if (m_interface && m_interface->is_initialized) {
                     Q_EMIT config_changed(config());
                 }
             });
@@ -128,7 +128,7 @@ std::map<int, WaylandOutput*> WaylandBackend::outputMap() const
 
 bool WaylandBackend::valid() const
 {
-    return m_interface && m_interface->isInitialized();
+    return m_interface && m_interface->is_initialized;
 }
 
 void WaylandBackend::setScreenOutputs()
@@ -159,21 +159,19 @@ void WaylandBackend::queryInterface()
         }
     });
 
-    connect(m_interface.get(), &WaylandInterface::initialized, this, [this] {
-        connect(m_interface.get(), &WaylandInterface::config_changed, this, [this] {
-            if (handle_config_change()) {
-                // When windowing system and us have been synced up quit the sync loop.
-                // That returns the current config.
-                m_syncLoop.quit();
-            }
-        });
-
-        setScreenOutputs();
-        connect(m_interface.get(),
-                &WaylandInterface::outputsChanged,
-                this,
-                &WaylandBackend::setScreenOutputs);
+    connect(m_interface.get(), &WaylandInterface::config_changed, this, [this] {
+        if (handle_config_change()) {
+            // When windowing system and us have been synced up quit the sync loop.
+            // That returns the current config.
+            m_syncLoop.quit();
+        }
     });
+
+    setScreenOutputs();
+    connect(m_interface.get(),
+            &WaylandInterface::outputsChanged,
+            this,
+            &WaylandBackend::setScreenOutputs);
 
     m_syncLoop.exec();
 }

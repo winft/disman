@@ -86,8 +86,8 @@ void server::suspendChanges(bool suspend)
     }
     pending_suspend = suspend;
     if (!suspend && waiting_config) {
-        output_manager->commit_changes();
         waiting_config->send_succeeded();
+        output_manager->commit_changes();
         waiting_config = nullptr;
         Q_EMIT configChanged();
     }
@@ -135,8 +135,8 @@ void server::apply_config(Wrapland::Server::wlr_output_configuration_v1* config)
         return;
     }
 
-    output_manager->commit_changes();
     config->send_succeeded();
+    output_manager->commit_changes();
     Q_EMIT configChanged();
 }
 

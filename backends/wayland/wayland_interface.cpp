@@ -65,28 +65,6 @@ WaylandInterface::WaylandInterface(QThread* thread)
     m_connection->establishConnection();
 }
 
-Wrapland::Client::WlrOutputManagerV1* WaylandInterface::outputManager() const
-{
-    return m_outputManager;
-}
-
-bool WaylandInterface::isInitialized() const
-{
-    return m_outputManager && m_initializingOutputs.isEmpty();
-}
-
-void WaylandInterface::blockSignals()
-{
-    Q_ASSERT(m_blockSignals == false);
-    m_blockSignals = true;
-}
-
-void WaylandInterface::unblockSignals()
-{
-    Q_ASSERT(m_blockSignals == true);
-    m_blockSignals = false;
-}
-
 void WaylandInterface::handleDisconnect()
 {
     for (auto& [key, out] : m_outputMap) {
@@ -125,15 +103,10 @@ void WaylandInterface::setupRegistry()
                         this,
                         &WaylandInterface::add_output);
 
-                connect(m_outputManager, &Wrapland::Client::WlrOutputManagerV1::done, this, [this] {
-                    // We only need to process this once in the beginning.
-                    disconnect(m_outputManager,
-                               &Wrapland::Client::WlrOutputManagerV1::done,
-                               this,
-                               nullptr);
-                    unblockSignals();
-                    checkInitialized();
-                });
+                connect(m_outputManager,
+                        &Wrapland::Client::WlrOutputManagerV1::done,
+                        this,
+                        &WaylandInterface::handle_wlr_manager_done);
                 m_outputManager->setEventQueue(m_queue);
             });
 
@@ -144,59 +117,32 @@ void WaylandInterface::setupRegistry()
 
 void WaylandInterface::add_output(Wrapland::Client::WlrOutputHeadV1* head)
 {
-    auto output = new WaylandOutput(++m_outputId, *head, this);
-    m_initializingOutputs << output;
+    auto output = new WaylandOutput(++m_outputId, *head);
+    m_outputMap.insert({output->id, output});
+    update.outputs = true;
 
-    connect(output, &WaylandOutput::removed, this, [this, output]() { removeOutput(output); });
-    connect(output, &WaylandOutput::dataReceived, this, [this, output]() { initOutput(output); });
-}
-
-void WaylandInterface::insertOutput(WaylandOutput* output)
-{
-    auto out = static_cast<WaylandOutput*>(output);
-    m_outputMap.insert({out->id, out});
-}
-
-void WaylandInterface::initOutput(WaylandOutput* output)
-{
-    insertOutput(output);
-    m_initializingOutputs.removeOne(output);
-    checkInitialized();
-
-    if (!m_blockSignals && m_initializingOutputs.empty()) {
-        Q_EMIT outputsChanged();
-        Q_EMIT config_changed();
-    }
-
-    connect(output, &WaylandOutput::changed, this, [this]() {
-        if (!m_blockSignals) {
-            Q_EMIT config_changed();
-        }
-    });
+    connect(output, &WaylandOutput::removed, this, [this, output] { removeOutput(output); });
 }
 
 void WaylandInterface::removeOutput(WaylandOutput* output)
 {
-    if (m_initializingOutputs.removeOne(output)) {
-        // Output was not yet fully initialized, just remove here and return.
-        delete output;
-        return;
-    }
-
+    update.outputs = true;
     m_outputMap.erase(output->id);
-    Q_EMIT outputsChanged();
     delete output;
-
-    if (!m_blockSignals) {
-        Q_EMIT config_changed();
-    }
 }
 
-void WaylandInterface::checkInitialized()
+void WaylandInterface::handle_wlr_manager_done()
 {
-    if (isInitialized()) {
-        Q_EMIT initialized();
+    is_initialized = true;
+    update.pending = false;
+
+    if (update.outputs) {
+        update.outputs = false;
+        Q_EMIT outputsChanged();
     }
+
+    Q_EMIT config_changed();
+    tryPendingConfig();
 }
 
 void WaylandInterface::updateConfig(Disman::ConfigPtr& config)
@@ -268,7 +214,7 @@ bool WaylandInterface::apply_config_impl(const Disman::ConfigPtr& newConfig, boo
 
     bool changed = false;
 
-    if (m_blockSignals) {
+    if (update.pending) {
         qCDebug(DISMAN_WAYLAND)
             << "Last apply still pending, remembering new changes and will apply afterwards.";
         m_dismanPendingConfig = newConfig;
@@ -291,14 +237,11 @@ bool WaylandInterface::apply_config_impl(const Disman::ConfigPtr& newConfig, boo
     connect(wlConfig, &WlrOutputConfigurationV1::succeeded, this, [this, wlConfig] {
         qCDebug(DISMAN_WAYLAND) << "Config applied successfully.";
         wlConfig->deleteLater();
-        unblockSignals();
-        Q_EMIT config_changed();
-        tryPendingConfig();
     });
     connect(wlConfig, &WlrOutputConfigurationV1::failed, this, [this, wlConfig] {
         qCWarning(DISMAN_WAYLAND) << "Applying config failed.";
         wlConfig->deleteLater();
-        unblockSignals();
+        update.pending = false;
         Q_EMIT config_changed();
         tryPendingConfig();
     });
@@ -306,13 +249,13 @@ bool WaylandInterface::apply_config_impl(const Disman::ConfigPtr& newConfig, boo
         // Can occur if serials were not in sync because of some simultaneous change server-side.
         // We try to apply the current config again as we should have received a done event now.
         wlConfig->deleteLater();
-        unblockSignals();
+        update.pending = false;
         auto cfg = m_dismanPendingConfig ? m_dismanPendingConfig : newConfig;
         m_dismanPendingConfig = nullptr;
         apply_config_impl(cfg, true);
     });
 
-    blockSignals();
+    update.pending = true;
     wlConfig->apply();
     qCDebug(DISMAN_WAYLAND) << "Config sent to compositor.";
     return true;

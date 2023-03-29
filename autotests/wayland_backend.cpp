@@ -235,6 +235,7 @@ void wayland_backend::addAndRemoveOutput()
 
     // Now remove the output again.
     m_server->outputs.pop_back();
+    m_server->output_manager->commit_changes();
     QVERIFY(configSpy.wait());
     GetConfigOperation* op3 = new GetConfigOperation();
     op3->exec();

@@ -57,20 +57,11 @@ Wl::WlrOutputHeadV1::Transform toWraplandTransform(const Output::Rotation rotati
     return Wl::WlrOutputHeadV1::Transform::Normal;
 }
 
-WaylandOutput::WaylandOutput(uint32_t id,
-                             Wrapland::Client::WlrOutputHeadV1& head,
-                             WaylandInterface* parent)
+WaylandOutput::WaylandOutput(uint32_t id, Wrapland::Client::WlrOutputHeadV1& head)
     : id{id}
     , head{head}
 {
     connect(&head, &Wl::WlrOutputHeadV1::removed, this, &WaylandOutput::removed);
-
-    auto manager = parent->outputManager();
-    connect(manager, &Wl::WlrOutputManagerV1::done, this, [this, manager]() {
-        disconnect(manager, &Wl::WlrOutputManagerV1::done, this, nullptr);
-        connect(&this->head, &Wl::WlrOutputHeadV1::changed, this, &WaylandOutput::changed);
-        Q_EMIT dataReceived();
-    });
 }
 
 bool portraitMode(Wrapland::Client::WlrOutputHeadV1 const& head)
