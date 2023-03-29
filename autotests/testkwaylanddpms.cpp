@@ -20,9 +20,9 @@
 #include <QSignalSpy>
 #include <QtTest>
 
-#include <KWayland/Client/connection_thread.h>
-#include <KWayland/Client/dpms.h>
-#include <KWayland/Client/registry.h>
+#include <Wrapland/Client/connection_thread.h>
+#include <Wrapland/Client/dpms.h>
+#include <Wrapland/Client/registry.h>
 
 #include "waylandtestserver.h"
 
@@ -30,7 +30,7 @@ static const QString s_socketName = QStringLiteral("disman-test-wayland-backend-
 
 Q_LOGGING_CATEGORY(DISMAN, "disman")
 
-using namespace KWayland::Client;
+using namespace Wrapland::Client;
 
 class TestDpmsClient : public QObject
 {
@@ -68,24 +68,25 @@ TestDpmsClient::TestDpmsClient(QObject* parent)
 void TestDpmsClient::initTestCase()
 {
     // setup connection
-    m_connection = new KWayland::Client::ConnectionThread;
+    m_connection = new Wrapland::Client::ConnectionThread;
     m_connection->setSocketName(s_socketName);
-    QSignalSpy connectedSpy(m_connection, SIGNAL(connected()));
+    QSignalSpy connectedSpy(m_connection, &Wrapland::Client::ConnectionThread::establishedChanged);
+    QVERIFY(connectedSpy.isValid());
     m_connection->setSocketName(s_socketName);
 
     m_thread = new QThread(this);
     m_connection->moveToThread(m_thread);
     m_thread->start();
 
-    m_connection->initConnection();
+    m_connection->establishConnection();
     QVERIFY(connectedSpy.wait());
 
     QSignalSpy dpmsSpy(this, &TestDpmsClient::dpmsAnnounced);
 
-    m_connection->initConnection();
+    m_connection->establishConnection();
     QVERIFY(connectedSpy.wait(100));
 
-    m_registry = new KWayland::Client::Registry;
+    m_registry = new Wrapland::Client::Registry;
     m_registry->create(m_connection);
     QObject::connect(m_registry, &Registry::interfacesAnnounced, this, [this] {
         const bool hasDpms = m_registry->hasInterface(Registry::Interface::Dpms);

@@ -20,21 +20,16 @@
 
 #include <QObject>
 
-#include <KWayland/Server/compositor_interface.h>
-#include <KWayland/Server/display.h>
-#include <KWayland/Server/dpms_interface.h>
-#include <KWayland/Server/outputconfiguration_interface.h>
-#include <KWayland/Server/outputdevice_interface.h>
-#include <KWayland/Server/outputmanagement_interface.h>
-#include <KWayland/Server/seat_interface.h>
-#include <KWayland/Server/shell_interface.h>
+#include <Wrapland/Server/compositor.h>
+#include <Wrapland/Server/display.h>
+#include <Wrapland/Server/dpms.h>
+#include <Wrapland/Server/output_manager.h>
+#include <Wrapland/Server/wlr_output_configuration_v1.h>
 
 namespace Disman
 {
 
-static const QString s_socketName = QStringLiteral("disman-test-wayland-backend-0");
-
-using namespace KWayland::Server;
+static constexpr auto s_socketName = "disman-test-wayland-backend-0";
 
 class WaylandTestServer : public QObject
 {
@@ -50,12 +45,12 @@ public:
     void pickupConfigFile(const QString& configfile);
 
     void showOutputs();
-    KWayland::Server::Display* display();
-    QList<KWayland::Server::OutputDeviceInterface*> outputs() const;
-
-    int outputCount() const;
-
     void suspendChanges(bool suspend);
+
+    std::unique_ptr<Wrapland::Server::Display> display;
+    std::vector<std::unique_ptr<Wrapland::Server::output>> outputs;
+    std::unique_ptr<Wrapland::Server::output_manager> output_manager;
+    std::unique_ptr<Wrapland::Server::DpmsManager> dpms_manager;
 
 Q_SIGNALS:
     void outputsChanged();
@@ -66,18 +61,14 @@ Q_SIGNALS:
     void configChanged();
 
 private Q_SLOTS:
-    void configurationChangeRequested(
-        KWayland::Server::OutputConfigurationInterface* configurationInterface);
 
 private:
-    static QString modeString(KWayland::Server::OutputDeviceInterface* outputdevice, int mid);
-    QString m_configFile;
-    KWayland::Server::Display* m_display;
-    QList<KWayland::Server::OutputDeviceInterface*> m_outputs;
-    KWayland::Server::OutputManagementInterface* m_outputManagement;
-    KWayland::Server::DpmsManagerInterface* m_dpmsManager;
-    bool m_suspendChanges;
-    KWayland::Server::OutputConfigurationInterface* m_waiting;
+    void apply_config(Wrapland::Server::wlr_output_configuration_v1* config);
+    static QString modeString(std::vector<Wrapland::Server::output_mode> const& modes, int mid);
+
+    std::string config_file_path;
+    bool pending_suspend{false};
+    Wrapland::Server::wlr_output_configuration_v1* waiting_config{nullptr};
 };
 
 }

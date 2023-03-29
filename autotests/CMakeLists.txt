@@ -54,7 +54,8 @@ disman_add_test(testmodelistchange)
 disman_add_test(testedid)
 
 set(DISMAN_WAYLAND_LIBS
-    KF5::WaylandServer KF5::WaylandClient
+    WraplandServer
+    WraplandClient
 )
 
 # For WaylandConfigReader and TestServer
@@ -62,7 +63,6 @@ set(DISMAN_WAYLAND_SRCS
     ${CMAKE_SOURCE_DIR}/tests/kwayland/waylandconfigreader.cpp
     ${CMAKE_SOURCE_DIR}/tests/kwayland/waylandtestserver.cpp
 )
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../backends/kwayland)
 
 disman_add_test(testkwaylandbackend)
 disman_add_test(testkwaylandconfig)

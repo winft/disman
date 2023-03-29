@@ -8,5 +8,5 @@ add_executable(waylandtestserver
 
 target_link_libraries(waylandtestserver
   disman::backend
-  KF5::WaylandServer
+  WraplandServer
 )

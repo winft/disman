@@ -31,7 +31,7 @@
 
 #include "waylandtestserver.h"
 
-Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland.kwayland")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland")
 
 using namespace Disman;
 
@@ -43,8 +43,8 @@ public:
     explicit TestKWaylandConfig(QObject* parent = nullptr);
 
 private Q_SLOTS:
-    void initTestCase();
-    void cleanupTestCase();
+    void init();
+    void cleanup();
 
     void changeConfig();
     void testPositionChange();
@@ -67,20 +67,20 @@ TestKWaylandConfig::TestKWaylandConfig(QObject* parent)
     QStandardPaths::setTestModeEnabled(true);
 }
 
-void TestKWaylandConfig::initTestCase()
+void TestKWaylandConfig::init()
 {
     setenv("DISMAN_BACKEND", "wayland", 1);
     Disman::BackendManager::instance()->shutdown_backend();
 
     // This is how KWayland will pick up the right socket,
     // and thus connect to our internal test server.
-    setenv("WAYLAND_DISPLAY", s_socketName.toLocal8Bit().constData(), 1);
+    setenv("WAYLAND_DISPLAY", s_socketName, 1);
 
     m_server = new WaylandTestServer(this);
     m_server->start();
 }
 
-void TestKWaylandConfig::cleanupTestCase()
+void TestKWaylandConfig::cleanup()
 {
     Disman::BackendManager::instance()->shutdown_backend();
     delete m_server;
@@ -104,10 +104,12 @@ void TestKWaylandConfig::changeConfig()
     monitor->add_config(config);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
-    // The first output is currently disabled, let's try to enable it
+    // The first output is enabled, let's set a different mode.
     auto output = config->outputs().begin()->second;
     QVERIFY(output->enabled());
-    output->set_mode(output->mode("76"));
+    auto mode = output->mode(QSize(1280, 960), 60000);
+    QVERIFY(mode);
+    output->set_mode(mode);
 
     auto output2 = config->outputs()[2]; // is this id stable enough?
     output2->set_position(QPoint(4000, 1080));
@@ -178,16 +180,15 @@ void TestKWaylandConfig::testRotationChange()
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     auto output = config->outputs().begin()->second; // is this id stable enough?
+    output->set_enabled(true);
     output->set_rotation(rotation);
 
     QSignalSpy serverSpy(m_server, &WaylandTestServer::configChanged);
     auto sop = new SetConfigOperation(config, this);
     sop->exec(); // fire and forget...
 
-    QVERIFY(configSpy.wait());
-    // check if the server changed
-    QCOMPARE(serverSpy.count(), 1);
-
+    QCOMPARE(configSpy.wait(500), rotation != Disman::Output::None);
+    QCOMPARE(serverSpy.count(), rotation != Disman::Output::None);
     QCOMPARE(configSpy.count(), 1);
 
     // Get a new config, then compare the output with the expected new value
@@ -251,7 +252,9 @@ void TestKWaylandConfig::testModeChange()
 
     auto output = config->outputs()[1]; // is this id stable enough?
 
-    output->set_mode(output->mode("74"));
+    auto mode = output->mode(QSize(1400, 1050), 60000);
+    QVERIFY(mode);
+    output->set_mode(mode);
     output->set_auto_resolution(false);
     output->set_auto_refresh_rate(false);
 
@@ -296,10 +299,9 @@ void TestKWaylandConfig::testApplyOnPending()
     new SetConfigOperation(config, this);
 
     /* Apply next config */
-
     auto output2 = config2->outputs()[2]; // is this id stable enough?
 
-    QCOMPARE(output2->scale(), 2.0);
+    QCOMPARE(output2->scale(), 1.0);
     output2->set_scale(3);
 
     new SetConfigOperation(config2, this);
