@@ -257,6 +257,17 @@ ModePtr Output::mode(std::string const& id) const
     return d->modeList[id];
 }
 
+ModePtr Output::mode(QSize const& resolution, int refresh) const
+{
+    for (auto const& [key, mode] : d->modeList) {
+        if (mode->size() == resolution && mode->refresh() == refresh) {
+            return mode;
+        }
+    }
+
+    return {};
+}
+
 ModeMap Output::modes() const
 {
     return d->modeList;
