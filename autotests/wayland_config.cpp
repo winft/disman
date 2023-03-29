@@ -29,7 +29,7 @@
 #include "output.h"
 #include "setconfigoperation.h"
 
-#include "waylandtestserver.h"
+#include "server.h"
 
 Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland")
 
@@ -327,4 +327,4 @@ void TestKWaylandConfig::testApplyOnPending()
 
 QTEST_GUILESS_MAIN(TestKWaylandConfig)
 
-#include "testkwaylandconfig.moc"
+#include "wayland_config.moc"

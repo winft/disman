@@ -15,9 +15,9 @@
  *  License along with this library; if not, write to the Free Software              *
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA       *
  *************************************************************************************/
-#include "waylandtestserver.h"
+#include "server.h"
 
-#include "waylandconfigreader.h"
+#include "config_reader.h"
 
 #include <QLoggingCategory>
 #include <Wrapland/Server/wlr_output_configuration_head_v1.h>

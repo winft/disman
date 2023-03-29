@@ -3,5 +3,5 @@ target_compile_features(printconfig PRIVATE cxx_std_17)
 target_link_libraries(printconfig Qt5::Gui disman::lib)
 
 if (Wrapland_FOUND)
-  add_subdirectory(kwayland)
+  add_subdirectory(wayland)
 endif()

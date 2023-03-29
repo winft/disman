@@ -28,7 +28,7 @@
 #include "output.h"
 #include "setconfigoperation.h"
 
-#include "waylandtestserver.h"
+#include "server.h"
 
 Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland")
 
@@ -254,4 +254,4 @@ void testWaylandBackend::verifyFeatures()
 
 QTEST_GUILESS_MAIN(testWaylandBackend)
 
-#include "testkwaylandbackend.moc"
+#include "wayland_backend.moc"

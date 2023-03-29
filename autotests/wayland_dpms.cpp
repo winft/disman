@@ -24,7 +24,7 @@
 #include <Wrapland/Client/dpms.h>
 #include <Wrapland/Client/registry.h>
 
-#include "waylandtestserver.h"
+#include "server.h"
 
 static const QString s_socketName = QStringLiteral("disman-test-wayland-backend-0");
 
@@ -118,4 +118,4 @@ void TestDpmsClient::testDpmsConnect()
 
 QTEST_GUILESS_MAIN(TestDpmsClient)
 
-#include "testkwaylanddpms.moc"
+#include "wayland_dpms.moc"
