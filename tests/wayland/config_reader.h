@@ -28,19 +28,19 @@
 namespace Disman
 {
 
-class WaylandConfigReader
+class config_reader
 {
 
 public:
-    static void outputsFromConfig(std::string const& configfile,
-                                  Wrapland::Server::output_manager& manager,
-                                  std::vector<std::unique_ptr<Wrapland::Server::output>>& outputs);
+    static void load_outputs(std::string const& configfile,
+                             Wrapland::Server::output_manager& manager,
+                             std::vector<std::unique_ptr<Wrapland::Server::output>>& outputs);
     static std::unique_ptr<Wrapland::Server::output>
     create_output(QVariantMap const& outputConfig, Wrapland::Server::output_manager& manager);
 
-    static QSize sizeFromJson(const QVariant& data);
-    static QRect rectFromJson(const QVariant& data);
-    static QPoint pointFromJson(const QVariant& data);
+    static QSize size_from_json(const QVariant& data);
+    static QRect rect_from_json(const QVariant& data);
+    static QPoint point_from_json(const QVariant& data);
 };
 
 }

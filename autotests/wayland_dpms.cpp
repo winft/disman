@@ -32,12 +32,12 @@ Q_LOGGING_CATEGORY(DISMAN, "disman")
 
 using namespace Wrapland::Client;
 
-class TestDpmsClient : public QObject
+class wayland_dpms : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit TestDpmsClient(QObject* parent = nullptr);
+    explicit wayland_dpms(QObject* parent = nullptr);
 
 Q_SIGNALS:
     void dpmsAnnounced();
@@ -53,19 +53,19 @@ private:
     QThread* m_thread;
     Registry* m_registry;
 
-    Disman::WaylandTestServer* m_server;
+    Disman::server* m_server;
 };
 
-TestDpmsClient::TestDpmsClient(QObject* parent)
+wayland_dpms::wayland_dpms(QObject* parent)
     : QObject(parent)
     , m_server(nullptr)
 {
     setenv("WAYLAND_DISPLAY", s_socketName.toLocal8Bit().constData(), true);
-    m_server = new Disman::WaylandTestServer(this);
+    m_server = new Disman::server(this);
     m_server->start();
 }
 
-void TestDpmsClient::initTestCase()
+void wayland_dpms::initTestCase()
 {
     // setup connection
     m_connection = new Wrapland::Client::ConnectionThread;
@@ -81,7 +81,7 @@ void TestDpmsClient::initTestCase()
     m_connection->establishConnection();
     QVERIFY(connectedSpy.wait());
 
-    QSignalSpy dpmsSpy(this, &TestDpmsClient::dpmsAnnounced);
+    QSignalSpy dpmsSpy(this, &wayland_dpms::dpmsAnnounced);
 
     m_connection->establishConnection();
     QVERIFY(connectedSpy.wait(100));
@@ -102,7 +102,7 @@ void TestDpmsClient::initTestCase()
     QVERIFY(dpmsSpy.wait(100));
 }
 
-void TestDpmsClient::cleanupTestCase()
+void wayland_dpms::cleanupTestCase()
 {
     m_thread->exit();
     m_thread->wait();
@@ -111,11 +111,11 @@ void TestDpmsClient::cleanupTestCase()
     delete m_connection;
 }
 
-void TestDpmsClient::testDpmsConnect()
+void wayland_dpms::testDpmsConnect()
 {
     QVERIFY(m_registry->isValid());
 }
 
-QTEST_GUILESS_MAIN(TestDpmsClient)
+QTEST_GUILESS_MAIN(wayland_dpms)
 
 #include "wayland_dpms.moc"

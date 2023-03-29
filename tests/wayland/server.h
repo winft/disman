@@ -31,13 +31,13 @@ namespace Disman
 
 static constexpr auto s_socketName = "disman-test-wayland-backend-0";
 
-class WaylandTestServer : public QObject
+class server : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit WaylandTestServer(QObject* parent = nullptr);
-    ~WaylandTestServer() override;
+    explicit server(QObject* parent = nullptr);
+    ~server() override;
 
     void setConfig(const QString& configfile);
     void start();

@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
 
-    Disman::WaylandTestServer server;
+    Disman::server server;
 
     QCommandLineOption config
         = QCommandLineOption(QStringList() << QStringLiteral("c") << QStringLiteral("config"),

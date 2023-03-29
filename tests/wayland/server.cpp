@@ -27,19 +27,19 @@ Q_LOGGING_CATEGORY(DISMAN_WAYLAND_TESTSERVER, "disman.wayland.testserver")
 
 using namespace Disman;
 
-WaylandTestServer::WaylandTestServer(QObject* parent)
+server::server(QObject* parent)
     : QObject(parent)
     , config_file_path{TEST_DATA + std::string("default.json")}
 {
 }
 
-WaylandTestServer::~WaylandTestServer()
+server::~server()
 {
     stop();
     qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Wayland server shut down.";
 }
 
-void WaylandTestServer::start()
+void server::start()
 {
     using namespace Wrapland::Server;
 
@@ -56,9 +56,9 @@ void WaylandTestServer::start()
     connect(output_manager->wlr_manager_v1.get(),
             &Wrapland::Server::wlr_output_manager_v1::apply_config,
             this,
-            &WaylandTestServer::apply_config);
+            &server::apply_config);
 
-    Disman::WaylandConfigReader::outputsFromConfig(config_file_path, *output_manager, outputs);
+    config_reader::load_outputs(config_file_path, *output_manager, outputs);
     output_manager->commit_changes();
 
     qCDebug(DISMAN_WAYLAND_TESTSERVER)
@@ -67,19 +67,19 @@ void WaylandTestServer::start()
         "You can specify the WAYLAND_DISPLAY for this server by exporting it in the environment");
 }
 
-void WaylandTestServer::stop()
+void server::stop()
 {
     outputs.clear();
     display.reset();
 }
 
-void WaylandTestServer::setConfig(const QString& configfile)
+void server::setConfig(const QString& configfile)
 {
     qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Creating Wayland server from " << configfile;
     config_file_path = configfile.toStdString();
 }
 
-void WaylandTestServer::suspendChanges(bool suspend)
+void server::suspendChanges(bool suspend)
 {
     if (pending_suspend == suspend) {
         return;
@@ -93,7 +93,7 @@ void WaylandTestServer::suspendChanges(bool suspend)
     }
 }
 
-void WaylandTestServer::apply_config(Wrapland::Server::wlr_output_configuration_v1* config)
+void server::apply_config(Wrapland::Server::wlr_output_configuration_v1* config)
 {
     auto const& enabled_heads = config->enabled_heads();
 
@@ -140,7 +140,7 @@ void WaylandTestServer::apply_config(Wrapland::Server::wlr_output_configuration_
     Q_EMIT configChanged();
 }
 
-void WaylandTestServer::showOutputs()
+void server::showOutputs()
 {
     qCDebug(DISMAN_WAYLAND_TESTSERVER)
         << "******** Wayland server running: " << outputs.size() << " outputs. ********";
@@ -160,8 +160,7 @@ void WaylandTestServer::showOutputs()
     qCDebug(DISMAN_WAYLAND_TESTSERVER) << "******************************************************";
 }
 
-QString WaylandTestServer::modeString(std::vector<Wrapland::Server::output_mode> const& modes,
-                                      int mid)
+QString server::modeString(std::vector<Wrapland::Server::output_mode> const& modes, int mid)
 {
     QString s;
     QString ids;

@@ -34,12 +34,12 @@ Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland")
 
 using namespace Disman;
 
-class testWaylandBackend : public QObject
+class wayland_backend : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit testWaylandBackend(QObject* parent = nullptr);
+    explicit wayland_backend(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void init();
@@ -57,10 +57,10 @@ private Q_SLOTS:
 
 private:
     ConfigPtr m_config;
-    WaylandTestServer* m_server;
+    server* m_server;
 };
 
-testWaylandBackend::testWaylandBackend(QObject* parent)
+wayland_backend::wayland_backend(QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
 {
@@ -68,11 +68,11 @@ testWaylandBackend::testWaylandBackend(QObject* parent)
     qputenv("DISMAN_LOGGING", "false");
     QStandardPaths::setTestModeEnabled(true);
 
-    m_server = new WaylandTestServer(this);
+    m_server = new server(this);
     m_server->setConfig(QLatin1String(TEST_DATA) + QLatin1String("multipleoutput.json"));
 }
 
-void testWaylandBackend::init()
+void wayland_backend::init()
 {
     qputenv("DISMAN_BACKEND", "wayland");
 
@@ -87,7 +87,7 @@ void testWaylandBackend::init()
     QVERIFY(m_config);
 }
 
-void testWaylandBackend::cleanup()
+void wayland_backend::cleanup()
 {
     Disman::BackendManager::instance()->shutdown_backend();
     m_server->stop();
@@ -99,7 +99,7 @@ void testWaylandBackend::cleanup()
     QVERIFY(QDir(path).removeRecursively());
 }
 
-void testWaylandBackend::loadConfig()
+void wayland_backend::loadConfig()
 {
     GetConfigOperation* op = new GetConfigOperation();
     op->exec();
@@ -108,12 +108,12 @@ void testWaylandBackend::loadConfig()
     qCDebug(DISMAN_WAYLAND) << "Outputs:" << m_config->outputs();
 }
 
-void testWaylandBackend::verifyConfig()
+void wayland_backend::verifyConfig()
 {
     QVERIFY(m_config != nullptr);
 }
 
-void testWaylandBackend::verifyScreen()
+void wayland_backend::verifyScreen()
 {
     ScreenPtr screen = m_config->screen();
 
@@ -128,7 +128,7 @@ void testWaylandBackend::verifyScreen()
     QVERIFY(m_config->screen()->max_outputs_count() > 0);
 }
 
-void testWaylandBackend::verifyOutputs()
+void wayland_backend::verifyOutputs()
 {
     QVERIFY(!m_config->primary_output());
     QVERIFY(m_config->outputs().size());
@@ -148,7 +148,7 @@ void testWaylandBackend::verifyOutputs()
     }
 }
 
-void testWaylandBackend::verifyModes()
+void wayland_backend::verifyModes()
 {
     for (auto const& [key, output] : m_config->outputs()) {
         for (auto const& [key, mode] : output->modes()) {
@@ -159,7 +159,7 @@ void testWaylandBackend::verifyModes()
     }
 }
 
-void testWaylandBackend::verifyIds()
+void wayland_backend::verifyIds()
 {
     QList<quint32> ids;
     for (auto const& [key, output] : m_config->outputs()) {
@@ -169,7 +169,7 @@ void testWaylandBackend::verifyIds()
     }
 }
 
-void testWaylandBackend::simpleWrite()
+void wayland_backend::simpleWrite()
 {
     Disman::BackendManager::instance()->shutdown_backend();
     GetConfigOperation* op = new GetConfigOperation();
@@ -186,7 +186,7 @@ void testWaylandBackend::simpleWrite()
     QVERIFY(setop->exec());
 }
 
-void testWaylandBackend::addAndRemoveOutput()
+void wayland_backend::addAndRemoveOutput()
 {
     Disman::BackendManager::instance()->shutdown_backend();
     GetConfigOperation* op = new GetConfigOperation();
@@ -242,7 +242,7 @@ void testWaylandBackend::addAndRemoveOutput()
     QCOMPARE(newconfig->outputs().size(), 2);
 }
 
-void testWaylandBackend::verifyFeatures()
+void wayland_backend::verifyFeatures()
 {
     GetConfigOperation* op = new GetConfigOperation();
     op->exec();
@@ -252,6 +252,6 @@ void testWaylandBackend::verifyFeatures()
     QVERIFY(!config->supported_features().testFlag(Config::Feature::PrimaryDisplay));
 }
 
-QTEST_GUILESS_MAIN(testWaylandBackend)
+QTEST_GUILESS_MAIN(wayland_backend)
 
 #include "wayland_backend.moc"

@@ -29,10 +29,9 @@
 
 using namespace Disman;
 
-void WaylandConfigReader::outputsFromConfig(
-    std::string const& configfile,
-    Wrapland::Server::output_manager& manager,
-    std::vector<std::unique_ptr<Wrapland::Server::output>>& outputs)
+void config_reader::load_outputs(std::string const& configfile,
+                                 Wrapland::Server::output_manager& manager,
+                                 std::vector<std::unique_ptr<Wrapland::Server::output>>& outputs)
 {
     qDebug() << "Loading server from" << configfile.c_str();
     QFile file(configfile.c_str());
@@ -51,8 +50,8 @@ void WaylandConfigReader::outputsFromConfig(
 }
 
 std::unique_ptr<Wrapland::Server::output>
-WaylandConfigReader::create_output(QVariantMap const& outputConfig,
-                                   Wrapland::Server::output_manager& manager)
+config_reader::create_output(QVariantMap const& outputConfig,
+                             Wrapland::Server::output_manager& manager)
 {
     QByteArray data = QByteArray::fromBase64(outputConfig[QStringLiteral("edid")].toByteArray());
     Edid edid(data);
@@ -79,7 +78,7 @@ WaylandConfigReader::create_output(QVariantMap const& outputConfig,
         output_meta.model = edid.name();
         output_meta.serial_number = edid.serial();
     } else {
-        output_meta.physical_size = sizeFromJson(outputConfig[QStringLiteral("physical_size")]);
+        output_meta.physical_size = size_from_json(outputConfig[QStringLiteral("physical_size")]);
         output_meta.make = outputConfig[QStringLiteral("manufacturer")].toString().toStdString();
         output_meta.model = outputConfig[QStringLiteral("model")].toString().toStdString();
     }
@@ -114,7 +113,7 @@ WaylandConfigReader::create_output(QVariantMap const& outputConfig,
         const QVariantMap& mode = _mode.toMap();
         Wrapland::Server::output_mode m0;
 
-        m0.size = sizeFromJson(mode[QStringLiteral("size")]);
+        m0.size = size_from_json(mode[QStringLiteral("size")]);
 
         auto refreshRateIt = mode.constFind(QStringLiteral("refreshRate"));
         if (refreshRateIt != mode.constEnd()) {
@@ -148,14 +147,14 @@ WaylandConfigReader::create_output(QVariantMap const& outputConfig,
     }
 
     state.transform = transformMap[outputConfig[QStringLiteral("rotation")].toInt()];
-    state.geometry = {pointFromJson(outputConfig[QStringLiteral("pos")]), state.mode.size};
+    state.geometry = {point_from_json(outputConfig[QStringLiteral("pos")]), state.mode.size};
     state.enabled = outputConfig[QStringLiteral("enabled")].toBool();
 
     output->set_state(state);
     return output;
 }
 
-QSize WaylandConfigReader::sizeFromJson(const QVariant& data)
+QSize config_reader::size_from_json(const QVariant& data)
 {
     QVariantMap map = data.toMap();
 
@@ -166,7 +165,7 @@ QSize WaylandConfigReader::sizeFromJson(const QVariant& data)
     return size;
 }
 
-QPoint WaylandConfigReader::pointFromJson(const QVariant& data)
+QPoint config_reader::point_from_json(const QVariant& data)
 {
     QVariantMap map = data.toMap();
 
@@ -177,11 +176,11 @@ QPoint WaylandConfigReader::pointFromJson(const QVariant& data)
     return point;
 }
 
-QRect WaylandConfigReader::rectFromJson(const QVariant& data)
+QRect config_reader::rect_from_json(const QVariant& data)
 {
     QRect rect;
-    rect.setSize(WaylandConfigReader::sizeFromJson(data));
-    rect.setBottomLeft(WaylandConfigReader::pointFromJson(data));
+    rect.setSize(size_from_json(data));
+    rect.setBottomLeft(config_reader::point_from_json(data));
 
     return rect;
 }
