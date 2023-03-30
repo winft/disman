@@ -73,7 +73,6 @@ private:
     void initOutput(WaylandOutput* output);
 
     void insertOutput(WaylandOutput* output);
-    WaylandOutput* takeOutput(WaylandOutput* output);
     void addOutput(WaylandOutput* output);
     void removeOutput(WaylandOutput* output);
     void handleDisconnect();

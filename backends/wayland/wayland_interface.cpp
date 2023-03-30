@@ -160,18 +160,6 @@ void WaylandInterface::insertOutput(WaylandOutput* output)
     m_outputMap.insert({out->id(), out});
 }
 
-WaylandOutput* WaylandInterface::takeOutput(WaylandOutput* output)
-{
-    auto out = static_cast<WaylandOutput*>(output);
-    auto it = m_outputMap.find(out->id());
-    if (it != m_outputMap.end()) {
-        auto output = it->second;
-        m_outputMap.erase(it);
-        return output;
-    }
-    return nullptr;
-}
-
 void WaylandInterface::addOutput(WaylandOutput* output)
 {
     m_initializingOutputs << output;
@@ -206,10 +194,7 @@ void WaylandInterface::removeOutput(WaylandOutput* output)
         return;
     }
 
-    // remove the output from output mapping
-    const auto removedOutput = takeOutput(output);
-    Q_ASSERT(removedOutput == output);
-    Q_UNUSED(removedOutput);
+    m_outputMap.erase(output->id());
     Q_EMIT outputsChanged();
     delete output;
 
