@@ -144,7 +144,7 @@ void WaylandInterface::setupRegistry()
 
 void WaylandInterface::add_output(Wrapland::Client::WlrOutputHeadV1* head)
 {
-    auto output = new WaylandOutput(++m_outputId, head, this);
+    auto output = new WaylandOutput(++m_outputId, *head, this);
     m_initializingOutputs << output;
 
     connect(output, &WaylandOutput::removed, this, [this, output]() { removeOutput(output); });
@@ -154,7 +154,7 @@ void WaylandInterface::add_output(Wrapland::Client::WlrOutputHeadV1* head)
 void WaylandInterface::insertOutput(WaylandOutput* output)
 {
     auto out = static_cast<WaylandOutput*>(output);
-    m_outputMap.insert({out->id(), out});
+    m_outputMap.insert({out->id, out});
 }
 
 void WaylandInterface::initOutput(WaylandOutput* output)
@@ -183,7 +183,7 @@ void WaylandInterface::removeOutput(WaylandOutput* output)
         return;
     }
 
-    m_outputMap.erase(output->id());
+    m_outputMap.erase(output->id);
     Q_EMIT outputsChanged();
     delete output;
 
@@ -217,7 +217,7 @@ void WaylandInterface::updateConfig(Disman::ConfigPtr& config)
     for (auto& [key, output] : m_outputMap) {
         Disman::OutputPtr dismanOutput;
 
-        auto it = dismanOutputs.find(output->id());
+        auto it = dismanOutputs.find(output->id);
         if (it == dismanOutputs.end()) {
             dismanOutput = output->toDismanOutput();
             dismanOutputs.insert({dismanOutput->id(), dismanOutput});

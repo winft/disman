@@ -46,7 +46,7 @@ void WaylandScreen::setOutputs(std::vector<WaylandOutput*> const& outputs)
 
     QRect r;
     for (auto const out : outputs) {
-        if (out->enabled()) {
+        if (out->head.enabled()) {
             r |= out->geometry().toRect();
         }
     }

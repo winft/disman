@@ -33,22 +33,21 @@ class WaylandOutput : public QObject
 {
     Q_OBJECT
 public:
-    WaylandOutput(quint32 id, Wrapland::Client::WlrOutputHeadV1* head, WaylandInterface* iface);
+    WaylandOutput(uint32_t id, Wrapland::Client::WlrOutputHeadV1& head, WaylandInterface* iface);
     ~WaylandOutput() override = default;
 
     Disman::OutputPtr toDismanOutput();
     void updateDismanOutput(Disman::OutputPtr& output);
 
-    quint32 id() const;
-    bool enabled() const;
     QRectF geometry() const;
-
-    Wrapland::Client::WlrOutputHeadV1* outputHead() const;
 
     bool setWlConfig(Wrapland::Client::WlrOutputConfigurationV1* wlConfig,
                      const Disman::OutputPtr& output);
 
     Disman::Output::Type guessType(const QString& type, const QString& name) const;
+
+    uint32_t id;
+    Wrapland::Client::WlrOutputHeadV1& head;
 
 Q_SIGNALS:
     void dataReceived();
@@ -59,8 +58,6 @@ private:
     void showOutput();
     QString hash() const;
 
-    quint32 m_id;
-    Wrapland::Client::WlrOutputHeadV1* m_head;
     Wrapland::Client::Registry* m_registry;
 
     // left-hand-side: Disman::Mode, right-hand-side: Wrapland's WlrOutputModeV1

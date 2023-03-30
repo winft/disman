@@ -57,35 +57,25 @@ Wl::WlrOutputHeadV1::Transform toWraplandTransform(const Output::Rotation rotati
     return Wl::WlrOutputHeadV1::Transform::Normal;
 }
 
-WaylandOutput::WaylandOutput(quint32 id,
-                             Wrapland::Client::WlrOutputHeadV1* head,
+WaylandOutput::WaylandOutput(uint32_t id,
+                             Wrapland::Client::WlrOutputHeadV1& head,
                              WaylandInterface* parent)
-    : m_id(id)
-    , m_head(head)
+    : id{id}
+    , head{head}
 {
-    connect(m_head, &Wl::WlrOutputHeadV1::removed, this, &WaylandOutput::removed);
+    connect(&head, &Wl::WlrOutputHeadV1::removed, this, &WaylandOutput::removed);
 
     auto manager = parent->outputManager();
     connect(manager, &Wl::WlrOutputManagerV1::done, this, [this, manager]() {
         disconnect(manager, &Wl::WlrOutputManagerV1::done, this, nullptr);
-        connect(m_head, &Wl::WlrOutputHeadV1::changed, this, &WaylandOutput::changed);
+        connect(&this->head, &Wl::WlrOutputHeadV1::changed, this, &WaylandOutput::changed);
         Q_EMIT dataReceived();
     });
 }
 
-quint32 WaylandOutput::id() const
+bool portraitMode(Wrapland::Client::WlrOutputHeadV1 const& head)
 {
-    return m_id;
-}
-
-bool WaylandOutput::enabled() const
-{
-    return m_head->enabled();
-}
-
-bool portraitMode(Wrapland::Client::WlrOutputHeadV1* head)
-{
-    auto transform = head->transform();
+    auto transform = head.transform();
     return transform == Wl::WlrOutputHeadV1::Transform::Rotated90
         || transform == Wl::WlrOutputHeadV1::Transform::Rotated270
         || transform == Wl::WlrOutputHeadV1::Transform::Flipped90
@@ -94,25 +84,20 @@ bool portraitMode(Wrapland::Client::WlrOutputHeadV1* head)
 
 QRectF WaylandOutput::geometry() const
 {
-    auto const current_mode = m_head->currentMode();
+    auto const current_mode = head.currentMode();
     if (!current_mode) {
         return QRectF();
     }
     auto modeSize = current_mode->size();
 
     // Rotate and scale.
-    if (portraitMode(m_head)) {
+    if (portraitMode(head)) {
         modeSize.transpose();
     }
 
-    modeSize = modeSize / m_head->scale();
+    modeSize = modeSize / head.scale();
 
-    return QRectF(m_head->position(), modeSize);
-}
-
-Wrapland::Client::WlrOutputHeadV1* WaylandOutput::outputHead() const
-{
-    return m_head;
+    return QRectF(head.position(), modeSize);
 }
 
 QString modeName(const Wl::WlrOutputModeV1* mode)
@@ -125,7 +110,7 @@ QString modeName(const Wl::WlrOutputModeV1* mode)
 OutputPtr WaylandOutput::toDismanOutput()
 {
     OutputPtr output(new Output());
-    output->set_id(m_id);
+    output->set_id(id);
     updateDismanOutput(output);
     return output;
 }
@@ -133,23 +118,23 @@ OutputPtr WaylandOutput::toDismanOutput()
 void WaylandOutput::updateDismanOutput(OutputPtr& output)
 {
     // Initialize primary output
-    output->set_enabled(m_head->enabled());
-    output->set_name(m_head->name().toStdString());
-    output->set_description(m_head->description().toStdString());
+    output->set_enabled(head.enabled());
+    output->set_name(head.name().toStdString());
+    output->set_description(head.description().toStdString());
     output->set_hash(hash().toStdString());
-    output->set_physical_size(m_head->physicalSize());
-    output->set_position(m_head->position());
-    output->set_rotation(toDismanRotation(m_head->transform()));
+    output->set_physical_size(head.physicalSize());
+    output->set_position(head.position());
+    output->set_rotation(toDismanRotation(head.transform()));
 
     ModeMap modeList;
     std::vector<std::string> preferredModeIds;
     m_modeIdMap.clear();
 
-    auto current_head_mode = m_head->currentMode();
+    auto current_head_mode = head.currentMode();
     ModePtr current_mode;
 
     int modeCounter = 0;
-    auto const modes = m_head->modes();
+    auto const modes = head.modes();
     for (auto const& wlMode : qAsConst(modes)) {
         auto const modeId = std::to_string(++modeCounter);
 
@@ -194,8 +179,8 @@ void WaylandOutput::updateDismanOutput(OutputPtr& output)
         }
     }
 
-    output->set_scale(m_head->scale());
-    output->setType(Utils::guessOutputType(m_head->name(), m_head->name()));
+    output->set_scale(head.scale());
+    output->setType(Utils::guessOutputType(head.name(), head.name()));
 }
 
 bool WaylandOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
@@ -204,12 +189,12 @@ bool WaylandOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     bool changed = false;
 
     // enabled?
-    if (m_head->enabled() != output->enabled()) {
+    if (head.enabled() != output->enabled()) {
         changed = true;
     }
 
     // In any case set the enabled state to initialize the output's native handle.
-    wlConfig->setEnabled(m_head, output->enabled());
+    wlConfig->setEnabled(&head, output->enabled());
 
     if (!output->enabled()) {
         // A disabled head can not be configured in any way.
@@ -217,29 +202,29 @@ bool WaylandOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
     }
 
     // position
-    if (m_head->position() != output->position()) {
+    if (head.position() != output->position()) {
         changed = true;
-        wlConfig->setPosition(m_head, output->position().toPoint());
+        wlConfig->setPosition(&head, output->position().toPoint());
     }
 
     // scale
-    if (!qFuzzyCompare(m_head->scale(), output->scale())) {
+    if (!qFuzzyCompare(head.scale(), output->scale())) {
         changed = true;
-        wlConfig->setScale(m_head, output->scale());
+        wlConfig->setScale(&head, output->scale());
     }
 
     // rotation
-    if (toDismanRotation(m_head->transform()) != output->rotation()) {
+    if (toDismanRotation(head.transform()) != output->rotation()) {
         changed = true;
-        wlConfig->setTransform(m_head, toWraplandTransform(output->rotation()));
+        wlConfig->setTransform(&head, toWraplandTransform(output->rotation()));
     }
 
     // mode
     if (auto mode_id = output->auto_mode()->id(); m_modeIdMap.find(mode_id) != m_modeIdMap.end()) {
         auto newMode = m_modeIdMap.at(mode_id);
-        if (newMode != m_head->currentMode()) {
+        if (newMode != head.currentMode()) {
             changed = true;
-            wlConfig->setMode(m_head, newMode);
+            wlConfig->setMode(&head, newMode);
         }
     } else {
         qCWarning(DISMAN_WAYLAND) << "Invalid Disman mode:" << mode_id.c_str()
@@ -254,19 +239,17 @@ bool WaylandOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
 
 QString WaylandOutput::hash() const
 {
-    assert(m_head);
-    if (!m_head->model().isEmpty()) {
+    if (!head.model().isEmpty()) {
         return QStringLiteral("%1:%2:%3:%4")
-            .arg(m_head->make(), m_head->model(), m_head->serialNumber(), m_head->name());
+            .arg(head.make(), head.model(), head.serialNumber(), head.name());
     }
-    return m_head->description();
+    return head.description();
 }
 
 QDebug operator<<(QDebug dbg, const WaylandOutput* output)
 {
-    dbg << "WaylandOutput(Id:" << output->id() << ", Name:"
-        << QString(output->outputHead()->name() + QLatin1Char(' ')
-                   + output->outputHead()->description())
+    dbg << "WaylandOutput(Id:" << output->id
+        << ", Name:" << QString(output->head.name() + QLatin1Char(' ') + output->head.description())
         << ")";
     return dbg;
 }
