@@ -80,7 +80,7 @@ quint32 WaylandOutput::id() const
 
 bool WaylandOutput::enabled() const
 {
-    return m_head != nullptr;
+    return m_head->enabled();
 }
 
 bool portraitMode(Wrapland::Client::WlrOutputHeadV1* head)
