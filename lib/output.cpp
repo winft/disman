@@ -49,6 +49,7 @@ Output::Private::Private(const Private& other)
     , replication_source(other.replication_source)
     , resolution(other.resolution)
     , refresh_rate(other.refresh_rate)
+    , adapt_sync{other.adapt_sync}
     , preferredMode(other.preferredMode)
     , preferred_modes(other.preferred_modes)
     , physical_size(other.physical_size)
@@ -56,6 +57,7 @@ Output::Private::Private(const Private& other)
     , rotation(other.rotation)
     , scale(other.scale)
     , enabled(other.enabled)
+    , supports_adapt_sync_toggle{other.supports_adapt_sync_toggle}
     , follow_preferred_mode(other.follow_preferred_mode)
     , auto_resolution{other.auto_resolution}
     , auto_refresh_rate{other.auto_refresh_rate}
@@ -122,6 +124,7 @@ void Output::Private::apply_global()
 
     resolution = global.resolution;
     refresh_rate = global.refresh;
+    adapt_sync = global.adapt_sync;
     rotation = global.rotation;
     scale = global.scale;
     auto_resolution = global.auto_resolution;
@@ -162,7 +165,7 @@ bool Output::compare(OutputPtr output) const
         && d->description == output->d->description && d->hash == output->d->hash
         && d->type == output->d->type && d->replication_source == output->d->replication_source
         && d->resolution == output->d->resolution && d->refresh_rate == output->d->refresh_rate
-        && d->preferredMode == output->d->preferredMode
+        && d->adapt_sync == output->d->adapt_sync && d->preferredMode == output->d->preferredMode
         && d->preferred_modes == output->d->preferred_modes
         && d->physical_size == output->d->physical_size && d->position == output->d->position
         && d->enforced_geometry == output->d->enforced_geometry
@@ -180,6 +183,7 @@ bool Output::compare(OutputPtr output) const
 
     auto const global_data_compare = own_global.resolution == other_global.resolution
         && own_global.refresh == other_global.refresh
+        && own_global.adapt_sync == other_global.adapt_sync
         && own_global.rotation == other_global.rotation && own_global.scale == other_global.scale
         && own_global.auto_resolution == other_global.auto_resolution
         && own_global.auto_refresh_rate == other_global.auto_refresh_rate
@@ -450,6 +454,26 @@ void Output::set_enabled(bool enabled)
     d->enabled = enabled;
 }
 
+bool Output::adaptive_sync() const
+{
+    return d->adapt_sync;
+}
+
+void Output::set_adaptive_sync(bool adapt)
+{
+    d->adapt_sync = adapt;
+}
+
+bool Output::adaptive_sync_toggle_support() const
+{
+    return d->supports_adapt_sync_toggle;
+}
+
+void Output::set_adaptive_sync_toggle_support(bool support)
+{
+    d->supports_adapt_sync_toggle = support;
+}
+
 int Output::replication_source() const
 {
     return d->replication_source;
@@ -667,6 +691,9 @@ std::string Output::log() const
 
     ss << "Output " << id() << ", " << description() << " (" << name() << ")" << std::endl
        << gap << "mode: " << stream_mode(auto_mode()) << std::endl
+       << gap << "adapt sync: " << (adaptive_sync() ? "yes" : "no")
+       << " (supports toggle: " << (adaptive_sync_toggle_support() ? "yes" : "no") << ")"
+       << std::endl
        << gap << stream_geometry() << std::endl
        << gap << "auto: " << stream_auto() << std::endl
        << gap << stream_physical_size() << std::endl

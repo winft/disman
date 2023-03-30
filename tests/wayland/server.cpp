@@ -120,11 +120,14 @@ void server::apply_config(Wrapland::Server::wlr_output_configuration_v1* config)
         state.mode = config_state.mode;
         state.transform = config_state.transform;
         state.geometry = config_state.geometry;
+        state.adaptive_sync = config_state.adaptive_sync;
         output->set_state(state);
 
         qCDebug(DISMAN_WAYLAND_TESTSERVER) << "Setting enabled:" << description;
         qCDebug(DISMAN_WAYLAND_TESTSERVER)
             << "    mode:" << state.mode.size << "@" << state.mode.refresh_rate;
+        qCDebug(DISMAN_WAYLAND_TESTSERVER)
+            << "    adaptive sync:" << static_cast<int>(state.adaptive_sync);
         qCDebug(DISMAN_WAYLAND_TESTSERVER) << "    transform:" << static_cast<int>(state.transform);
         qCDebug(DISMAN_WAYLAND_TESTSERVER) << "    geometry:" << state.geometry;
     }

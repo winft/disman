@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <QEventLoop>
 #include <QObject>
 #include <QVector>
+#include <Wrapland/Client/wlr_output_configuration_v1.h>
 
 class QThread;
 
@@ -30,14 +31,11 @@ namespace Wrapland::Client
 class ConnectionThread;
 class EventQueue;
 class Registry;
-class WlrOutputManagerV1;
-class WlrOutputHeadV1;
 }
 
 namespace Disman
 {
 
-class Output;
 class WaylandOutput;
 class WaylandScreen;
 
@@ -72,6 +70,8 @@ private:
     bool apply_config_impl(const Disman::ConfigPtr& newConfig, bool force);
     void tryPendingConfig();
 
+    void test_toggle_adaptive_sync(WaylandOutput* output);
+
     Wrapland::Client::ConnectionThread* m_connection{nullptr};
     Wrapland::Client::EventQueue* m_queue{nullptr};
 
@@ -86,9 +86,18 @@ private:
 
     struct {
         bool pending{true};
+        std::vector<WaylandOutput*> added;
         bool outputs{false};
     } update;
 
+    struct test_output {
+        uint32_t output_id;
+        WaylandOutput* output{nullptr};
+        std::unique_ptr<Wrapland::Client::WlrOutputConfigurationV1> config;
+        bool reverted{false};
+    };
+
+    test_output adaptive_sync_test;
     Disman::ConfigPtr m_dismanPendingConfig{nullptr};
 
     int m_outputId = 0;

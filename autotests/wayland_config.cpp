@@ -52,6 +52,7 @@ private Q_SLOTS:
     void testRotationChange_data();
     void testScaleChange();
     void testModeChange();
+    void test_adaptive_sync_change();
     void testApplyOnPending();
 
 private:
@@ -266,6 +267,31 @@ void wayland_config::testModeChange()
     // check if the server changed
     QCOMPARE(serverSpy.count(), 1);
 
+    QCOMPARE(configSpy.count(), 1);
+}
+
+void wayland_config::test_adaptive_sync_change()
+{
+    auto op = new GetConfigOperation();
+    QVERIFY(op->exec());
+    auto config = op->config();
+    QVERIFY(config);
+
+    Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
+    monitor->add_config(config);
+    QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
+
+    auto output = config->outputs()[1]; // is this id stable enough?
+
+    auto enabled = output->adaptive_sync();
+    output->set_adaptive_sync(!enabled);
+
+    QSignalSpy serverSpy(m_server, &server::configChanged);
+    auto sop = new SetConfigOperation(config, this);
+    sop->exec();
+
+    QVERIFY(configSpy.wait());
+    QCOMPARE(serverSpy.count(), 1);
     QCOMPARE(configSpy.count(), 1);
 }
 

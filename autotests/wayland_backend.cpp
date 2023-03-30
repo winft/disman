@@ -251,6 +251,7 @@ void wayland_backend::verifyFeatures()
     QVERIFY(!config->supported_features().testFlag(Config::Feature::None));
     QVERIFY(config->supported_features().testFlag(Config::Feature::Writable));
     QVERIFY(!config->supported_features().testFlag(Config::Feature::PrimaryDisplay));
+    QVERIFY(config->supported_features().testFlag(Config::Feature::AdaptiveSync));
 }
 
 QTEST_GUILESS_MAIN(wayland_backend)

@@ -116,6 +116,8 @@ void WaylandOutput::updateDismanOutput(OutputPtr& output)
     output->set_physical_size(head.physicalSize());
     output->set_position(head.position());
     output->set_rotation(toDismanRotation(head.transform()));
+    output->set_adaptive_sync_toggle_support(supports_adapt_sync_toggle);
+    output->set_adaptive_sync(head.adaptive_sync());
 
     ModeMap modeList;
     std::vector<std::string> preferredModeIds;
@@ -223,6 +225,12 @@ bool WaylandOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
         for (auto const& [key, value] : m_modeIdMap) {
             qCWarning(DISMAN_WAYLAND).nospace() << value << ": " << key.c_str();
         }
+    }
+
+    // adaptive sync
+    if (head.adaptive_sync() != output->adaptive_sync()) {
+        changed = true;
+        wlConfig->set_adaptive_sync(&head, output->adaptive_sync());
     }
 
     return changed;

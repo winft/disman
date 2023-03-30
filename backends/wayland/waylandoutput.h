@@ -48,6 +48,7 @@ public:
 
     uint32_t id;
     Wrapland::Client::WlrOutputHeadV1& head;
+    bool supports_adapt_sync_toggle{false};
 
 Q_SIGNALS:
     void removed();

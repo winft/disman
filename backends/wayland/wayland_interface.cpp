@@ -31,7 +31,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <Wrapland/Client/connection_thread.h>
 #include <Wrapland/Client/event_queue.h>
 #include <Wrapland/Client/registry.h>
-#include <Wrapland/Client/wlr_output_configuration_v1.h>
 #include <Wrapland/Client/wlr_output_manager_v1.h>
 
 using namespace Disman;
@@ -120,6 +119,7 @@ void WaylandInterface::add_output(Wrapland::Client::WlrOutputHeadV1* head)
     auto output = new WaylandOutput(++m_outputId, *head);
     m_outputMap.insert({output->id, output});
     update.outputs = true;
+    update.added.push_back(output);
 
     connect(output, &WaylandOutput::removed, this, [this, output] { removeOutput(output); });
 }
@@ -133,6 +133,23 @@ void WaylandInterface::removeOutput(WaylandOutput* output)
 
 void WaylandInterface::handle_wlr_manager_done()
 {
+    if (adaptive_sync_test.output && !adaptive_sync_test.reverted) {
+        // Rollback test change.
+        adaptive_sync_test.reverted = true;
+        test_toggle_adaptive_sync(adaptive_sync_test.output);
+        return;
+    }
+
+    adaptive_sync_test = {};
+
+    if (!update.added.empty()) {
+        auto output = update.added.back();
+        update.added.pop_back();
+
+        test_toggle_adaptive_sync(output);
+        return;
+    }
+
     is_initialized = true;
     update.pending = false;
 
@@ -147,7 +164,8 @@ void WaylandInterface::handle_wlr_manager_done()
 
 void WaylandInterface::updateConfig(Disman::ConfigPtr& config)
 {
-    config->set_supported_features(Config::Feature::Writable | Config::Feature::PerOutputScaling);
+    config->set_supported_features(Config::Feature::Writable | Config::Feature::PerOutputScaling
+                                   | Config::Feature::AdaptiveSync);
     config->set_valid(m_connection->display());
 
     // Removing removed outputs
@@ -259,4 +277,46 @@ bool WaylandInterface::apply_config_impl(const Disman::ConfigPtr& newConfig, boo
     wlConfig->apply();
     qCDebug(DISMAN_WAYLAND) << "Config sent to compositor.";
     return true;
+}
+
+void WaylandInterface::test_toggle_adaptive_sync(WaylandOutput* output)
+{
+    auto& test = adaptive_sync_test;
+    test.output_id = output->id;
+    test.output = output;
+
+    auto config = std::make_shared<Config>();
+    updateConfig(config);
+
+    // Try to toggle adaptive sync. Ensure that the output is enabled for that.
+    config->output(output->id)->set_enabled(true);
+    config->output(output->id)->set_adaptive_sync(!output->head.adaptive_sync());
+
+    test.config.reset(m_outputManager->createConfiguration());
+    test.config->setEventQueue(m_queue);
+
+    for (auto const& [key, output] : config->outputs()) {
+        m_outputMap[output->id()]->setWlConfig(test.config.get(), output);
+    }
+
+    connect(test.config.get(),
+            &Wrapland::Client::WlrOutputConfigurationV1::succeeded,
+            this,
+            [this] { adaptive_sync_test.output->supports_adapt_sync_toggle = true; });
+    connect(test.config.get(), &Wrapland::Client::WlrOutputConfigurationV1::failed, this, [this] {
+        adaptive_sync_test.output->supports_adapt_sync_toggle = false;
+        handle_wlr_manager_done();
+    });
+    connect(
+        test.config.get(), &Wrapland::Client::WlrOutputConfigurationV1::cancelled, this, [this] {
+            // Try again if the output still exists.
+            if (m_outputMap.contains(adaptive_sync_test.output_id)) {
+                test_toggle_adaptive_sync(adaptive_sync_test.output);
+            } else {
+                adaptive_sync_test = {};
+                handle_wlr_manager_done();
+            }
+        });
+
+    test.config->apply();
 }
