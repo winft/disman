@@ -64,8 +64,10 @@ private:
     std::unique_ptr<WaylandInterface> m_interface;
     QThread* m_thread{nullptr};
 
-    bool m_tabletModeAvailable{false};
-    bool m_tabletModeEngaged{false};
+    struct {
+        bool available{false};
+        bool engaged{false};
+    } tablet_mode;
 
     QEventLoop m_syncLoop;
 };

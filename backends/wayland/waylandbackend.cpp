@@ -59,22 +59,20 @@ void WaylandBackend::initKWinTabletMode()
                                                                QDBusConnection::sessionBus(),
                                                                this);
     if (!interface->isValid()) {
-        m_tabletModeAvailable = false;
-        m_tabletModeEngaged = false;
         return;
     }
 
-    m_tabletModeAvailable = interface->tabletModeAvailable();
-    m_tabletModeEngaged = interface->tabletMode();
+    tablet_mode.available = interface->tabletModeAvailable();
+    tablet_mode.engaged = interface->tabletMode();
 
     connect(interface,
             &OrgKdeKWinTabletModeManagerInterface::tabletModeChanged,
             this,
             [this](bool tabletMode) {
-                if (m_tabletModeEngaged == tabletMode) {
+                if (tablet_mode.engaged == tabletMode) {
                     return;
                 }
-                m_tabletModeEngaged = tabletMode;
+                tablet_mode.engaged = tabletMode;
                 if (m_interface && m_interface->is_initialized) {
                     Q_EMIT config_changed(config());
                 }
@@ -83,10 +81,10 @@ void WaylandBackend::initKWinTabletMode()
             &OrgKdeKWinTabletModeManagerInterface::tabletModeAvailableChanged,
             this,
             [this](bool available) {
-                if (m_tabletModeAvailable == available) {
+                if (tablet_mode.available == available) {
                     return;
                 }
-                m_tabletModeAvailable = available;
+                tablet_mode.available = available;
                 if (m_interface && m_interface->is_initialized) {
                     Q_EMIT config_changed(config());
                 }
@@ -109,8 +107,8 @@ void WaylandBackend::update_config(ConfigPtr& config) const
     config->setScreen(m_screen->toDismanScreen(config));
 
     m_interface->updateConfig(config);
-    config->set_tablet_mode_available(m_tabletModeAvailable);
-    config->set_tablet_mode_engaged(m_tabletModeEngaged);
+    config->set_tablet_mode_available(tablet_mode.available);
+    config->set_tablet_mode_engaged(tablet_mode.engaged);
 
     ScreenPtr screen = config->screen();
     m_screen->updateDismanScreen(screen);
