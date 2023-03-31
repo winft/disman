@@ -65,6 +65,7 @@ private:
     QThread* m_thread{nullptr};
 
     struct {
+        bool supported{false};
         bool available{false};
         bool engaged{false};
     } tablet_mode;

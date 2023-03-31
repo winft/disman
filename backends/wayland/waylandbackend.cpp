@@ -62,6 +62,7 @@ void WaylandBackend::initKWinTabletMode()
         return;
     }
 
+    tablet_mode.supported = true;
     tablet_mode.available = interface->tabletModeAvailable();
     tablet_mode.engaged = interface->tabletMode();
 
@@ -107,8 +108,13 @@ void WaylandBackend::update_config(ConfigPtr& config) const
     config->setScreen(m_screen->toDismanScreen(config));
 
     m_interface->updateConfig(config);
-    config->set_tablet_mode_available(tablet_mode.available);
-    config->set_tablet_mode_engaged(tablet_mode.engaged);
+
+    if (tablet_mode.supported) {
+        config->set_supported_features(config->supported_features() | Config::Feature::AutoRotation
+                                       | Config::Feature::TabletMode);
+        config->set_tablet_mode_available(tablet_mode.available);
+        config->set_tablet_mode_engaged(tablet_mode.engaged);
+    }
 
     ScreenPtr screen = config->screen();
     m_screen->updateDismanScreen(screen);
