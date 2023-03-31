@@ -50,7 +50,7 @@ private Q_SLOTS:
     void testPositionChange();
     void testRotationChange();
     void testRotationChange_data();
-    void testScaleChange();
+    void test_replication_change();
     void testModeChange();
     void test_adaptive_sync_change();
     void testApplyOnPending();
@@ -163,7 +163,6 @@ void wayland_config::testRotationChange_data()
     QTest::newRow("left") << Disman::Output::Left;
     QTest::newRow("inverted") << Disman::Output::Inverted;
     QTest::newRow("right") << Disman::Output::Right;
-    QTest::newRow("none") << Disman::Output::None;
 }
 
 void wayland_config::testRotationChange()
@@ -202,7 +201,7 @@ void wayland_config::testRotationChange()
     QCOMPARE(newoutput->rotation(), rotation);
 }
 
-void wayland_config::testScaleChange()
+void wayland_config::test_replication_change()
 {
     auto op = new GetConfigOperation();
     QVERIFY(op->exec());
@@ -221,23 +220,30 @@ void wayland_config::testScaleChange()
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
     QSignalSpy configSpy2(monitor, &Disman::ConfigMonitor::configuration_changed);
 
-    auto output2 = config2->outputs()[2]; // is this id stable enough?
-    QCOMPARE(output2->scale(), 1.0);
+    auto output1 = config->outputs().at(1);
+    auto& server_output1 = m_server->outputs.at(0);
+    auto& server_output2 = m_server->outputs.at(1);
+    auto output2 = config->outputs().at(2);
+    QVERIFY(!output1->replication_source());
+    QVERIFY(!output2->replication_source());
+    QVERIFY(output1->geometry() != output2->geometry());
+    QVERIFY(server_output1->get_state().geometry != server_output2->get_state().geometry);
 
-    auto output = config->outputs()[2]; // is this id stable enough?
-    output->set_scale(2);
+    output2->set_replication_source(output1->id());
+    QCOMPARE(output2->replication_source(), output1->id());
+    QVERIFY(!config2->outputs().at(2)->replication_source());
 
     QSignalSpy serverSpy(m_server, &server::configChanged);
     auto sop = new SetConfigOperation(config, this);
     sop->exec(); // fire and forget...
 
     QVERIFY(configSpy.wait());
-    // check if the server changed
     QCOMPARE(serverSpy.count(), 1);
-
     QCOMPARE(configSpy.count(), 1);
     QCOMPARE(configSpy2.count(), 1);
-    QCOMPARE(output2->scale(), 2.0);
+    QCOMPARE(server_output1->get_state().geometry, server_output2->get_state().geometry);
+    QCOMPARE(output2->replication_source(), output1->id());
+    QCOMPARE(config2->outputs().at(2)->replication_source(), config2->outputs().at(1)->id());
 }
 
 void wayland_config::testModeChange()
@@ -309,13 +315,14 @@ void wayland_config::testApplyOnPending()
 
     Disman::ConfigMonitor* monitor = Disman::ConfigMonitor::instance();
     monitor->add_config(config);
+    monitor->add_config(config2);
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
-    auto output = config->outputs()[1]; // is this id stable enough?
+    auto output1 = config->outputs()[2]; // is this id stable enough?
 
-    // Scale value in the beginning is the best scale.
-    QVERIFY(std::abs(output->scale() - Disman::Generator(config).best_scale(output)) < 0.01);
-    output->set_scale(2);
+    // Transform value in the beginning is normal.
+    QCOMPARE(output1->rotation(), Output::Rotation::None);
+    output1->set_rotation(Output::Rotation::Left);
 
     QSignalSpy serverSpy(m_server, &server::configChanged);
     QSignalSpy serverReceivedSpy(m_server, &server::configReceived);
@@ -327,9 +334,10 @@ void wayland_config::testApplyOnPending()
     /* Apply next config */
     auto output2 = config2->outputs()[2]; // is this id stable enough?
 
-    QCOMPARE(output2->scale(), 1.0);
-    output2->set_scale(3);
+    QCOMPARE(output2->rotation(), Output::Rotation::None);
+    output2->set_rotation(Output::Rotation::Right);
 
+    // Will be discarded by the server.
     new SetConfigOperation(config2, this);
 
     QVERIFY(serverReceivedSpy.wait());
@@ -337,18 +345,10 @@ void wayland_config::testApplyOnPending()
     m_server->suspendChanges(false);
 
     QVERIFY(configSpy.wait());
-    // check if the server changed
     QCOMPARE(serverSpy.count(), 1);
     QCOMPARE(configSpy.count(), 1);
-    QCOMPARE(output->scale(), 2.0);
-    QCOMPARE(output2->scale(), 3.0);
-
-    QVERIFY(configSpy.wait());
-    // check if the server changed
-    QCOMPARE(serverSpy.count(), 2);
-
-    QCOMPARE(configSpy.count(), 2);
-    QCOMPARE(output2->scale(), 3.0);
+    QCOMPARE(output1->rotation(), Output::Rotation::Left);
+    QCOMPARE(output2->rotation(), Output::Rotation::Left);
 }
 
 QTEST_GUILESS_MAIN(wayland_config)

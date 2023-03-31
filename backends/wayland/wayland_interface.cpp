@@ -165,7 +165,8 @@ void WaylandInterface::handle_wlr_manager_done()
 void WaylandInterface::updateConfig(Disman::ConfigPtr& config)
 {
     config->set_supported_features(Config::Feature::Writable | Config::Feature::PerOutputScaling
-                                   | Config::Feature::AdaptiveSync);
+                                   | Config::Feature::AdaptiveSync
+                                   | Config::Feature::OutputReplication);
     config->set_valid(m_connection->display());
 
     // Removing removed outputs
