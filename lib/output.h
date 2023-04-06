@@ -199,6 +199,12 @@ public:
     bool enabled() const;
     void set_enabled(bool enabled);
 
+    bool adaptive_sync() const;
+    void set_adaptive_sync(bool adapt);
+
+    bool adaptive_sync_toggle_support() const;
+    void set_adaptive_sync_toggle_support(bool support);
+
     /**
      * @brief Provides the source for an ongoing replication
      *
@@ -298,6 +304,7 @@ public:
     struct GlobalData {
         QSize resolution;
         int refresh{0};
+        bool adapt_sync{false};
 
         Rotation rotation;
         double scale;

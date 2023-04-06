@@ -20,32 +20,27 @@
 
 #include <QObject>
 #include <QRect>
+#include <string>
 
-#include <KWayland/Server/display.h>
-#include <KWayland/Server/output_interface.h>
-#include <KWayland/Server/outputdevice_interface.h>
+#include <Wrapland/Server/output.h>
+#include <Wrapland/Server/output_manager.h>
 
 namespace Disman
 {
 
-using namespace KWayland::Server;
-
-class WaylandConfigReader
+class config_reader
 {
 
 public:
-    static void outputsFromConfig(const QString& configfile,
-                                  KWayland::Server::Display* display,
-                                  QList<KWayland::Server::OutputDeviceInterface*>& outputs);
-    static OutputDeviceInterface* createOutputDevice(const QVariantMap& outputConfig,
-                                                     KWayland::Server::Display* display);
-    static QList<KWayland::Server::OutputInterface*>
-    createOutputs(KWayland::Server::Display* display,
-                  QList<KWayland::Server::OutputDeviceInterface*>& outputdevices);
+    static void load_outputs(std::string const& configfile,
+                             Wrapland::Server::output_manager& manager,
+                             std::vector<std::unique_ptr<Wrapland::Server::output>>& outputs);
+    static std::unique_ptr<Wrapland::Server::output>
+    create_output(QVariantMap const& outputConfig, Wrapland::Server::output_manager& manager);
 
-    static QSize sizeFromJson(const QVariant& data);
-    static QRect rectFromJson(const QVariant& data);
-    static QPoint pointFromJson(const QVariant& data);
+    static QSize size_from_json(const QVariant& data);
+    static QRect rect_from_json(const QVariant& data);
+    static QPoint point_from_json(const QVariant& data);
 };
 
 }

@@ -28,22 +28,18 @@
 #include "output.h"
 #include "setconfigoperation.h"
 
-// KWayland
-#include <KWayland/Server/display.h>
-#include <KWayland/Server/outputdevice_interface.h>
+#include "server.h"
 
-#include "waylandtestserver.h"
-
-Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland.kwayland")
+Q_LOGGING_CATEGORY(DISMAN_WAYLAND, "disman.wayland")
 
 using namespace Disman;
 
-class testWaylandBackend : public QObject
+class wayland_backend : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit testWaylandBackend(QObject* parent = nullptr);
+    explicit wayland_backend(QObject* parent = nullptr);
 
 private Q_SLOTS:
     void init();
@@ -61,11 +57,10 @@ private Q_SLOTS:
 
 private:
     ConfigPtr m_config;
-    WaylandTestServer* m_server;
-    KWayland::Server::OutputDeviceInterface* m_serverOutputDevice;
+    server* m_server;
 };
 
-testWaylandBackend::testWaylandBackend(QObject* parent)
+wayland_backend::wayland_backend(QObject* parent)
     : QObject(parent)
     , m_config(nullptr)
 {
@@ -73,17 +68,17 @@ testWaylandBackend::testWaylandBackend(QObject* parent)
     qputenv("DISMAN_LOGGING", "false");
     QStandardPaths::setTestModeEnabled(true);
 
-    m_server = new WaylandTestServer(this);
+    m_server = new server(this);
     m_server->setConfig(QLatin1String(TEST_DATA) + QLatin1String("multipleoutput.json"));
 }
 
-void testWaylandBackend::init()
+void wayland_backend::init()
 {
     qputenv("DISMAN_BACKEND", "wayland");
 
-    // This is how KWayland will pick up the right socket,
+    // This is how Wrapland will pick up the right socket,
     // and thus connect to our internal test server.
-    setenv("WAYLAND_DISPLAY", s_socketName.toLocal8Bit().constData(), 1);
+    setenv("WAYLAND_DISPLAY", s_socketName, 1);
     m_server->start();
 
     GetConfigOperation* op = new GetConfigOperation();
@@ -92,7 +87,7 @@ void testWaylandBackend::init()
     QVERIFY(m_config);
 }
 
-void testWaylandBackend::cleanup()
+void wayland_backend::cleanup()
 {
     Disman::BackendManager::instance()->shutdown_backend();
     m_server->stop();
@@ -104,7 +99,7 @@ void testWaylandBackend::cleanup()
     QVERIFY(QDir(path).removeRecursively());
 }
 
-void testWaylandBackend::loadConfig()
+void wayland_backend::loadConfig()
 {
     GetConfigOperation* op = new GetConfigOperation();
     op->exec();
@@ -113,12 +108,12 @@ void testWaylandBackend::loadConfig()
     qCDebug(DISMAN_WAYLAND) << "Outputs:" << m_config->outputs();
 }
 
-void testWaylandBackend::verifyConfig()
+void wayland_backend::verifyConfig()
 {
     QVERIFY(m_config != nullptr);
 }
 
-void testWaylandBackend::verifyScreen()
+void wayland_backend::verifyScreen()
 {
     ScreenPtr screen = m_config->screen();
 
@@ -133,11 +128,11 @@ void testWaylandBackend::verifyScreen()
     QVERIFY(m_config->screen()->max_outputs_count() > 0);
 }
 
-void testWaylandBackend::verifyOutputs()
+void wayland_backend::verifyOutputs()
 {
     QVERIFY(!m_config->primary_output());
     QVERIFY(m_config->outputs().size());
-    QCOMPARE(m_server->outputCount(), m_config->outputs().size());
+    QCOMPARE(m_server->outputs.size(), m_config->outputs().size());
 
     QList<int> ids;
     for (auto const& [key, output] : m_config->outputs()) {
@@ -153,7 +148,7 @@ void testWaylandBackend::verifyOutputs()
     }
 }
 
-void testWaylandBackend::verifyModes()
+void wayland_backend::verifyModes()
 {
     for (auto const& [key, output] : m_config->outputs()) {
         for (auto const& [key, mode] : output->modes()) {
@@ -164,7 +159,7 @@ void testWaylandBackend::verifyModes()
     }
 }
 
-void testWaylandBackend::verifyIds()
+void wayland_backend::verifyIds()
 {
     QList<quint32> ids;
     for (auto const& [key, output] : m_config->outputs()) {
@@ -174,23 +169,24 @@ void testWaylandBackend::verifyIds()
     }
 }
 
-void testWaylandBackend::simpleWrite()
+void wayland_backend::simpleWrite()
 {
     Disman::BackendManager::instance()->shutdown_backend();
     GetConfigOperation* op = new GetConfigOperation();
     op->exec();
     m_config = op->config();
-    auto output = m_config->output(18);
+    auto output = m_config->output(2);
     QVERIFY(output);
-
-    output->set_mode(output->mode("1"));
+    auto mode = output->mode("4");
+    QVERIFY(mode);
+    output->set_mode(mode);
     QCOMPARE(output->commanded_mode()->size(), QSize(800, 600));
 
     auto setop = new SetConfigOperation(m_config);
     QVERIFY(setop->exec());
 }
 
-void testWaylandBackend::addAndRemoveOutput()
+void wayland_backend::addAndRemoveOutput()
 {
     Disman::BackendManager::instance()->shutdown_backend();
     GetConfigOperation* op = new GetConfigOperation();
@@ -202,29 +198,32 @@ void testWaylandBackend::addAndRemoveOutput()
     QSignalSpy configSpy(monitor, &Disman::ConfigMonitor::configuration_changed);
 
     // Now add an outputdevice on the server side
-    m_serverOutputDevice = m_server->display()->createOutputDevice(this);
-    m_serverOutputDevice->setUuid("1337");
+    Wrapland::Server::output_metadata output_meta;
+    output_meta.name = "1337";
+    m_server->outputs.emplace_back(
+        std::make_unique<Wrapland::Server::output>(output_meta, *m_server->output_manager));
 
-    OutputDeviceInterface::Mode m0;
+    Wrapland::Server::output_mode m0;
     m0.id = 0;
     m0.size = QSize(800, 600);
-    m0.flags = OutputDeviceInterface::ModeFlags(OutputDeviceInterface::ModeFlag::Preferred);
-    m_serverOutputDevice->addMode(m0);
+    m0.preferred = true;
+    m_server->outputs.back()->add_mode(m0);
 
-    OutputDeviceInterface::Mode m1;
-    m1.id = 1;
-    m1.size = QSize(1024, 768);
-    m_serverOutputDevice->addMode(m1);
-
-    OutputDeviceInterface::Mode m2;
+    Wrapland::Server::output_mode m2;
     m2.id = 2;
     m2.size = QSize(1280, 1024);
-    m2.refreshRate = 90000;
-    m_serverOutputDevice->addMode(m2);
+    m2.refresh_rate = 90000;
+    m_server->outputs.back()->add_mode(m2);
 
-    m_serverOutputDevice->setCurrentMode(1);
+    Wrapland::Server::output_mode m1;
+    m1.id = 1;
+    m1.size = QSize(1024, 768);
+    m_server->outputs.back()->add_mode(m1);
 
-    m_serverOutputDevice->create();
+    auto state = m_server->outputs.back()->get_state();
+    state.geometry = {QPoint(), m1.size};
+    m_server->outputs.back()->set_state(state);
+    m_server->output_manager->commit_changes();
 
     QVERIFY(configSpy.wait());
     // QTRY_VERIFY(configSpy.count());
@@ -235,7 +234,8 @@ void testWaylandBackend::addAndRemoveOutput()
     QCOMPARE(newconfig->outputs().size(), 3);
 
     // Now remove the output again.
-    delete m_serverOutputDevice;
+    m_server->outputs.pop_back();
+    m_server->output_manager->commit_changes();
     QVERIFY(configSpy.wait());
     GetConfigOperation* op3 = new GetConfigOperation();
     op3->exec();
@@ -243,7 +243,7 @@ void testWaylandBackend::addAndRemoveOutput()
     QCOMPARE(newconfig->outputs().size(), 2);
 }
 
-void testWaylandBackend::verifyFeatures()
+void wayland_backend::verifyFeatures()
 {
     GetConfigOperation* op = new GetConfigOperation();
     op->exec();
@@ -251,8 +251,9 @@ void testWaylandBackend::verifyFeatures()
     QVERIFY(!config->supported_features().testFlag(Config::Feature::None));
     QVERIFY(config->supported_features().testFlag(Config::Feature::Writable));
     QVERIFY(!config->supported_features().testFlag(Config::Feature::PrimaryDisplay));
+    QVERIFY(config->supported_features().testFlag(Config::Feature::AdaptiveSync));
 }
 
-QTEST_GUILESS_MAIN(testWaylandBackend)
+QTEST_GUILESS_MAIN(wayland_backend)
 
-#include "testkwaylandbackend.moc"
+#include "wayland_backend.moc"

@@ -18,35 +18,39 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma once
 
 #include <config.h>
-#include <dismanwl_export.h>
 
 #include <QEventLoop>
 #include <QObject>
 #include <QVector>
+#include <Wrapland/Client/wlr_output_configuration_v1.h>
 
 class QThread;
 
+namespace Wrapland::Client
+{
+class ConnectionThread;
+class EventQueue;
+class Registry;
+}
+
 namespace Disman
 {
-class Output;
+
 class WaylandOutput;
 class WaylandScreen;
 
-class DISMANWL_EXPORT WaylandInterface : public QObject
+class WaylandInterface : public QObject
 {
     Q_OBJECT
-
 public:
-    ~WaylandInterface() override;
+    explicit WaylandInterface(QThread* thread);
 
-    virtual void initConnection(QThread* thread) = 0;
-    virtual bool isInitialized() const;
+    std::map<int, WaylandOutput*> outputMap() const;
 
-    // Compositor side names as keys
-    virtual std::map<int, WaylandOutput*> outputMap() const = 0;
+    bool applyConfig(const Disman::ConfigPtr& newConfig);
+    void updateConfig(Disman::ConfigPtr& config);
 
-    virtual bool applyConfig(const Disman::ConfigPtr& newConfig) = 0;
-    virtual void updateConfig(Disman::ConfigPtr& config) = 0;
+    bool is_initialized{false};
 
 Q_SIGNALS:
     void config_changed();
@@ -54,54 +58,52 @@ Q_SIGNALS:
     void connectionFailed(const QString& socketName);
     void outputsChanged();
 
-protected:
-    explicit WaylandInterface(QObject* parent = nullptr);
-
-    virtual void insertOutput(WaylandOutput* output) = 0;
-    virtual WaylandOutput* takeOutput(WaylandOutput* output) = 0;
-
-    bool signalsBlocked() const;
-    void blockSignals();
-    void unblockSignals();
-
-    void checkInitialized();
-
-    void addOutput(WaylandOutput* output);
-    virtual void handleDisconnect();
-
 private:
+    void handle_wlr_manager_done();
+
+    void add_output(Wrapland::Client::WlrOutputHeadV1* head);
     void removeOutput(WaylandOutput* output);
+    void handleDisconnect();
 
-    /**
-     * Finalize: when the output is is initialized, we put it in the known outputs map,
-     * remove it from the list of initializing outputs, and emit config_changed().
-     */
-    virtual void initOutput(WaylandOutput* output);
+    void setupRegistry();
 
+    bool apply_config_impl(const Disman::ConfigPtr& newConfig, bool force);
     void tryPendingConfig();
 
-    // Compositor side names
-    QList<WaylandOutput*> m_initializingOutputs;
+    void test_toggle_adaptive_sync(WaylandOutput* output);
+
+    Wrapland::Client::ConnectionThread* m_connection{nullptr};
+    Wrapland::Client::EventQueue* m_queue{nullptr};
+
+    Wrapland::Client::Registry* m_registry{nullptr};
+    Wrapland::Client::WlrOutputManagerV1* m_outputManager{nullptr};
+
+    // Wrapland names as keys
+    std::map<int, WaylandOutput*> m_outputMap;
+
+    // Wrapland names
     int m_lastOutputId = -1;
 
-    bool m_blockSignals;
+    struct {
+        bool pending{true};
+        std::vector<WaylandOutput*> added;
+        bool outputs{false};
+    } update;
+
+    struct test_output {
+        uint32_t output_id;
+        WaylandOutput* output{nullptr};
+        std::unique_ptr<Wrapland::Client::WlrOutputConfigurationV1> config;
+        bool reverted{false};
+    };
+
+    test_output adaptive_sync_test;
+    Disman::ConfigPtr m_dismanPendingConfig{nullptr};
+
+    int m_outputId = 0;
+
     Disman::ConfigPtr m_dismanConfig;
     WaylandScreen* m_screen;
 };
 
-class DISMAN_EXPORT WaylandFactory : public QObject
-{
-    Q_OBJECT
-public:
-    WaylandFactory(QObject* parent = nullptr)
-        : QObject(parent)
-    {
-    }
-    ~WaylandFactory() override = default;
-
-    virtual WaylandInterface* createInterface(QObject* parent = nullptr) = 0;
-};
-
 }
-
-Q_DECLARE_INTERFACE(Disman::WaylandFactory, "org.kwinft.disman.waylandinterface")

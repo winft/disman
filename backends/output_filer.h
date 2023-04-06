@@ -197,6 +197,8 @@ public:
             return;
         }
 
+        auto adapt_sync
+            = Filer_helpers::from_variant(m_info[QStringLiteral("adaptive-sync")], false);
         auto rotation = convert_int_to_rotation(Filer_helpers::from_variant(
             m_info[QStringLiteral("rotation")], static_cast<int>(Output::Rotation::None)));
         auto scale = Filer_helpers::from_variant(m_info[QStringLiteral("scale")], 1.);
@@ -212,6 +214,7 @@ public:
 
         output->set_global_data({mode->size(),
                                  mode->refresh(),
+                                 adapt_sync,
                                  rotation,
                                  scale,
                                  auto_resolution,

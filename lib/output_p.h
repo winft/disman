@@ -97,6 +97,7 @@ public:
 
     QSize resolution;
     int refresh_rate{0};
+    bool adapt_sync{false};
 
     std::string preferredMode;
     std::vector<std::string> preferred_modes;
@@ -106,6 +107,7 @@ public:
     Rotation rotation;
     qreal scale;
     bool enabled;
+    bool supports_adapt_sync_toggle{false};
     bool follow_preferred_mode = false;
 
     bool auto_resolution{false};
