@@ -74,6 +74,7 @@ public:
         OutputReplication = 1 << 3, ///< The backend supports replication of outputs.
         AutoRotation = 1 << 4,      ///< The backend supports automatic rotation of outputs.
         TabletMode = 1 << 5, ///< The backend supports querying if a device is in tablet mode.
+        AdaptiveSync = 1 << 6,
     };
     Q_DECLARE_FLAGS(Features, Feature)
 

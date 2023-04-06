@@ -97,6 +97,9 @@ public:
                 output->set_scale(get_value(output, "scale", 1., ofiler));
             }
 
+            if (output->adaptive_sync_toggle_support()) {
+                output->set_adaptive_sync(get_value(output, "adaptive-sync", false, ofiler));
+            }
             auto const rotation
                 = get_value(output, "rotation", static_cast<int>(Output::Rotation::None), ofiler);
             output->set_rotation(Output_filer::convert_int_to_rotation(rotation));
@@ -145,6 +148,10 @@ public:
                 set_value(output, "scale", output->scale(), filer);
             }
             set_value(output, "rotation", static_cast<int>(output->rotation()), filer);
+
+            if (output->adaptive_sync_toggle_support()) {
+                set_value(output, "adaptive-sync", output->adaptive_sync(), filer);
+            }
 
             set_value(output, "auto-resolution", output->auto_resolution(), filer);
             set_value(output, "auto-refresh-rate", output->auto_refresh_rate(), filer);

@@ -24,9 +24,8 @@ Disman can also be compiled from source with following dependencies:
 * Extra CMake Modules
 * Qt
 * KCoreAddons
+* Wrapland - optional for the Wayland backend plugin
 * XCB - optional for the X11 backend plugin
-* Wrapland - optional for the KWinFT and wlroots backend plugins
-* KWayland - optional for the KDE output-management backend plugin
 
 #### Target Selection
 Disman can be installed like any other CMake based projects through
@@ -47,19 +46,16 @@ It is recommended to make at least use of the group target *disman* though.
 It combines the basic
 libraries, plugins, control utility and service
 what usually always is used in some way or another.
-On the other side for example the target *disman-kwinft*
-only builds the backend plugin
-necessary to communicate with a
-[KWinFT](https://gitlab.com/kwinft/kwinft)
-Wayland server.
+On the other side for example the target *disman-wayland*
+only builds the backend necessary to communicate with a Wayland server.
 
 A typical build and install workflow would look like the following for that plugin:
 
 ```sh
 cmake -B build-dir -S source-dir
-cmake --build build-dir --target disman disman-kwinft
+cmake --build build-dir --target disman disman-wayland
 cmake --install build-dir --component disman
-cmake --install build-dir --component disman-kwinft
+cmake --install build-dir --component disman-wayland
 ```
 
 **In an overview the following targets are available:**
@@ -70,12 +66,8 @@ cmake --install build-dir --component disman-kwinft
 | disman-lib       | Main library being used by frontends and backends   |
 | dismanctl        | Command line utility to interact with Disman        |
 | disman-launcher  | Service that starts a backend on D-Bus requests     |
-| disman-wllib     | Library being used by Wayland backends              |
-| disman-wlplugin  | Plugin-loader for Wayland backends                  |
+| disman-wayland   | Plugin-loader for Wayland                           |
 | disman-randr     | Plugin for X11/RandR                                |
-| disman-kwayland  | Plugin for KWin's Wayland session                   |
-| disman-kwinft    | Plugin for KWinFT's Wayland session                 |
-| disman-wlroots   | Plugin for wlroots compositors (Sway, Wayfire,...)  |
 
 #### Packaging
 Distro packagers should create multiple packages from these targets

@@ -120,6 +120,8 @@ QJsonObject ConfigSerializer::serialize_output(const OutputPtr& output)
     obj[QLatin1String("auto_resolution")] = output->auto_resolution();
     obj[QLatin1String("auto_refresh_rate")] = output->auto_refresh_rate();
     obj[QLatin1String("retention")] = static_cast<int>(output->retention());
+    obj[QLatin1String("adaptive_sync_toggle_support")] = output->adaptive_sync_toggle_support();
+    obj[QLatin1String("adaptive_sync")] = output->adaptive_sync();
 
     QJsonArray modes;
     for (auto const& [key, mode] : output->modes()) {
@@ -368,6 +370,10 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
             output->set_auto_resolution(value.toBool());
         } else if (key == QLatin1String("auto_refresh_rate")) {
             output->set_auto_refresh_rate(value.toBool());
+        } else if (key == QLatin1String("adaptive_sync_toggle_support")) {
+            output->set_adaptive_sync_toggle_support(value.toBool());
+        } else if (key == QLatin1String("adaptive_sync")) {
+            output->set_adaptive_sync(value.toBool());
         }
 
         else if (key == QLatin1String("global")) {
@@ -434,6 +440,7 @@ OutputPtr ConfigSerializer::deserialize_output(const QDBusArgument& arg)
     if (global_data.valid) {
         output->set_global_data(global_data);
     }
+
     return output;
 }
 

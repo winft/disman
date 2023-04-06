@@ -81,7 +81,7 @@ add_custom_target(disman DEPENDS
   disman::wllib
   dismanctl
   disman-launcher
-  disman-wlplugin
+  disman-wayland
 )
 
 install(FILES disman.categories DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR})
