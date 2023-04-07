@@ -32,7 +32,7 @@ public:
     XCBEventListener();
     ~XCBEventListener() override;
 
-    bool nativeEventFilter(const QByteArray& eventType, void* message, long int* result) override;
+    bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
 
 Q_SIGNALS:
     void

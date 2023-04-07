@@ -2,7 +2,7 @@ add_executable(dismanctl main.cpp doctor.cpp watcher.cpp)
 target_compile_features(dismanctl PRIVATE cxx_std_17)
 
 target_link_libraries(dismanctl
-  Qt5::DBus
+  Qt6::DBus
   disman::lib
 )
 

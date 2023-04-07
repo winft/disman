@@ -9,7 +9,7 @@ ecm_qt_declare_logging_category(fake_SRCS
   CATEGORY_NAME disman.backend.fake
 )
 
-qt5_add_dbus_adaptor(fake_SRCS
+qt6_add_dbus_adaptor(fake_SRCS
   ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml
   fake.h
   Fake
@@ -25,7 +25,7 @@ target_compile_features(fake PRIVATE cxx_std_17)
 target_link_libraries(fake
   PRIVATE
     disman::backend
-    Qt5::DBus
+    Qt6::DBus
 )
 
 install(TARGETS fake DESTINATION ${KDE_INSTALL_PLUGINDIR}/disman/)

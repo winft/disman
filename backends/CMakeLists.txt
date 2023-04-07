@@ -10,7 +10,7 @@ set(backend_SRCS
   utils.cpp
 )
 
-qt5_add_dbus_interface(backend_SRCS
+qt6_add_dbus_interface(backend_SRCS
   org.freedesktop.DBus.Properties.xml
   freedesktop_interface
 )
@@ -19,10 +19,13 @@ add_library(backend OBJECT ${backend_SRCS})
 add_library(disman::backend ALIAS backend)
 
 target_link_libraries(backend
-  PRIVATE Qt5::DBus
+  PRIVATE Qt6::DBus
   PUBLIC disman::lib
 )
 
+set_target_properties(backend PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+)
 target_compile_features(backend PUBLIC cxx_std_17)
 
 target_include_directories(backend

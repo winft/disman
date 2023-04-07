@@ -14,7 +14,7 @@ set(disman_SRCS
   log.cpp
 )
 
-qt5_add_dbus_interface(
+qt6_add_dbus_interface(
   disman_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.backend.xml backendinterface
 )
 
@@ -37,10 +37,10 @@ target_compile_features(disman-lib
 
 target_link_libraries(disman-lib
   PUBLIC
-    Qt5::Core
-    Qt5::Gui
+    Qt6::Core
+    Qt6::Gui
   PRIVATE
-    Qt5::DBus
+    Qt6::DBus
 )
 
 set_target_properties(disman-lib PROPERTIES
@@ -53,7 +53,7 @@ set_target_properties(disman-lib PROPERTIES
 target_include_directories(disman-lib
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
-    $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 install(
@@ -81,7 +81,7 @@ set(disman_HEADERS
 
 install(
   FILES ${disman_HEADERS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/disman
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/disman
   COMPONENT disman
 )
 
@@ -99,7 +99,7 @@ install(
   COMPONENT disman
 )
 
-set(CMAKECONFIG_INSTALL_DIR "${CMAKECONFIG_INSTALL_PREFIX}/disman")
+set(CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/disman")
 
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/disman-config.cmake.in"
@@ -124,6 +124,6 @@ install(
 
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/disman_version.h"
-  DESTINATION "${INCLUDE_INSTALL_DIR}"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   COMPONENT disman
 )
