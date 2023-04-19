@@ -27,7 +27,7 @@
 class Fake : public Disman::BackendImpl
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kf5.disman.backends.fake")
+    Q_PLUGIN_METADATA(IID "org.kwinft.disman.backends.fake")
 
 public:
     explicit Fake();

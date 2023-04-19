@@ -11,14 +11,13 @@ ecm_qt_declare_logging_category(wayland_SRCS
   CATEGORY_NAME disman.backend.wayland
 )
 
-qt5_add_dbus_interface(wayland_SRCS
+qt6_add_dbus_interface(wayland_SRCS
   org.kde.KWin.TabletModeManager.xml
   tabletmodemanager_interface
 )
 
 set(wayland_LIBS
   disman::lib
-  KF5::CoreAddons
 )
 
 ####################################################################################################

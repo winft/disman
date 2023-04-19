@@ -33,7 +33,7 @@
 #include <QTime>
 #include <QTimer>
 
-#include <QX11Info>
+#include <QtGui/private/qtx11extras_p.h>
 
 xcb_screen_t* XRandR::s_screen = nullptr;
 xcb_window_t XRandR::s_rootWindow = 0;

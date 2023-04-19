@@ -4,11 +4,11 @@ project(Disman)
 set(PROJECT_VERSION "0.527.80")
 set(PROJECT_VERSION_MAJOR "0")
 
-set(QT_MIN_VERSION "5.15.0")
-set(KF5_MIN_VERSION "5.91")
+set(QT_MIN_VERSION "6.4.0")
+set(KF6_MIN_VERSION "5.240.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.84")
 
-find_package(ECM ${KF5_MIN_VERSION} REQUIRED NO_MODULE)
+find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
 
 include(KDEInstallDirs)
@@ -29,28 +29,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED
+find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED
   COMPONENTS
     Core
     DBus
     Gui
     Test
-  OPTIONAL_COMPONENTS
-    X11Extras
-)
-set_package_properties(Qt5X11Extras PROPERTIES
-  PURPOSE "Required for X11/RandR backend"
 )
 
-find_package(KF5 ${KF5_MIN_VERSION} COMPONENTS
+find_package(KF6 ${KF6_MIN_VERSION} COMPONENTS
   CoreAddons
   Wayland
 )
-set_package_properties(KF5CoreAddons PROPERTIES
+set_package_properties(KF6CoreAddons PROPERTIES
   TYPE REQUIRED
   PURPOSE "For loading Wayland backend plugins"
 )
-set_package_properties(KF5Wayland PROPERTIES
+set_package_properties(KF6Wayland PROPERTIES
   TYPE OPTIONAL
   PURPOSE "Required for KWin/KWayland backend"
 )

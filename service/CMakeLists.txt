@@ -10,14 +10,14 @@ ecm_qt_declare_logging_category(backendlauncher_SRCS
   CATEGORY_NAME disman.backendlauncher
 )
 
-qt5_add_dbus_adaptor(backendlauncher_SRCS
+qt6_add_dbus_adaptor(backendlauncher_SRCS
   ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.backend.xml
   backenddbuswrapper.h
   BackendDBusWrapper
   backendadaptor
   BackendAdaptor
 )
-qt5_add_dbus_adaptor(backendlauncher_SRCS
+qt6_add_dbus_adaptor(backendlauncher_SRCS
   ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.xml
   backendloader.h
   BackendLoader
@@ -30,9 +30,9 @@ target_compile_features(disman-launcher PRIVATE cxx_std_17)
 
 target_link_libraries(disman-launcher
   disman::lib
-  Qt5::Core
-  Qt5::Gui
-  Qt5::DBus
+  Qt6::Core
+  Qt6::Gui
+  Qt6::DBus
 )
 
 install(

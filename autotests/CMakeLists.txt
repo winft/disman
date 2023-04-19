@@ -6,13 +6,13 @@ macro(DISMAN_ADD_TEST)
     foreach(_testfile ${ARGN})
         set(_testname test_${_testfile})
         set(test_SRCS ${_testfile}.cpp ${DISMAN_WAYLAND_SRCS})
-        qt5_add_dbus_interface(test_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml fakebackendinterface)
+        qt6_add_dbus_interface(test_SRCS ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml fakebackendinterface)
         add_executable(${_testname} ${test_SRCS})
         target_compile_features(${_testname} PRIVATE cxx_std_17)
         target_link_libraries(${_testname}
           disman::backend
-          Qt5::Test
-          Qt5::DBus
+          Qt6::Test
+          Qt6::DBus
           ${DISMAN_WAYLAND_LIBS}
         )
         add_test(NAME disman-${_testname}
@@ -25,14 +25,14 @@ endmacro(DISMAN_ADD_TEST)
 macro(DISMAN_ADD_TEST2)
     foreach(_testname ${ARGN})
         set(test_SRCS ${_testname}.cpp ${DISMAN_WAYLAND_SRCS})
-        qt5_add_dbus_interface(test_SRCS
+        qt6_add_dbus_interface(test_SRCS
             ${CMAKE_SOURCE_DIR}/interfaces/org.kwinft.disman.fakebackend.xml fakebackendinterface)
         add_executable(test-${_testname} ${test_SRCS})
         target_compile_features(test-${_testname} PRIVATE cxx_std_17)
         target_link_libraries(test-${_testname}
           disman::backend
-          Qt5::Test
-          Qt5::DBus
+          Qt6::Test
+          Qt6::DBus
           ${DISMAN_WAYLAND_LIBS}
         )
         add_test(NAME disman-test-${_testname}
