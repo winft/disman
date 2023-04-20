@@ -25,7 +25,7 @@ target_compile_features(disman-randr PRIVATE cxx_std_17)
 target_link_libraries(disman-randr
   PRIVATE
     disman::backend
-    Qt5::X11Extras
+    Qt6::GuiPrivate
     XCB::RANDR
 )
 

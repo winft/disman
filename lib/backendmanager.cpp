@@ -281,7 +281,7 @@ Disman::Backend* BackendManager::load_backend_in_process(const QString& name)
     }
     // qCDebug(DISMAN) << "Connecting ConfigMonitor to backend.";
     ConfigMonitor::instance()->connect_in_process_backend(backend);
-    m_inProcessBackend = qMakePair<Disman::Backend*, QVariantMap>(backend, arguments);
+    m_inProcessBackend = {backend, arguments};
     set_config(backend->config());
     return backend;
 }

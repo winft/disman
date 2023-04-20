@@ -20,9 +20,8 @@
 #include "xrandr_logging.h"
 
 #include <QGuiApplication>
-#include <QX11Info>
-
 #include <QRect>
+#include <QtGui/private/qtx11extras_p.h>
 
 XCBEventListener::XCBEventListener()
     : m_isRandrPresent(false)
@@ -134,10 +133,8 @@ QString XCBEventListener::connectionToString(xcb_randr_connection_t connection)
 
 bool XCBEventListener::nativeEventFilter(const QByteArray& eventType,
                                          void* message,
-                                         long int* result)
+                                         qintptr* /*result*/)
 {
-    Q_UNUSED(result);
-
     if (eventType != "xcb_generic_event_t") {
         return false;
     }
