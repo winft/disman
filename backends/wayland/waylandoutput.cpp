@@ -200,10 +200,10 @@ bool WaylandOutput::setWlConfig(Wl::WlrOutputConfigurationV1* wlConfig,
         wlConfig->setPosition(&head, output->position().toPoint());
     }
 
-    // scale
-    if (!qFuzzyCompare(head.scale(), output->scale())) {
+    // viewport
+    if (auto const size = output->geometry().size(); head.viewport() != size) {
         changed = true;
-        wlConfig->setScale(&head, output->scale());
+        wlConfig->set_viewport(&head, size.toSize());
     }
 
     // rotation

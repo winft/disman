@@ -63,6 +63,15 @@ Clang-Format:
 
 .common-build: &common-build
   stage: Build
+  before_script:
+    # Wrapland build for custom branches.
+    - mkdir -p wrapland-bench/build && cd wrapland-bench
+    - git clone --branch output-viewport https://gitlab.com/romangg/wrapland.git src
+    - cd build
+    - cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ../src
+    - make -j$(nproc)
+    - make install -j$(nproc)
+    - cd ../..
   script:
     - mkdir build && cd build
     - cmake
@@ -73,6 +82,7 @@ Clang-Format:
   artifacts:
     paths:
       - build
+      - wrapland-bench
     expire_in: 1 week
 
 Master Build:
@@ -94,6 +104,11 @@ Stable Build:
   stage: Analysis
   variables:
     GCOVR_ARGS: -e tests
+  before_script:
+    # Install Wrapland.
+    - cd wrapland-bench/build
+    - make install -j$(nproc)
+    - cd ../..
 
 Master Tests:
   extends: .common-test
