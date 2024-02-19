@@ -157,16 +157,18 @@ so you can align your releases with that as well to prevent regressions for your
 
 ## Contributing
 The development of Disman happens in the open.
-Technical plans are proposed and discussed in normal GitLab [issue tickets][issues].
-For more comprehensive long-term plans special [issue boards][boards] might be created.
+Technical plans are proposed and discussed in normal GitHub [issue tickets][issues].
 
 See the [CONTRIBUTING.md](CONTRIBUTING.md) file on how to start contributing.
 
-[boards]: https://gitlab.com/kwinft/disman/-/boards
+## Contact
+Issue tickets can be created for feature requests, bug reports or general discussions.
+For direct communication join [The Compositor Modules Matrix room](https://matrix.to/#/#como:matrix.org).
+
 [aur-package]: https://aur.archlinux.org/packages/disman-kwinft
-[disman-log-debug]: https://gitlab.com/kwinft/disman/-/blob/master/CONTRIBUTING.md#logging-and-debugging
-[issues]: https://gitlab.com/kwinft/disman/-/issues
-[kdisplay]: https://gitlab.com/kwinft/kdisplay
-[kdisplay-config]: https://gitlab.com/kwinft/kdisplay/-/blob/master/kcm/config_handler.cpp
+[disman-log-debug]: https://github.com/winft/disman/blob/master/CONTRIBUTING.md#logging-and-debugging
+[issues]: https://github.com/winft/disman/issues
+[kdisplay]: https://github.com/winft/kdisplay
+[kdisplay-config]: https://github.com/winft/kdisplay/blob/master/kcm/config_handler.cpp
 [plasma-schedule]: https://community.kde.org/Schedules/Plasma_5
 [sddm]: https://en.wikipedia.org/wiki/Simple_Desktop_Display_Manager
