@@ -1,11 +1,13 @@
 # Contributing to Disman
 
- - [Logging and Debugging](#logging-and-debugging)
-     - [Runtime logging](#runtime-logging)
-     - [Disman's D-Bus backend service](#dismans-d-bus-backend-service)
- - [Submission Guideline](#submission-guideline)
- - [Commit Message Guideline](#commit-message-guideline)
- - [Contact](#contact)
+- [Contributing to Disman](#contributing-to-disman)
+  - [Logging and Debugging](#logging-and-debugging)
+    - [Runtime logging](#runtime-logging)
+    - [Disman's D-Bus backend service](#dismans-d-bus-backend-service)
+  - [Submission Guideline](#submission-guideline)
+  - [Commit Message Guideline](#commit-message-guideline)
+    - [Example](#example)
+    - [Tooling](#tooling)
 
 ## Logging and Debugging
 The first step in contributing to the project
@@ -50,10 +52,10 @@ detail in Wrapland's [Contributing document][wrapland-submissions].
 
 *Summarizing the main points:*
 
-* Use [merge requests][merge-request] directly for smaller contributions, but create
+* Use [pull requests][pull-request] directly for smaller contributions, but create
   [issue tickets][issue] *beforehand* for [larger changes][wrapland-large-changes].
 * Adhere to the [KDE Frameworks Coding Style][frameworks-style].
-* Merge requests have to be posted against master or a feature branch. Commits to the stable branch
+* Pull requests have to be posted against master or a feature branch. Commits to the stable branch
   are only cherry-picked from the master branch after some testing on the master branch.
 
 ## Commit Message Guideline
@@ -88,18 +90,14 @@ amendments:
 ### Tooling
 See [Wrapland's documentation][wrapland-tooling] for available tooling.
 
-## Contact
-See [Wrapland's documentation][wrapland-contact] for contact information.
-
 [angular-revert]: https://github.com/angular/angular/blob/3cf2005a936bec2058610b0786dd0671dae3d358/CONTRIBUTING.md#revert
 [angular-subject]: https://github.com/angular/angular/blob/3cf2005a936bec2058610b0786dd0671dae3d358/CONTRIBUTING.md#subject
 [conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0/#specification
 [frameworks-style]: https://community.kde.org/Policies/Frameworks_Coding_Style
-[issue]: https://gitlab.com/kwinft/disman/-/issues
-[kdisplay-log-debug]: https://gitlab.com/kwinft/kdisplay/-/blob/master/CONTRIBUTING.md#logging-and-debugging
-[merge-request]: https://gitlab.com/kwinft/disman/-/merge_requests
+[issue]: https://github.com/winft/disman/issues
+[kdisplay-log-debug]: https://github.com/winft/kdisplay/blob/master/CONTRIBUTING.md#logging-and-debugging
+[pull-request]: https://github.com/winft/disman/pulls
 [plasma-schedule]: https://community.kde.org/Schedules/Plasma_5
-[wrapland-contact]: https://gitlab.com/kwinft/wrapland/-/blob/master/CONTRIBUTING.md#contact
-[wrapland-large-changes]: https://gitlab.com/kwinft/wrapland/-/blob/master/CONTRIBUTING.md#issues-for-large-changes
-[wrapland-submissions]: https://gitlab.com/kwinft/wrapland/-/blob/master/CONTRIBUTING.md#submission-guideline
-[wrapland-tooling]: https://gitlab.com/kwinft/wrapland/-/blob/master/CONTRIBUTING.md#tooling
+[wrapland-large-changes]: https://github.com/winft/wrapland/blob/master/CONTRIBUTING.md#issues-for-large-changes
+[wrapland-submissions]: https://github.com/winft/wrapland/blob/master/CONTRIBUTING.md#submission-guideline
+[wrapland-tooling]: https://github.com/winft/wrapland/blob/master/CONTRIBUTING.md#tooling
