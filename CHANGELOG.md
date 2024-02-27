@@ -1,5 +1,34 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.600.0](https://github.com/winft/disman/compare/disman@0.527.0-beta.0...v0.600.0) (2024-02-27)
+
+
+### Features
+
+* support adaptive sync ([489f693](https://github.com/winft/disman/commit/489f6938ff25a41819c36f81df9f62bee7c776ff))
+* use Qt 6 ([83882d9](https://github.com/winft/disman/commit/83882d98d3884d7bbcb4fda22400447ff7561484))
+* **wayland:** remove kwayland backend plugin ([4740511](https://github.com/winft/disman/commit/4740511e1d64ed1a295a513b627bcb44185ce7d6))
+* **wayland:** remove kwinft backend plugin ([0a834f0](https://github.com/winft/disman/commit/0a834f0a1d3b0aea00bae4d932e9f650838406c2))
+
+
+### Bug Fixes
+
+* **lib:** define mode getter ([b834776](https://github.com/winft/disman/commit/b83477690f24a823e212571446aa53e8107e7d13))
+* **wayland:** check on head being enabled ([9c18165](https://github.com/winft/disman/commit/9c1816563da3793fa0b03e0939b430073f138296))
+* **wayland:** report interface initialized even if blocking ([501008e](https://github.com/winft/disman/commit/501008ed3edb8f7d77c5f3a473b287cbc46c982e))
+* **wayland:** set tablet mode suport ([2a75c4c](https://github.com/winft/disman/commit/2a75c4cfa0d7e41b3bd5ab6dc8502db35645ee37))
+
+
+### Refactors
+
+* **wayland:** add tablet mode struct ([86d46ae](https://github.com/winft/disman/commit/86d46ae4aadf40884c1cd2a26e8f467d7a7d2d91))
+* **wayland:** merge function to add output ([e309aec](https://github.com/winft/disman/commit/e309aece20a6e2e94e762f71d05c1f95831040f9))
+* **wayland:** remove check on registry init ([b8e088a](https://github.com/winft/disman/commit/b8e088a7134991d3cf5c5f807e4bd2cac178f398))
+* **wayland:** remove output with simple erase operation ([cd430c7](https://github.com/winft/disman/commit/cd430c7ec0ef2be94a4fe6910d3fe038dea6416d))
+* **wayland:** remove plugin infrastructure ([b61846f](https://github.com/winft/disman/commit/b61846fc3c7b782e1c929f47a17cf05ced305a6d))
+* **wayland:** simplify output code ([1285abe](https://github.com/winft/disman/commit/1285abef559ddf99bd0818ae9cf2212a67da77a6))
+* **wayland:** sync on done event ([b8ff21e](https://github.com/winft/disman/commit/b8ff21e87a8657427d34b96dbb28c7aa3241ee1a))
+
 ## [0.527.0](https://gitlab.com/kwinft/disman/compare/disman@0.527.0-beta.0...disman@0.527.0) (2023-02-17)
 
 ## [0.527.0-beta.0](https://gitlab.com/kwinft/disman/compare/disman@0.526.0-beta.0...disman@0.527.0-beta.0) (2023-02-16)
