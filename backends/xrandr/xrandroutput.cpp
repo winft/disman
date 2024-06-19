@@ -31,7 +31,7 @@
 
 Q_DECLARE_METATYPE(QList<int>)
 
-#define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t)((d)*65536))
+#define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t)((d) * 65536))
 #define FIXED_TO_DOUBLE(f) ((double)((f) / 65536.0))
 
 xcb_render_fixed_t fOne = DOUBLE_TO_FIXED(1);
