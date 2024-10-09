@@ -1,5 +1,7 @@
 # Changelog
 All notable changes to Disman will be documented in this file.
+## [0.602.0](https://github.com/winft/disman/compare/v0.601.0...v0.602.0) (2024-10-09)
+
 ## [0.601.0](https://github.com/winft/disman/compare/v0.600.0...v0.601.0) (2024-06-19)
 
 ## [0.600.0](https://github.com/winft/disman/compare/disman@0.527.0-beta.0...v0.600.0) (2024-02-27)
